@@ -117,7 +117,7 @@ export function useHomePL(): HomePLData {
     const marketDependentEquity = marketAppreciation + totalRenoValueAdded;
 
     // Section 4
-    const monthlyCostOfOwnership = paidMonthsOwned > 0 ? sunkCost / paidMonthsOwned : 0;
+    const monthlyCostOfOwnership = monthsOwned > 0 ? sunkCost / monthsOwned : 0;
 
     // Section 5
     const totalRentWouldHavePaid = homePLConfig.estimatedMonthlyRent * monthsOwned;
