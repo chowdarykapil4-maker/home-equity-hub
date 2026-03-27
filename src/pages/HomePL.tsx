@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { HomePLConfig } from '@/context/AppContext';
 import { useHomePL } from '@/hooks/useHomePL';
