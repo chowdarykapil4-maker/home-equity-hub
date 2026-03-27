@@ -64,11 +64,12 @@ export default function HomePL() {
             {prorated ? <ToggleRight className="h-4 w-4 text-primary" /> : <ToggleLeft className="h-4 w-4" />}
             <span>{prorated ? 'Prorated' : 'Completed years'}</span>
           </button>
-        {!editing && (
-          <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
-            <Settings2 className="h-3 w-3" /> Edit assumptions
-          </button>
-        )}
+          {!editing && (
+            <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
+              <Settings2 className="h-3 w-3" /> Edit assumptions
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Assumptions editor */}
