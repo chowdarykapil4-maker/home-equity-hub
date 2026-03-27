@@ -1,4 +1,4 @@
-import { LayoutDashboard, Hammer, Settings, Home, Landmark } from 'lucide-react';
+import { LayoutDashboard, Hammer, Settings, Home, Landmark, TrendingUp, CreditCard } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
