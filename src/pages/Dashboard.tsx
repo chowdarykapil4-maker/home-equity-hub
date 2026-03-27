@@ -22,9 +22,15 @@ export default function Dashboard() {
   const pl = useHomePL();
 
   const completedProjects = projects.filter(p => p.status === 'Complete');
+  const tax = homePLConfig.tax;
   const rentInvest10 = useMemo(() =>
     calculateRentInvest(10, pl.monthsOwned, pl.downPayment, mortgage, homePLConfig, completedProjects, pl.wealthBuilt, pl.sunkCost, pl.purchaseDate),
     [pl, mortgage, homePLConfig, completedProjects]
+  );
+  const taxAdj10 = useMemo(() => calculateTaxAdjusted(pl, rentInvest10, tax), [pl, rentInvest10, tax]);
+  const breakeven10 = useMemo(() =>
+    calculateBreakevenTimeline(pl.downPayment, pl.purchasePrice, mortgage, homePLConfig, tax, 10, pl.totalRenoValueAdded, 15),
+    [pl, mortgage, homePLConfig, tax]
   );
 
   const completeProjects = completedProjects;
