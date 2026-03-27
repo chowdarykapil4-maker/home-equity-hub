@@ -194,5 +194,5 @@ export function useHomePL(): HomePLData {
       monthlyWealthCreation, sunkCostDiff,
       chartData, crossoverMonth,
     };
-  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig, prorated]);
+  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig]);
 }
