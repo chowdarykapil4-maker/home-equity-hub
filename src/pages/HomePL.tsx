@@ -45,7 +45,10 @@ export default function HomePL() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Home P&L</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Home P&L</h2>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Based on {d.monthsOwned} months of ownership since {d.purchaseDate.substring(0, 7)}</p>
+        </div>
         {!editing && (
           <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
             <Settings2 className="h-3 w-3" /> Edit assumptions
