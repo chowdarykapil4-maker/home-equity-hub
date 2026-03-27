@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
