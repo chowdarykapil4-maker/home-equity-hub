@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
@@ -5,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
+import { calculateRentInvest } from '@/lib/rentInvest';
 import { Link } from 'react-router-dom';
 
 const CHART_COLORS = [
@@ -14,10 +16,16 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries } = useAppContext();
+  const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
   const pl = useHomePL();
 
-  const completeProjects = projects.filter(p => p.status === 'Complete');
+  const completedProjects = projects.filter(p => p.status === 'Complete');
+  const rentInvest10 = useMemo(() =>
+    calculateRentInvest(10, pl.monthsOwned, pl.downPayment, mortgage, homePLConfig, completedProjects, pl.wealthBuilt, pl.sunkCost, pl.purchaseDate),
+    [pl, mortgage, homePLConfig, completedProjects]
+  );
+
+  const completeProjects = completedProjects;
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
@@ -224,7 +232,13 @@ export default function Dashboard() {
               <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
             </div>
           </div>
-          <Link to="/home-pl" className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">View full P&L →</Link>
+          <div className="flex items-center gap-2 mt-2">
+            <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">View full P&L →</Link>
+            <span className="text-[11px] text-muted-foreground">·</span>
+            <Link to="/home-pl" className={`text-xs hover:underline ${rentInvest10.ownershipMargin >= 0 ? 'text-success' : 'text-warning'}`}>
+              vs. rent + invest (10%): {rentInvest10.ownershipMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(rentInvest10.ownershipMargin))}
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
