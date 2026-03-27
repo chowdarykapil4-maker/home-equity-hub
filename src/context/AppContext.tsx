@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, calculatePaymentSplit } from '@/types';
+import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, BudgetConfig, PlanningColumnsConfig, calculatePaymentSplit } from '@/types';
 
 interface AppState {
   property: PropertyProfile;
@@ -10,6 +10,8 @@ interface AppState {
   financingEntries: FinancingEntry[];
   helocConfig: HELOCConfig;
   cashBudget: number;
+  budgetConfig: BudgetConfig;
+  planningColumns: PlanningColumnsConfig;
   setProperty: (p: PropertyProfile) => void;
   setProjects: (p: RenovationProject[]) => void;
   addProject: (p: RenovationProject) => void;
@@ -30,6 +32,8 @@ interface AppState {
   deleteFinancingEntry: (id: string) => void;
   setHelocConfig: (h: HELOCConfig) => void;
   setCashBudget: (n: number) => void;
+  setBudgetConfig: (b: BudgetConfig) => void;
+  setPlanningColumns: (p: PlanningColumnsConfig) => void;
 }
 
 const defaultProperty: PropertyProfile = {
@@ -54,21 +58,21 @@ const defaultProjects: RenovationProject[] = [
   { id: 'rp-006', projectName: 'Daikin mini split HVAC (loft)', status: 'Complete', category: 'HVAC & Mechanical', dateCompleted: '2026-03-10', estimateLow: 6000, estimateHigh: 7500, actualCost: 6600, vendorName: 'A-1 Heating (Brad, #966809)', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Daikin Oterra 230V 21 SEER2 (FTXF12BVJU9 indoor / RXF12BVJU9 outdoor), 12K BTU R-32. Financed at $6,600 over 25 months 0% APR ($264/mo). Warranty registered through 3/10/2038 (12yr parts, 3yr labor). Google Home + Daikin ONE Home app integrated.' },
   { id: 'rp-007', projectName: 'Garage door opener replacement (LiftMaster 2420L)', status: 'Complete', category: 'Other', dateCompleted: '2025-11-15', estimateLow: 300, estimateHigh: 500, actualCost: 400, vendorName: '', roiCategory: 'Low 35%', customROIPercentage: 0, notes: 'LiftMaster 2420L chain drive 3/4 HP. Replaced broken Genie Excelerator screw drive.' },
   { id: 'rp-008', projectName: 'Microwave replacement (LG 2.0 cu ft OTR)', status: 'Complete', category: 'Kitchen & Bath', dateCompleted: '2026-01-15', estimateLow: 350, estimateHigh: 550, actualCost: 450, vendorName: '', roiCategory: 'Maintenance 10%', customROIPercentage: 0, notes: 'Samsung magnetron failure after ~3.5 years. Replaced with LG 2.0 cu ft OTR from Costco (delivery + install + haul-away bundled).' },
-  { id: 'rp-009', projectName: '4 patio door replacements (fiberglass double-pane Low-E argon)', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 8000, estimateHigh: 15000, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: '3 loft + 1 ground floor guest BR. Fiberglass, double-pane Low-E argon, U≤0.30, SHGC≤0.25. Bundle under one contractor for volume discount. Target summer-fall 2026 before siding.' },
-  { id: 'rp-010', projectName: 'Guest bath window replacement', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 500, estimateHigh: 1200, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Bundle with patio doors for volume discount' },
-  { id: 'rp-011', projectName: 'Garage window replacement', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 500, estimateHigh: 1200, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Bundle with patio doors for volume discount' },
-  { id: 'rp-012', projectName: '2 side entrance doors', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 800, estimateHigh: 2400, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Wooden doors currently loose. Replace with solid weather-sealed doors.' },
-  { id: 'rp-013', projectName: 'Colored stucco siding (Santa Barbara finish)', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 10250, estimateHigh: 14500, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Option B Santa Barbara finish, ~1,500 sqft. Must complete after window/door replacements. Coordinate with insulated garage door for savings.' },
-  { id: 'rp-014', projectName: 'Insulated garage door', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 1000, estimateHigh: 3500, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 95, notes: 'Coordinate installation with stucco for cost savings. Garage doors have highest ROI of any renovation nationally.' },
-  { id: 'rp-015', projectName: 'Dual fiberglass front door with glass', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 1500, estimateHigh: 6500, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Install after stucco cures. Fiberglass with glass panels.' },
-  { id: 'rp-016', projectName: 'All interior doors replacement', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Medium 60%', customROIPercentage: 0, notes: 'Replace all interior doors throughout the house' },
-  { id: 'rp-017', projectName: 'Kitchen cabinet refacing', status: 'Wishlist', category: 'Kitchen & Bath', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 85, notes: 'Minor kitchen remodel — reface cabinets, update hardware. Highest ROI kitchen project.' },
-  { id: 'rp-018', projectName: '3 bathroom vanities + mirrors', status: 'Wishlist', category: 'Kitchen & Bath', dateCompleted: '', estimateLow: 2000, estimateHigh: 6000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 65, notes: 'Update vanities and mirrors in all 3 bathrooms' },
-  { id: 'rp-019', projectName: 'Loft flooring + stairs', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 3000, estimateHigh: 7000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 70, notes: 'New flooring in loft area and stair treads' },
-  { id: 'rp-020', projectName: 'Loft repaint with board-and-batten accent wall', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 1000, estimateHigh: 3000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 65, notes: 'Vertical board-and-batten accent wall in deep sage green. Remaining walls warm cream/soft greige.' },
-  { id: 'rp-021', projectName: 'Upstairs patio structural repair', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 30, notes: 'Structural assessment and repair needed for upstairs patio' },
-  { id: 'rp-022', projectName: 'Crawl space encapsulation', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Low 35%', customROIPercentage: 0, notes: '6-mil poly vapor barrier + dehumidification. Recommended after ductwork replacement.' },
-  { id: 'rp-023', projectName: 'Exterior painting (post-stucco)', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Exterior paint job after stucco siding is complete and cured.' },
+  { id: 'rp-009', projectName: '4 patio door replacements (fiberglass double-pane Low-E argon)', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 8000, estimateHigh: 15000, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: '3 loft + 1 ground floor guest BR. Fiberglass, double-pane Low-E argon, U≤0.30, SHGC≤0.25. Bundle under one contractor for volume discount. Target summer-fall 2026 before siding.', planningColumn: 'Q2-Q3 2026', subStatus: 'Researching' },
+  { id: 'rp-010', projectName: 'Guest bath window replacement', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 500, estimateHigh: 1200, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Bundle with patio doors for volume discount', planningColumn: 'Q2-Q3 2026', subStatus: 'Researching' },
+  { id: 'rp-011', projectName: 'Garage window replacement', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 500, estimateHigh: 1200, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Bundle with patio doors for volume discount', planningColumn: 'Q2-Q3 2026', subStatus: 'Researching' },
+  { id: 'rp-012', projectName: '2 side entrance doors', status: 'Planned 2026', category: 'Windows & Doors', dateCompleted: '', estimateLow: 800, estimateHigh: 2400, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Wooden doors currently loose. Replace with solid weather-sealed doors.', planningColumn: 'Q4 2026', subStatus: 'Researching' },
+  { id: 'rp-013', projectName: 'Colored stucco siding (Santa Barbara finish)', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 10250, estimateHigh: 14500, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Option B Santa Barbara finish, ~1,500 sqft. Must complete after window/door replacements. Coordinate with insulated garage door for savings.', planningColumn: '2027', dependencies: ['rp-009', 'rp-010', 'rp-011', 'rp-012'] },
+  { id: 'rp-014', projectName: 'Insulated garage door', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 1000, estimateHigh: 3500, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 95, notes: 'Coordinate installation with stucco for cost savings. Garage doors have highest ROI of any renovation nationally.', planningColumn: '2027' },
+  { id: 'rp-015', projectName: 'Dual fiberglass front door with glass', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 1500, estimateHigh: 6500, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Install after stucco cures. Fiberglass with glass panels.', planningColumn: '2027', dependencies: ['rp-013'] },
+  { id: 'rp-016', projectName: 'All interior doors replacement', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Medium 60%', customROIPercentage: 0, notes: 'Replace all interior doors throughout the house', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-017', projectName: 'Kitchen cabinet refacing', status: 'Wishlist', category: 'Kitchen & Bath', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 85, notes: 'Minor kitchen remodel — reface cabinets, update hardware. Highest ROI kitchen project.', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-018', projectName: '3 bathroom vanities + mirrors', status: 'Wishlist', category: 'Kitchen & Bath', dateCompleted: '', estimateLow: 2000, estimateHigh: 6000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 65, notes: 'Update vanities and mirrors in all 3 bathrooms', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-019', projectName: 'Loft flooring + stairs', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 3000, estimateHigh: 7000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 70, notes: 'New flooring in loft area and stair treads', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-020', projectName: 'Loft repaint with board-and-batten accent wall', status: 'Wishlist', category: 'Interior Finish', dateCompleted: '', estimateLow: 1000, estimateHigh: 3000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 65, notes: 'Vertical board-and-batten accent wall in deep sage green. Remaining walls warm cream/soft greige.', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-021', projectName: 'Upstairs patio structural repair', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 30, notes: 'Structural assessment and repair needed for upstairs patio', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-022', projectName: 'Crawl space encapsulation', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Low 35%', customROIPercentage: 0, notes: '6-mil poly vapor barrier + dehumidification. Recommended after ductwork replacement.', dateAddedToWishlist: '2025-01-01' },
+  { id: 'rp-023', projectName: 'Exterior painting (post-stucco)', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Exterior paint job after stucco siding is complete and cured.', planningColumn: '2027', dependencies: ['rp-013'] },
 ];
 
 const defaultMortgage: MortgageProfile = {
@@ -181,7 +185,16 @@ function loadFromStorage<T>(key: string, fallback: T): T {
     }
     if (key === 'casakat_projects') {
       const stored = localStorage.getItem(key);
-      if (stored) { const parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length === 0) { localStorage.removeItem(key); return fallback; } return parsed; }
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length === 0) { localStorage.removeItem(key); return fallback; }
+        // Migration: if projects lack new planning fields, reset to defaults
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.find((p: any) => p.id === 'rp-013') && !parsed.find((p: any) => p.id === 'rp-013')?.dependencies) {
+          localStorage.removeItem(key);
+          return fallback;
+        }
+        return parsed;
+      }
       return fallback;
     }
     const stored = localStorage.getItem(key);
@@ -190,6 +203,8 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 }
 
 const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
+const defaultBudgetConfig: BudgetConfig = { '2026': 30000, '2027': 30000 };
+const defaultPlanningColumns: PlanningColumnsConfig = { columns: ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'] };
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
@@ -203,6 +218,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [financingEntries, setFinancingEntries] = useState<FinancingEntry[]>(() => loadFromStorage('casakat_financing_entries', []));
   const [helocConfig, setHelocConfig] = useState<HELOCConfig>(() => loadFromStorage('casakat_heloc_config', defaultHelocConfig));
   const [cashBudget, setCashBudget] = useState<number>(() => loadFromStorage('casakat_cash_budget', 0));
+  const [budgetConfig, setBudgetConfig] = useState<BudgetConfig>(() => loadFromStorage('casakat_budget_config', defaultBudgetConfig));
+  const [planningColumns, setPlanningColumns] = useState<PlanningColumnsConfig>(() => loadFromStorage('casakat_planning_columns', defaultPlanningColumns));
 
   useEffect(() => {
     const updated = autoGeneratePayments(mortgagePayments, mortgage.interestRate);
@@ -217,6 +234,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('casakat_financing_entries', JSON.stringify(financingEntries)); }, [financingEntries]);
   useEffect(() => { localStorage.setItem('casakat_heloc_config', JSON.stringify(helocConfig)); }, [helocConfig]);
   useEffect(() => { localStorage.setItem('casakat_cash_budget', JSON.stringify(cashBudget)); }, [cashBudget]);
+  useEffect(() => { localStorage.setItem('casakat_budget_config', JSON.stringify(budgetConfig)); }, [budgetConfig]);
+  useEffect(() => { localStorage.setItem('casakat_planning_columns', JSON.stringify(planningColumns)); }, [planningColumns]);
 
   const addProject = (p: RenovationProject) => setProjects(prev => [...prev, p]);
   const updateProject = (p: RenovationProject) => setProjects(prev => prev.map(x => x.id === p.id ? p : x));
@@ -233,8 +252,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget,
-      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget,
+      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget, budgetConfig, planningColumns,
+      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget, setBudgetConfig, setPlanningColumns,
       addProject, updateProject, deleteProject,
       addMortgagePayment, updateMortgagePayment, deleteMortgagePayment,
       addValueEntry, updateValueEntry, deleteValueEntry,
