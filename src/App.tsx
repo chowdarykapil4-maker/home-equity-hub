@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Renovations from "./pages/Renovations";
 import PropertyProfile from "./pages/PropertyProfile";
+import Mortgage from "./pages/Mortgage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
