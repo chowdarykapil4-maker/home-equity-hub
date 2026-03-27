@@ -6,13 +6,12 @@ export default function MoneyFlowBar({ d }: { d: HomePLData }) {
   const sunkPct = 100 - equityPct;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+    <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">Where your money went</p>
-        <p className="text-sm font-bold tabular-nums">{formatCurrency(d.totalCashOut)} total cash out</p>
+        <p className="text-[13px] font-medium text-foreground">Where your money went</p>
+        <p className="text-[13px] font-bold tabular-nums">{formatCurrency(d.totalCashOut)} total cash out</p>
       </div>
 
-      {/* Stacked bar */}
       <div className="relative h-8 rounded-lg overflow-hidden flex">
         <div
           className="bg-success/80 flex items-center justify-center transition-all"

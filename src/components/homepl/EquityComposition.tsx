@@ -21,14 +21,13 @@ export default function EquityComposition({ d }: { d: HomePLData }) {
   const marketPct = 100 - guaranteedPct;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+    <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">Equity composition</p>
-        <p className="text-sm font-bold text-success tabular-nums">{formatCurrency(total)}</p>
+        <p className="text-[13px] font-medium text-foreground">Equity composition</p>
+        <p className="text-[13px] font-bold text-success tabular-nums">{formatCurrency(total)}</p>
       </div>
 
-      {/* Stacked bar */}
-      <div className="relative h-7 rounded-lg overflow-hidden flex">
+      <div className="relative h-6 rounded-lg overflow-hidden flex">
         {segments.map(seg => {
           const pct = total > 0 ? (seg.value / total) * 100 : 0;
           return (
@@ -48,18 +47,18 @@ export default function EquityComposition({ d }: { d: HomePLData }) {
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1">
+      {/* Legend — inline */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
         {segments.map(seg => (
-          <div key={seg.label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: seg.color }} />
+          <div key={seg.label} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: seg.color }} />
             <span className="text-[11px] text-muted-foreground">{seg.label}</span>
           </div>
         ))}
       </div>
 
       {/* Guaranteed vs market */}
-      <div className="flex justify-between text-xs pt-1 border-t border-border">
+      <div className="flex justify-between text-xs border-t border-border pt-1.5">
         <span className="text-muted-foreground">
           Guaranteed: <span className="font-semibold text-foreground">{formatCurrency(d.guaranteedEquity)} ({guaranteedPct}%)</span>
         </span>
