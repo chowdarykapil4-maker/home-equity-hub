@@ -139,7 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadFromStorage('casakat_mortgage', defaultMortgage)
   );
   const [mortgagePayments, setMortgagePayments] = useState<MortgagePayment[]>(() =>
-    loadFromStorage('casakat_mortgage_payments', [])
+    loadFromStorage('casakat_mortgage_payments', defaultPayments)
   );
 
   useEffect(() => { localStorage.setItem('casakat_property', JSON.stringify(property)); }, [property]);
