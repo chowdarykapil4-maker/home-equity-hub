@@ -1,12 +1,21 @@
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
+import ScenarioDelta from './ScenarioDelta';
 
-export default function OwnVsRent({ d }: { d: HomePLData }) {
+interface Props {
+  d: HomePLData;
+  baseD?: HomePLData;
+  scenarioActive?: boolean;
+}
+
+export default function OwnVsRent({ d, baseD, scenarioActive = false }: Props) {
+  const b = baseD || d;
   const ownerTotal = d.totalCashOut;
   const renterTotal = d.totalRentWouldHavePaid;
+  const isUnderwater = d.wealthBuilt < 0;
 
-  const ownerEquityPct = ownerTotal > 0 ? (d.wealthBuilt / ownerTotal) * 100 : 0;
-  const ownerSunkPct = 100 - ownerEquityPct;
+  const ownerEquityPct = isUnderwater ? 0 : (ownerTotal > 0 ? (d.wealthBuilt / ownerTotal) * 100 : 0);
+  const ownerSunkPct = isUnderwater ? 100 : (100 - ownerEquityPct);
   const renterFillPct = ownerTotal > 0 ? (renterTotal / ownerTotal) * 100 : 50;
 
   const barHeight = 120;
@@ -20,16 +29,21 @@ export default function OwnVsRent({ d }: { d: HomePLData }) {
         <div className="space-y-1.5 pr-px">
           <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">You (owner)</p>
           <div className="rounded-l-lg overflow-hidden flex flex-col" style={{ height: barHeight }}>
-            <div className="bg-success/80 flex items-center justify-center" style={{ flex: ownerEquityPct }}>
-              <span className="text-[11px] font-semibold text-success-foreground">{formatCurrency(d.wealthBuilt)} equity</span>
-            </div>
+            {!isUnderwater && ownerEquityPct > 0 && (
+              <div className="bg-success/80 flex items-center justify-center" style={{ flex: ownerEquityPct }}>
+                <span className="text-[11px] font-semibold text-success-foreground">{formatCurrency(d.wealthBuilt)} equity</span>
+              </div>
+            )}
             <div className="bg-destructive/60 flex items-center justify-center" style={{ flex: ownerSunkPct }}>
               <span className="text-[11px] font-semibold text-destructive-foreground">{formatCurrency(d.sunkCost)} sunk</span>
             </div>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">{formatCurrency(ownerTotal)} total</p>
-            <p className="text-sm font-bold text-success">+{formatCurrency(d.wealthBuilt)} in equity</p>
+            <p className={`text-sm font-bold ${d.wealthBuilt >= 0 ? 'text-success' : 'text-destructive'}`}>
+              {d.wealthBuilt >= 0 ? '+' : ''}{formatCurrency(d.wealthBuilt)} in equity
+              <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
+            </p>
           </div>
         </div>
 
@@ -53,8 +67,11 @@ export default function OwnVsRent({ d }: { d: HomePLData }) {
 
       {/* Summary line */}
       <p className="text-[13px] text-center text-muted-foreground">
-        You spent {formatCurrency(Math.abs(ownerTotal - renterTotal))} more but built {formatCurrency(d.wealthBuilt)} in equity →{' '}
-        <span className="font-bold text-success">Net: +{formatCurrency(d.ownershipAdvantage)}</span>
+        You spent {formatCurrency(Math.abs(ownerTotal - renterTotal))} more but built {formatCurrency(Math.max(0, d.wealthBuilt))} in equity →{' '}
+        <span className={`font-bold ${d.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>
+          Net: {d.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(d.ownershipAdvantage)}
+          <ScenarioDelta scenarioVal={d.ownershipAdvantage} baseVal={b.ownershipAdvantage} active={scenarioActive} />
+        </span>
       </p>
     </div>
   );

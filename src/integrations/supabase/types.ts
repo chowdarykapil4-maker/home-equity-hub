@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      auto_refresh_settings: {
+        Row: {
+          api_calls_month_start: string | null
+          api_calls_this_month: number
+          created_at: string
+          id: string
+          last_auto_refresh_date: string | null
+          refresh_interval_days: number
+          rentcast_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_calls_month_start?: string | null
+          api_calls_this_month?: number
+          created_at?: string
+          id?: string
+          last_auto_refresh_date?: string | null
+          refresh_interval_days?: number
+          rentcast_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_calls_month_start?: string | null
+          api_calls_this_month?: number
+          created_at?: string
+          id?: string
+          last_auto_refresh_date?: string | null
+          refresh_interval_days?: number
+          rentcast_api_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
