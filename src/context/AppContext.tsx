@@ -28,6 +28,19 @@ const AppContext = createContext<AppState | undefined>(undefined);
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
+    // Force refresh property defaults if address is empty (old cached data)
+    if (key === 'casakat_property') {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (!parsed.address) {
+          localStorage.removeItem(key);
+          return fallback;
+        }
+        return parsed;
+      }
+      return fallback;
+    }
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : fallback;
   } catch { return fallback; }
