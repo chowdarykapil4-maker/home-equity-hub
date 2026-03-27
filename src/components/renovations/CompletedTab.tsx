@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import {
   RenovationProject, ProjectCategory, ROICategory,
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ChevronDown, Trophy, DollarSign, TrendingUp, BarChart3, Calendar,
-  Plus, Pencil, Trash2,
+  Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, X,
 } from 'lucide-react';
 
 const CATEGORIES: ProjectCategory[] = ['Structural', 'HVAC & Mechanical', 'Insulation & Envelope', 'Windows & Doors', 'Interior Finish', 'Kitchen & Bath', 'Exterior', 'Electrical', 'Plumbing', 'Landscaping', 'Other'];
@@ -32,28 +32,73 @@ const emptyForm = (): Omit<RenovationProject, 'id'> => ({
   roiCategory: 'Medium 60%', customROIPercentage: 0, notes: '',
 });
 
+type SortOrder = 'newest' | 'oldest' | 'cost-high' | 'cost-low';
+
 export default function CompletedTab({ projects }: Props) {
   const { addProject, updateProject, deleteProject } = useAppContext();
-  const sorted = [...projects]
-    .filter(p => p.status === 'Complete')
-    .sort((a, b) => (b.dateCompleted || '').localeCompare(a.dateCompleted || ''));
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<RenovationProject | null>(null);
   const [form, setForm] = useState(emptyForm());
 
-  const totalSpent = sorted.reduce((s, p) => s + p.actualCost, 0);
-  const totalValueAdded = sorted.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
-  const avgCost = sorted.length > 0 ? totalSpent / sorted.length : 0;
-  const bestROI = sorted.length > 0
-    ? sorted.reduce((best, p) => getROIPercentage(p) > getROIPercentage(best) ? p : best, sorted[0])
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const completed = useMemo(() => projects.filter(p => p.status === 'Complete'), [projects]);
+
+  const filtered = useMemo(() => {
+    let result = [...completed];
+
+    // Search across all fields
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(p =>
+        p.projectName.toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.vendorName || '').toLowerCase().includes(q) ||
+        (p.notes || '').toLowerCase().includes(q) ||
+        (p.roiCategory || '').toLowerCase().includes(q) ||
+        String(p.actualCost).includes(q) ||
+        (p.dateCompleted || '').includes(q)
+      );
+    }
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      result = result.filter(p => p.category === categoryFilter);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortOrder) {
+        case 'oldest': return (a.dateCompleted || '').localeCompare(b.dateCompleted || '');
+        case 'cost-high': return b.actualCost - a.actualCost;
+        case 'cost-low': return a.actualCost - b.actualCost;
+        default: return (b.dateCompleted || '').localeCompare(a.dateCompleted || '');
+      }
+    });
+
+    return result;
+  }, [completed, searchQuery, sortOrder, categoryFilter]);
+
+  const totalSpent = completed.reduce((s, p) => s + p.actualCost, 0);
+  const totalValueAdded = completed.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
+  const avgCost = completed.length > 0 ? totalSpent / completed.length : 0;
+  const bestROI = completed.length > 0
+    ? completed.reduce((best, p) => getROIPercentage(p) > getROIPercentage(best) ? p : best, completed[0])
     : null;
 
   const yearTotals: Record<string, number> = {};
-  sorted.forEach(p => {
+  completed.forEach(p => {
     const year = p.dateCompleted ? new Date(p.dateCompleted).getFullYear().toString() : 'Unknown';
     yearTotals[year] = (yearTotals[year] || 0) + p.actualCost;
   });
+
+  const activeCategories = useMemo(() => {
+    const cats = new Set(completed.map(p => p.category));
+    return CATEGORIES.filter(c => cats.has(c));
+  }, [completed]);
 
   const openNew = () => { setEditing(null); setForm(emptyForm()); setDialogOpen(true); };
   const openEdit = (p: RenovationProject) => { setEditing(p); setForm({ ...p }); setDialogOpen(true); };
@@ -68,11 +113,13 @@ export default function CompletedTab({ projects }: Props) {
   };
   const handleDelete = (id: string) => { if (confirm('Delete this project?')) deleteProject(id); };
 
+  const hasActiveFilters = searchQuery || categoryFilter !== 'all' || sortOrder !== 'newest';
+
   return (
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <SummaryCard icon={<BarChart3 className="h-4 w-4" />} label="Completed" value={String(sorted.length)} />
+        <SummaryCard icon={<BarChart3 className="h-4 w-4" />} label="Completed" value={String(completed.length)} />
         <SummaryCard icon={<DollarSign className="h-4 w-4" />} label="Total Spent" value={formatCurrency(totalSpent)} />
         <SummaryCard icon={<TrendingUp className="h-4 w-4" />} label="Value Added" value={formatCurrency(totalValueAdded)} />
         <SummaryCard icon={<Trophy className="h-4 w-4" />} label="Best ROI" value={bestROI ? bestROI.projectName.slice(0, 20) : '—'} sub={bestROI ? formatPercent(getROIPercentage(bestROI)) : ''} />
@@ -91,19 +138,67 @@ export default function CompletedTab({ projects }: Props) {
         </Card>
       </div>
 
-      {/* Add button */}
-      <div className="flex justify-end">
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Add Completed Project</Button>
+      {/* Toolbar: Search + Sort + Filter + Add */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search projects, vendors, notes…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <Select value={sortOrder} onValueChange={v => setSortOrder(v as SortOrder)}>
+          <SelectTrigger className="w-[160px] shrink-0">
+            <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+            <SelectItem value="cost-high">Cost: High → Low</SelectItem>
+            <SelectItem value="cost-low">Cost: Low → High</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-[180px] shrink-0">
+            <Filter className="h-3.5 w-3.5 mr-1.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {activeCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button onClick={openNew} className="shrink-0"><Plus className="h-4 w-4 mr-1" /> Add</Button>
       </div>
+
+      {/* Active filter indicator */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Showing {filtered.length} of {completed.length} projects</span>
+          <button onClick={() => { setSearchQuery(''); setCategoryFilter('all'); setSortOrder('newest'); }} className="text-primary hover:underline">
+            Clear filters
+          </button>
+        </div>
+      )}
 
       {/* Timeline */}
       <div className="relative">
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
         <div className="space-y-4">
-          {sorted.length === 0 && (
-            <p className="text-muted-foreground text-center py-12">No completed projects yet.</p>
+          {filtered.length === 0 && (
+            <p className="text-muted-foreground text-center py-12">
+              {completed.length === 0 ? 'No completed projects yet.' : 'No projects match your filters.'}
+            </p>
           )}
-          {sorted.map(p => (
+          {filtered.map(p => (
             <TimelineCard key={p.id} project={p} onEdit={openEdit} onDelete={handleDelete} />
           ))}
         </div>
