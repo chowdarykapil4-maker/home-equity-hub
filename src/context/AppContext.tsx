@@ -116,7 +116,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       const stored = localStorage.getItem(key);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length === 0) {
+        if (Array.isArray(parsed) && (parsed.length === 0 || (parsed.length > 0 && parsed[0].paymentAmount !== 6600))) {
           return fallback;
         }
         return parsed;
