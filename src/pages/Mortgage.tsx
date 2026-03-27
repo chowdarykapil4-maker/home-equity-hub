@@ -55,17 +55,24 @@ export default function MortgagePage() {
     return (currentBalance * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   })();
 
-  // Quick add payment
+  // Quick add payment - uses monthly payment amount, extra goes to principal
   const handleQuickAdd = () => {
     const prevBalance = currentBalance;
-    const { interest, principal, newBalance } = calculatePaymentSplit(prevBalance, mortgage.interestRate, mortgage.monthlyPayment, 0);
+    const piPayment = 6557.54; // base P&I
+    const totalPayment = mortgage.monthlyPayment;
+    const extraPrincipal = Math.round((totalPayment - piPayment) * 100) / 100;
+    const { interest, principal, newBalance } = calculatePaymentSplit(prevBalance, mortgage.interestRate, piPayment, extraPrincipal);
+    // Use last day of current month
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const dateStr = lastDay.toISOString().split('T')[0];
     const payment: MortgagePayment = {
       id: crypto.randomUUID(),
-      paymentDate: new Date().toISOString().split('T')[0],
-      paymentAmount: mortgage.monthlyPayment,
+      paymentDate: dateStr,
+      paymentAmount: totalPayment,
       principalPortion: principal,
       interestPortion: interest,
-      extraPrincipal: 0,
+      extraPrincipal: extraPrincipal,
       remainingBalance: newBalance,
       notes: '',
     };
