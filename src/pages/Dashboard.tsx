@@ -1,86 +1,82 @@
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded } from '@/types';
+import { getEstimatedValueAdded, calculateBlendedValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const CHART_COLORS = [
   'hsl(217, 91%, 50%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)',
   'hsl(0, 84%, 60%)', 'hsl(270, 60%, 55%)', 'hsl(190, 70%, 45%)',
   'hsl(330, 70%, 55%)', 'hsl(50, 80%, 50%)', 'hsl(160, 60%, 40%)',
-  'hsl(210, 50%, 60%)', 'hsl(25, 80%, 50%)',
 ];
 
 export default function Dashboard() {
-  const { property, projects, mortgage, mortgagePayments } = useAppContext();
+  const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries } = useAppContext();
 
   const completeProjects = projects.filter(p => p.status === 'Complete');
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
+  // Blended value
+  const { value: blendedValue, sourceCount } = calculateBlendedValue(valueEntries);
+  const homeValue = blendedValue > 0 ? blendedValue : property.currentEstimatedValue;
+
   // Live mortgage balance
   const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
-  const liveMortgageBalance = sortedPayments.length > 0
-    ? sortedPayments[sortedPayments.length - 1].remainingBalance
-    : mortgage.originalLoanAmount;
+  const mortgageBalance = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].remainingBalance : mortgage.originalLoanAmount;
   const lastPaymentDate = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].paymentDate : null;
 
-  // Check if payment logged this month
   const now = new Date();
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const paidThisMonth = lastPaymentDate?.startsWith(currentMonthStr);
 
-  // Principal paid this year
   const currentYear = now.getFullYear().toString();
-  const principalThisYear = sortedPayments
-    .filter(p => p.paymentDate.startsWith(currentYear))
-    .reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
+  const principalThisYear = sortedPayments.filter(p => p.paymentDate.startsWith(currentYear)).reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
 
-  const netEquity = property.currentEstimatedValue - liveMortgageBalance;
-  const unrealizedGainLoss = property.currentEstimatedValue - property.purchasePrice - property.closingCosts - totalSpent;
+  // Financing
+  const totalHelocDrawn = financingEntries.filter(f => f.type === 'HELOC Draw').reduce((s, f) => s + f.remainingBalance, 0);
+  const totalFinancingMonthly = financingEntries.reduce((s, f) => s + f.monthlyPayment, 0);
+  const totalMonthlyObligations = mortgage.monthlyPayment + totalFinancingMonthly;
+
+  // Equity
+  const netEquity = homeValue - mortgageBalance - totalHelocDrawn;
+  const ltv = homeValue > 0 ? (mortgageBalance / homeValue) * 100 : 0;
+  const cltv = homeValue > 0 ? ((mortgageBalance + totalHelocDrawn) / homeValue) * 100 : 0;
+  const availableHeloc80 = Math.max(0, homeValue * 0.80 - mortgageBalance - totalHelocDrawn);
+  const availableHeloc90 = Math.max(0, homeValue * 0.90 - mortgageBalance - totalHelocDrawn);
+
+  const unrealizedGainLoss = homeValue - property.purchasePrice - property.closingCosts - totalSpent;
+
+  // Value trend sparkline (last 6 entries)
+  const valueTrend = [...valueEntries].sort((a, b) => a.date.localeCompare(b.date)).slice(-6).map(e => ({ date: e.date, v: e.estimatedValue }));
+
+  // Last value update
+  const latestValueEntry = valueEntries.length > 0 ? [...valueEntries].sort((a, b) => b.date.localeCompare(a.date))[0] : null;
+  const daysSinceUpdate = latestValueEntry ? Math.floor((now.getTime() - new Date(latestValueEntry.date).getTime()) / 86400000) : Infinity;
 
   // Bar chart: spending by year
   const yearMap: Record<string, number> = {};
   projects.forEach(p => {
     let year = '';
-    if (p.status === 'Complete' && p.dateCompleted) {
-      year = new Date(p.dateCompleted).getFullYear().toString();
-    } else if (p.status === 'Planned 2026') year = '2026';
+    if (p.status === 'Complete' && p.dateCompleted) year = new Date(p.dateCompleted).getFullYear().toString();
+    else if (p.status === 'Planned 2026') year = '2026';
     else if (p.status === 'Planned 2027') year = '2027';
     else return;
     const cost = p.status === 'Complete' ? p.actualCost : (p.estimateLow + p.estimateHigh) / 2;
     yearMap[year] = (yearMap[year] || 0) + cost;
   });
-  const yearData = Object.entries(yearMap).sort((a, b) => a[0].localeCompare(b[0])).map(([year, amount]) => ({ year, amount }));
+  const yearData = Object.entries(yearMap).sort().map(([year, amount]) => ({ year, amount }));
 
-  // Donut chart: by category
   const catMap: Record<string, number> = {};
   completeProjects.forEach(p => { catMap[p.category] = (catMap[p.category] || 0) + p.actualCost; });
   const catData = Object.entries(catMap).map(([name, value]) => ({ name, value }));
 
-  // Waterfall
-  const marketAppreciation = property.currentEstimatedValue - property.purchasePrice - totalValueAdded;
+  const marketAppreciation = homeValue - property.purchasePrice - totalValueAdded;
   const waterfallData = [
     { name: 'Purchase Price', value: property.purchasePrice },
     { name: 'Market Appreciation', value: Math.max(0, marketAppreciation) },
     { name: 'Renovation Value', value: totalValueAdded },
-  ];
-
-  const metrics = [
-    { label: 'Current Home Value', value: formatCurrency(property.currentEstimatedValue), icon: Home, color: 'text-primary' },
-    {
-      label: 'Mortgage Balance',
-      value: formatCurrency(liveMortgageBalance),
-      icon: Landmark,
-      color: 'text-muted-foreground',
-      sub: lastPaymentDate
-        ? <span className={paidThisMonth ? 'text-muted-foreground' : 'text-warning'}>Last payment: {lastPaymentDate}</span>
-        : <span className="text-warning">No payments logged</span>,
-    },
-    { label: 'Net Equity', value: formatCurrency(netEquity), icon: PiggyBank, color: 'text-success' },
-    { label: 'Total Renovation Spend', value: formatCurrency(totalSpent), icon: DollarSign, color: 'text-primary' },
-    { label: 'Principal Paid This Year', value: formatCurrency(principalThisYear), icon: CalendarCheck, color: 'text-success' },
   ];
 
   return (
@@ -88,34 +84,118 @@ export default function Dashboard() {
       <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
 
       {/* Hero Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {metrics.map(m => (
-          <Card key={m.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.label}</CardTitle>
-              <m.icon className={`h-5 w-5 ${m.color}`} />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{m.value}</p>
-              {'sub' in m && m.sub && <p className="text-xs mt-1">{m.sub}</p>}
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {/* Home Value with sparkline */}
+        <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Blended Home Value</CardTitle>
+            <Home className="h-5 w-5 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{formatCurrency(homeValue)}</p>
+            {valueTrend.length > 1 && (
+              <div className="h-8 mt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            <p className={`text-xs mt-1 ${daysSinceUpdate > 30 ? 'text-warning' : 'text-muted-foreground'}`}>
+              {latestValueEntry ? (daysSinceUpdate > 30 ? 'Consider updating' : `Updated ${latestValueEntry.date}`) : 'No value entries yet'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Mortgage Balance</CardTitle>
+            <Landmark className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{formatCurrency(mortgageBalance)}</p>
+            <p className={`text-xs mt-1 ${paidThisMonth ? 'text-muted-foreground' : 'text-warning'}`}>
+              {lastPaymentDate ? `Last payment: ${lastPaymentDate}` : 'No payments logged'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Equity</CardTitle>
+            <PiggyBank className="h-5 w-5 text-success" />
+          </CardHeader>
+          <CardContent><p className={`text-2xl font-bold ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</p></CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Renovation Spend</CardTitle>
+            <DollarSign className="h-5 w-5 text-primary" />
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{formatCurrency(totalSpent)}</p></CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Principal This Year</CardTitle>
+            <CalendarCheck className="h-5 w-5 text-success" />
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold text-success">{formatCurrency(principalThisYear)}</p></CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Obligations</CardTitle>
+            <Receipt className="h-5 w-5 text-warning" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{formatCurrency(totalMonthlyObligations)}</p>
+            <p className="text-xs text-muted-foreground">Mortgage + Financing</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Equity Position Summary */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Equity Position Summary</CardTitle></CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm text-muted-foreground">Blended Home Value</span>
+              <span className="text-lg font-semibold">{formatCurrency(homeValue)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-t">
+              <span className="text-sm text-muted-foreground">Minus: Mortgage Balance</span>
+              <span className="text-lg font-semibold text-destructive">−{formatCurrency(mortgageBalance)}</span>
+            </div>
+            {totalHelocDrawn > 0 && (
+              <div className="flex justify-between items-center py-2 border-t">
+                <span className="text-sm text-muted-foreground">Minus: HELOC Drawn</span>
+                <span className="text-lg font-semibold text-destructive">−{formatCurrency(totalHelocDrawn)}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center py-3 border-t-2 border-foreground/20">
+              <span className="text-base font-bold">NET EQUITY</span>
+              <span className={`text-2xl font-bold ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-4 border-t">
+            <div><p className="text-xs text-muted-foreground">LTV Ratio</p><p className="text-lg font-bold">{formatPercent(ltv)}</p></div>
+            <div><p className="text-xs text-muted-foreground">CLTV Ratio</p><p className="text-lg font-bold">{formatPercent(cltv)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 80% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc80)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 90% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc90)}</p></div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Unrealized Gain/Loss */}
       <Card>
         <CardContent className="pt-6 flex items-center gap-3">
-          {unrealizedGainLoss >= 0 ? (
-            <TrendingUp className="h-6 w-6 text-success" />
-          ) : (
-            <TrendingDown className="h-6 w-6 text-destructive" />
-          )}
+          {unrealizedGainLoss >= 0 ? <TrendingUp className="h-6 w-6 text-success" /> : <TrendingDown className="h-6 w-6 text-destructive" />}
           <div>
             <p className="text-sm text-muted-foreground">Unrealized Gain/Loss</p>
-            <p className={`text-2xl font-bold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {formatCurrency(unrealizedGainLoss)}
-            </p>
+            <p className={`text-2xl font-bold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(unrealizedGainLoss)}</p>
           </div>
         </CardContent>
       </Card>
@@ -134,7 +214,7 @@ export default function Dashboard() {
                   <Bar dataKey="amount" fill="hsl(217, 91%, 50%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-muted-foreground text-sm text-center pt-12">No data yet. Add renovation projects to see spending trends.</p>}
+            ) : <p className="text-muted-foreground text-sm text-center pt-12">No data yet.</p>}
           </CardContent>
         </Card>
 
@@ -156,11 +236,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Waterfall */}
+      {/* Value Waterfall */}
       <Card>
         <CardHeader><CardTitle className="text-base">Value Waterfall</CardTitle></CardHeader>
         <CardContent className="h-64">
-          {property.currentEstimatedValue > 0 ? (
+          {homeValue > 0 && property.purchasePrice > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={waterfallData} layout="vertical">
                 <XAxis type="number" tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
@@ -171,7 +251,7 @@ export default function Dashboard() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <p className="text-muted-foreground text-sm text-center pt-12">Set your property details to see the value waterfall.</p>}
+          ) : <p className="text-muted-foreground text-sm text-center pt-12">Set purchase price and home value to see the waterfall.</p>}
         </CardContent>
       </Card>
     </div>
