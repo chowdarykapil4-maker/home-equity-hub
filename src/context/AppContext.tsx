@@ -193,7 +193,7 @@ const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
-  const [projects, setProjects] = useState<RenovationProject[]>(() => loadFromStorage('casakat_projects', []));
+  const [projects, setProjects] = useState<RenovationProject[]>(() => loadFromStorage('casakat_projects', defaultProjects));
   const [mortgage, setMortgage] = useState<MortgageProfile>(() => loadFromStorage('casakat_mortgage', defaultMortgage));
   const [mortgagePayments, setMortgagePayments] = useState<MortgagePayment[]>(() => {
     const loaded = loadFromStorage('casakat_mortgage_payments', defaultPayments);
