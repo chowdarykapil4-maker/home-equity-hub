@@ -15,8 +15,14 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries } = useAppContext();
+  const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
   const pl = useHomePL();
+
+  const completedProjects = projects.filter(p => p.status === 'Complete');
+  const rentInvest10 = useMemo(() =>
+    calculateRentInvest(10, pl.monthsOwned, pl.downPayment, mortgage, homePLConfig, completedProjects, pl.wealthBuilt, pl.sunkCost, pl.purchaseDate),
+    [pl, mortgage, homePLConfig, completedProjects]
+  );
 
   const completeProjects = projects.filter(p => p.status === 'Complete');
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
