@@ -58,6 +58,18 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       }
       return fallback;
     }
+    if (key === 'casakat_mortgage') {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.monthlyPayment === 6190 || parsed.originalLoanAmount === 1090000) {
+          localStorage.removeItem(key);
+          return fallback;
+        }
+        return parsed;
+      }
+      return fallback;
+    }
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : fallback;
   } catch { return fallback; }
