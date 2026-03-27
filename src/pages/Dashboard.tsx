@@ -15,6 +15,7 @@ const CHART_COLORS = [
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries } = useAppContext();
+  const pl = useHomePL();
 
   const completeProjects = projects.filter(p => p.status === 'Complete');
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
