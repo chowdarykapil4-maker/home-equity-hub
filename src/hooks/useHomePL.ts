@@ -74,6 +74,10 @@ export function useHomePL(): HomePLData {
     const monthsOwned = Math.max(0, (now.getFullYear() - pYear) * 12 + (now.getMonth() + 1 - pMonth));
     const yearsOwned = monthsOwned / 12;
 
+    // Paid-to-date period (completed years only)
+    const completedYearsOwned = Math.floor(monthsOwned / 12);
+    const paidMonthsOwned = completedYearsOwned * 12;
+
     // Home value
     const { value: blendedValue } = calculateBlendedValue(valueEntries);
     const currentHomeValue = blendedValue > 0 ? blendedValue : property.currentEstimatedValue;
@@ -91,11 +95,11 @@ export function useHomePL(): HomePLData {
     const netRenoCost = totalRenoSpend - totalRenoValueAdded;
     const renoRecoveryPct = totalRenoSpend > 0 ? (totalRenoValueAdded / totalRenoSpend) * 100 : 0;
 
-    // Ownership costs
-    const totalPropertyTax = homePLConfig.annualPropertyTax * yearsOwned;
-    const totalInsurance = homePLConfig.monthlyInsurance * monthsOwned;
-    const totalHOA = homePLConfig.monthlyHOA * monthsOwned;
-    const totalMaintenance = homePLConfig.annualMaintenance * yearsOwned;
+    // Ownership costs (paid-to-date)
+    const totalPropertyTax = homePLConfig.annualPropertyTax * completedYearsOwned;
+    const totalInsurance = homePLConfig.monthlyInsurance * paidMonthsOwned;
+    const totalHOA = homePLConfig.monthlyHOA * paidMonthsOwned;
+    const totalMaintenance = homePLConfig.annualMaintenance * completedYearsOwned;
 
     // Section 1
     const totalCashInvested = downPayment + principalPaid + totalRenoSpend + totalPropertyTax + totalInsurance + totalMaintenance + totalHOA + interestPaid;
@@ -117,7 +121,7 @@ export function useHomePL(): HomePLData {
     const marketDependentEquity = marketAppreciation + totalRenoValueAdded;
 
     // Section 4
-    const monthlyCostOfOwnership = monthsOwned > 0 ? sunkCost / monthsOwned : 0;
+    const monthlyCostOfOwnership = paidMonthsOwned > 0 ? sunkCost / paidMonthsOwned : 0;
 
     // Section 5
     const totalRentWouldHavePaid = homePLConfig.estimatedMonthlyRent * monthsOwned;
