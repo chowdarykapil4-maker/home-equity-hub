@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
+import { calculateRentInvest } from '@/lib/rentInvest';
 import { Link } from 'react-router-dom';
 
 const CHART_COLORS = [

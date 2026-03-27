@@ -53,6 +53,7 @@ export default function HomePL() {
       <MoneyFlowBar d={scenario} />
       <EquityComposition d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
       <OwnVsRent d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+      <RentVsInvest d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
       <DetailedBreakdown d={scenario} />
       <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
       <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
