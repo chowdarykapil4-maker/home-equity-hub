@@ -236,6 +236,40 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Renovation Pipeline */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Renovation Pipeline</CardTitle></CardHeader>
+        <CardContent>
+          {(() => {
+            const wishlist = projects.filter(p => p.status === 'Wishlist');
+            const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
+            const wishlistVal = wishlist.reduce((s, p) => s + getEstimateMidpoint(p), 0);
+            const plannedVal = planned.reduce((s, p) => s + getEstimateMidpoint(p), 0);
+            return (
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <div className="text-center bg-muted rounded-lg px-4 py-3 min-w-[120px]">
+                  <p className="text-2xl font-bold">{wishlist.length}</p>
+                  <p className="text-xs text-muted-foreground">Wishlist</p>
+                  <p className="text-xs text-muted-foreground">{formatCurrency(wishlistVal)}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                <div className="text-center bg-primary/10 rounded-lg px-4 py-3 min-w-[120px]">
+                  <p className="text-2xl font-bold text-primary">{planned.length}</p>
+                  <p className="text-xs text-muted-foreground">Planned</p>
+                  <p className="text-xs text-muted-foreground">{formatCurrency(plannedVal)}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                <div className="text-center bg-success/10 rounded-lg px-4 py-3 min-w-[120px]">
+                  <p className="text-2xl font-bold text-success">{completeProjects.length}</p>
+                  <p className="text-xs text-muted-foreground">Completed</p>
+                  <p className="text-xs text-muted-foreground">{formatCurrency(totalSpent)}</p>
+                </div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
       {/* Value Waterfall */}
       <Card>
         <CardHeader><CardTitle className="text-base">Value Waterfall</CardTitle></CardHeader>
