@@ -95,11 +95,13 @@ export function useHomePL(prorated = false): HomePLData {
     const netRenoCost = totalRenoSpend - totalRenoValueAdded;
     const renoRecoveryPct = totalRenoSpend > 0 ? (totalRenoValueAdded / totalRenoSpend) * 100 : 0;
 
-    // Ownership costs (paid-to-date)
-    const totalPropertyTax = homePLConfig.annualPropertyTax * completedYearsOwned;
-    const totalInsurance = homePLConfig.monthlyInsurance * paidMonthsOwned;
-    const totalHOA = homePLConfig.monthlyHOA * paidMonthsOwned;
-    const totalMaintenance = homePLConfig.annualMaintenance * completedYearsOwned;
+    // Ownership costs
+    const costYears = prorated ? yearsOwned : completedYearsOwned;
+    const costMonths = prorated ? monthsOwned : paidMonthsOwned;
+    const totalPropertyTax = homePLConfig.annualPropertyTax * costYears;
+    const totalInsurance = homePLConfig.monthlyInsurance * costMonths;
+    const totalHOA = homePLConfig.monthlyHOA * costMonths;
+    const totalMaintenance = homePLConfig.annualMaintenance * costYears;
 
     // Section 1
     const totalCashInvested = downPayment + principalPaid + totalRenoSpend + totalPropertyTax + totalInsurance + totalMaintenance + totalHOA + interestPaid;
