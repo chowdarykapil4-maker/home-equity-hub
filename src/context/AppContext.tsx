@@ -205,10 +205,10 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length === 0) { localStorage.removeItem(key); return fallback; }
-        // Migration: if projects lack new planning fields, reset to defaults
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed.find((p: any) => p.id === 'rp-013') && !parsed.find((p: any) => p.id === 'rp-013')?.dependencies) {
-          localStorage.removeItem(key);
-          return fallback;
+        // Migration v3: force reset if old data (missing rp-001 as Pre-purchase inspections)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const first = parsed.find((p: any) => p.id === 'rp-001');
+          if (first && !first.projectName.startsWith('Pre-purchase')) { localStorage.removeItem(key); return fallback; }
         }
         return parsed;
       }
