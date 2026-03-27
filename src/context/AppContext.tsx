@@ -166,7 +166,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     if (key === 'casakat_property') {
       const stored = localStorage.getItem(key);
-      if (stored) { const parsed = JSON.parse(stored); if (!parsed.address) { localStorage.removeItem(key); return fallback; } return parsed; }
+      if (stored) { const parsed = JSON.parse(stored); if (!parsed.address || parsed.purchasePrice === 0) { localStorage.removeItem(key); return fallback; } return parsed; }
       return fallback;
     }
     if (key === 'casakat_mortgage') {
@@ -177,6 +177,11 @@ function loadFromStorage<T>(key: string, fallback: T): T {
     if (key === 'casakat_mortgage_payments') {
       const stored = localStorage.getItem(key);
       if (stored) { const parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].paymentAmount === 6600) { localStorage.removeItem(key); return fallback; } if (Array.isArray(parsed) && parsed.length === 0) { return fallback; } return parsed; }
+      return fallback;
+    }
+    if (key === 'casakat_projects') {
+      const stored = localStorage.getItem(key);
+      if (stored) { const parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length === 0) { localStorage.removeItem(key); return fallback; } return parsed; }
       return fallback;
     }
     const stored = localStorage.getItem(key);
