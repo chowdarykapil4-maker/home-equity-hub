@@ -32,13 +32,13 @@ const defaultProperty: PropertyProfile = {
 };
 
 const defaultMortgage: MortgageProfile = {
-  originalLoanAmount: 1090000,
-  loanStartDate: '2022-10-01',
+  originalLoanAmount: 1155000,
+  loanStartDate: '2022-11-01',
   interestRate: 5.5,
   loanType: '10yr ARM',
-  armResetDate: '2032-10-01',
+  armResetDate: '2032-11-01',
   loanTermYears: 30,
-  monthlyPayment: 6190,
+  monthlyPayment: 6557.54,
   estimatedMarketRate: 6.5,
 };
 
@@ -51,6 +51,18 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (!parsed.address) {
+          localStorage.removeItem(key);
+          return fallback;
+        }
+        return parsed;
+      }
+      return fallback;
+    }
+    if (key === 'casakat_mortgage') {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.monthlyPayment === 6190 || parsed.originalLoanAmount === 1090000) {
           localStorage.removeItem(key);
           return fallback;
         }
