@@ -7,6 +7,8 @@ import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, Calend
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
 import { calculateRentInvest } from '@/lib/rentInvest';
+import { calculateTaxAdjusted } from '@/lib/taxCalcs';
+import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
 
 const CHART_COLORS = [
