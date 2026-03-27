@@ -32,7 +32,7 @@ const defaultProperty: PropertyProfile = {
 };
 
 const defaultMortgage: MortgageProfile = {
-  originalLoanAmount: 1155000,
+  originalLoanAmount: 1156000,
   loanStartDate: '2022-11-01',
   interestRate: 5.5,
   loanType: '10yr ARM',
