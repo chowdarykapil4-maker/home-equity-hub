@@ -38,7 +38,7 @@ const defaultMortgage: MortgageProfile = {
   loanType: '10yr ARM',
   armResetDate: '2032-11-01',
   loanTermYears: 30,
-  monthlyPayment: 6557.54,
+  monthlyPayment: 6600,
   estimatedMarketRate: 6.5,
 };
 
