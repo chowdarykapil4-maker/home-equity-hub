@@ -240,11 +240,17 @@ export default function Dashboard() {
               <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex flex-col gap-1 mt-2">
             <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">View full P&L →</Link>
-            <span className="text-[11px] text-muted-foreground">·</span>
-            <Link to="/home-pl" className={`text-xs hover:underline ${rentInvest10.ownershipMargin >= 0 ? 'text-success' : 'text-warning'}`}>
-              vs. rent + invest (10%): {rentInvest10.ownershipMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(rentInvest10.ownershipMargin))}
+            <Link to="/home-pl" className={`text-xs hover:underline ${taxAdj10.afterTaxMargin >= 0 ? 'text-success' : 'text-warning'}`}>
+              vs. rent + invest (10%, after-tax): {taxAdj10.afterTaxMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
+            </Link>
+            <Link to="/home-pl" className="text-xs text-muted-foreground hover:underline">
+              {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
+                ? `Past breakeven — owning advantage growing`
+                : breakeven10.crossoverYear
+                  ? `Breakeven: Year ${breakeven10.crossoverYear}`
+                  : 'Breakeven: 15+ years'}
             </Link>
           </div>
         </CardContent>
