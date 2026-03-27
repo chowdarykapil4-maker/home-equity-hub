@@ -104,7 +104,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       const stored = localStorage.getItem(key);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.monthlyPayment === 6190 || parsed.originalLoanAmount === 1090000 || parsed.originalLoanAmount === 1155000) {
+        if (parsed.monthlyPayment === 6190 || parsed.monthlyPayment === 6557.54 || parsed.originalLoanAmount === 1090000 || parsed.originalLoanAmount === 1155000) {
           localStorage.removeItem(key);
           return fallback;
         }
