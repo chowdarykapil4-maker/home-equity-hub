@@ -157,8 +157,8 @@ export function useHomePL(): HomePLData {
     });
 
     let cumPrincipal = 0;
-    const startYear = pd.getFullYear();
-    const startMonth = pd.getMonth();
+    const startYear = pYear;
+    const startMonth = pMonth - 1; // 0-indexed for chart loop
 
     for (let i = 0; i <= monthsOwned; i++) {
       const y = startYear + Math.floor((startMonth + i) / 12);
