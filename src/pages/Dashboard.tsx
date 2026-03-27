@@ -232,7 +232,13 @@ export default function Dashboard() {
               <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
             </div>
           </div>
-          <Link to="/home-pl" className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">View full P&L →</Link>
+          <div className="flex items-center gap-2 mt-2">
+            <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">View full P&L →</Link>
+            <span className="text-[11px] text-muted-foreground">·</span>
+            <Link to="/home-pl" className={`text-xs hover:underline ${rentInvest10.ownershipMargin >= 0 ? 'text-success' : 'text-warning'}`}>
+              vs. rent + invest (10%): {rentInvest10.ownershipMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(rentInvest10.ownershipMargin))}
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
