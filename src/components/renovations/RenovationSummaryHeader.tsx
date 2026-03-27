@@ -120,35 +120,35 @@ export default function RenovationSummaryHeader({ projects, onTabChange }: Props
           {detailOpen ? 'Hide breakdown' : 'Show breakdown'}
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-3 pb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 px-3 pb-3">
             {/* By year */}
-            <div className="space-y-1">
+            <div className="border border-border rounded-l-lg md:rounded-r-none p-3 space-y-1">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">By year</p>
               {spendingByYear.map(([year, amount]) => (
                 <div key={year} className="flex items-center gap-1.5 text-[11px]">
                   <span className="w-7 text-muted-foreground shrink-0">{year}</span>
-                  <div className="w-[60px] h-[10px] rounded bg-muted overflow-hidden shrink-0">
+                  <div className="flex-1 h-[10px] rounded bg-muted overflow-hidden">
                     <div className="h-full rounded bg-primary" style={{ width: `${(amount / maxYearSpend) * 100}%` }} />
                   </div>
-                  <span className="text-foreground font-medium">{abbreviate(amount)}</span>
+                  <span className="text-foreground font-medium shrink-0">{abbreviate(amount)}</span>
                 </div>
               ))}
             </div>
 
             {/* Top categories */}
-            <div className="space-y-1">
+            <div className="border border-border border-l-0 p-3 space-y-1">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Top categories</p>
               {topCategories.map(({ category, amount }) => (
                 <div key={category} className="flex items-center gap-1.5 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[category] || 'hsl(215,16%,47%)' }} />
                   <span className="flex-1 text-muted-foreground truncate">{category}</span>
-                  <span className="text-foreground font-medium">{abbreviate(amount)}</span>
+                  <span className="text-foreground font-medium shrink-0">{abbreviate(amount)}</span>
                 </div>
               ))}
             </div>
 
             {/* ROI leaders */}
-            <div className="space-y-1.5">
+            <div className="border border-border border-l-0 rounded-r-lg md:rounded-l-none p-3 space-y-1.5">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">ROI leaders</p>
               {roiLeaders && (
                 <>
