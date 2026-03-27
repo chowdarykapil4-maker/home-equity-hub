@@ -1,8 +1,8 @@
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, calculateBlendedValue } from '@/types';
+import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const CHART_COLORS = [
