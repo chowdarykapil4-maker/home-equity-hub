@@ -59,7 +59,7 @@ export interface HomePLData {
   crossoverMonth: string | null;
 }
 
-export function useHomePL(prorated = false): HomePLData {
+export function useHomePL(): HomePLData {
   const { property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig } = useAppContext();
 
   return useMemo(() => {
@@ -73,10 +73,6 @@ export function useHomePL(prorated = false): HomePLData {
     const [pYear, pMonth] = purchaseDate.split('-').map(Number);
     const monthsOwned = Math.max(0, (now.getFullYear() - pYear) * 12 + (now.getMonth() + 1 - pMonth));
     const yearsOwned = monthsOwned / 12;
-
-    // Paid-to-date period (completed years only)
-    const completedYearsOwned = Math.floor(monthsOwned / 12);
-    const paidMonthsOwned = completedYearsOwned * 12;
 
     // Home value
     const { value: blendedValue } = calculateBlendedValue(valueEntries);
@@ -95,13 +91,11 @@ export function useHomePL(prorated = false): HomePLData {
     const netRenoCost = totalRenoSpend - totalRenoValueAdded;
     const renoRecoveryPct = totalRenoSpend > 0 ? (totalRenoValueAdded / totalRenoSpend) * 100 : 0;
 
-    // Ownership costs
-    const costYears = prorated ? yearsOwned : completedYearsOwned;
-    const costMonths = prorated ? monthsOwned : paidMonthsOwned;
-    const totalPropertyTax = homePLConfig.annualPropertyTax * costYears;
-    const totalInsurance = homePLConfig.monthlyInsurance * costMonths;
-    const totalHOA = homePLConfig.monthlyHOA * costMonths;
-    const totalMaintenance = homePLConfig.annualMaintenance * costYears;
+    // Ownership costs (rolling months)
+    const totalPropertyTax = homePLConfig.annualPropertyTax * yearsOwned;
+    const totalInsurance = homePLConfig.monthlyInsurance * monthsOwned;
+    const totalHOA = homePLConfig.monthlyHOA * monthsOwned;
+    const totalMaintenance = homePLConfig.annualMaintenance * yearsOwned;
 
     // Section 1
     const totalCashInvested = downPayment + principalPaid + totalRenoSpend + totalPropertyTax + totalInsurance + totalMaintenance + totalHOA + interestPaid;
@@ -123,7 +117,7 @@ export function useHomePL(prorated = false): HomePLData {
     const marketDependentEquity = marketAppreciation + totalRenoValueAdded;
 
     // Section 4
-    const monthlyCostOfOwnership = paidMonthsOwned > 0 ? sunkCost / paidMonthsOwned : 0;
+    const monthlyCostOfOwnership = monthsOwned > 0 ? sunkCost / monthsOwned : 0;
 
     // Section 5
     const totalRentWouldHavePaid = homePLConfig.estimatedMonthlyRent * monthsOwned;
@@ -176,9 +170,7 @@ export function useHomePL(prorated = false): HomePLData {
         cumSunk += pm.interest;
         cumPrincipal += pm.principal;
       }
-      if (i <= paidMonthsOwned) {
-        cumSunk += monthlyTax + monthlyIns + monthlyHoa + monthlyMaint;
-      }
+      cumSunk += monthlyTax + monthlyIns + monthlyHoa + monthlyMaint;
       cumSunk += (renoSunkByMonth[key] || 0);
       cumRent += monthlyRent;
 
@@ -202,5 +194,5 @@ export function useHomePL(prorated = false): HomePLData {
       monthlyWealthCreation, sunkCostDiff,
       chartData, crossoverMonth,
     };
-  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig, prorated]);
+  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig]);
 }

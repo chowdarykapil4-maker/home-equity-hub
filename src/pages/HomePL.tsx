@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { HomePLConfig } from '@/context/AppContext';
 import { useHomePL } from '@/hooks/useHomePL';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Settings2, TrendingUp, DollarSign, Percent, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Settings2, TrendingUp, DollarSign, Percent, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, Legend } from 'recharts';
 
 function TagBadge({ type }: { type: 'equity' | 'sunk' | 'guaranteed' | 'market' }) {
@@ -27,10 +27,7 @@ export default function HomePL() {
   const { homePLConfig, setHomePLConfig } = useAppContext();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<HomePLConfig>(homePLConfig);
-  const [prorated, setProrated] = useState(false);
-  const d = useHomePL(prorated);
-  const completedYearsOwned = Math.floor(d.monthsOwned / 12);
-  const paidMonthsOwned = completedYearsOwned * 12;
+  const d = useHomePL();
 
   const saveConfig = () => { setHomePLConfig(draft); setEditing(false); };
 
@@ -51,25 +48,12 @@ export default function HomePL() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Home P&L</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">Based on {d.monthsOwned} months of ownership since {d.purchaseDate.substring(0, 7)}</p>
-          <p className="text-[11px] text-muted-foreground">
-            {prorated ? `Prorated costs across ${d.monthsOwned} months` : `Paid-to-date costs use ${completedYearsOwned} completed years (${paidMonthsOwned} months)`}
-          </p>
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setProrated(!prorated)}
-            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
-            title={prorated ? 'Switch to completed years' : 'Switch to prorated'}
-          >
-            {prorated ? <ToggleRight className="h-4 w-4 text-primary" /> : <ToggleLeft className="h-4 w-4" />}
-            <span>{prorated ? 'Prorated' : 'Completed years'}</span>
+        {!editing && (
+          <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Settings2 className="h-3 w-3" /> Edit assumptions
           </button>
-          {!editing && (
-            <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
-              <Settings2 className="h-3 w-3" /> Edit assumptions
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Assumptions editor */}
