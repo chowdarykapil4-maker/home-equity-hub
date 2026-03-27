@@ -115,9 +115,7 @@ export default function CompletedTab({ projects }: Props) {
   const hasActiveFilters = searchQuery || categoryFilter !== 'all' || sortOrder !== 'newest';
 
   return (
-    <div className="space-y-6">
-      {/* Toolbar: Search + Sort + Filter + Add */}
-
+    <div className="space-y-4">
       {/* Toolbar: Search + Sort + Filter + Add */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
