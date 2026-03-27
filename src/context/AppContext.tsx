@@ -12,15 +12,15 @@ interface AppState {
 }
 
 const defaultProperty: PropertyProfile = {
-  address: '',
+  address: '5269 Bristol Pl, Newark, CA 94560',
   purchasePrice: 0,
-  purchaseDate: '',
+  purchaseDate: '2015-01-01',
   closingCosts: 0,
-  currentEstimatedValue: 0,
-  valueLastUpdated: '',
-  valueSource: 'Manual',
-  yearBuilt: 2000,
-  squareFootage: 0,
+  currentEstimatedValue: 1682300,
+  valueLastUpdated: '2026-03-27',
+  valueSource: 'Zillow',
+  yearBuilt: 1967,
+  squareFootage: 2018,
   mortgageBalance: 0,
 };
 
