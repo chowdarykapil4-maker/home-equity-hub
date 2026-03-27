@@ -174,7 +174,9 @@ export function useHomePL(): HomePLData {
         cumSunk += pm.interest;
         cumPrincipal += pm.principal;
       }
-      cumSunk += monthlyTax + monthlyIns + monthlyHoa + monthlyMaint;
+      if (i <= paidMonthsOwned) {
+        cumSunk += monthlyTax + monthlyIns + monthlyHoa + monthlyMaint;
+      }
       cumSunk += (renoSunkByMonth[key] || 0);
       cumRent += monthlyRent;
 
