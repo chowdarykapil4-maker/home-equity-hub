@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Renovations from "./pages/Renovations";
 import PropertyProfile from "./pages/PropertyProfile";
 import Mortgage from "./pages/Mortgage";
+import ValueHistory from "./pages/ValueHistory";
+import Financing from "./pages/Financing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
