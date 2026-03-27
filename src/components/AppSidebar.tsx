@@ -16,6 +16,8 @@ const items = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Renovations', url: '/renovations', icon: Hammer },
   { title: 'Mortgage', url: '/mortgage', icon: Landmark },
+  { title: 'Value History', url: '/value-history', icon: TrendingUp },
+  { title: 'Financing', url: '/financing', icon: CreditCard },
   { title: 'Property Profile', url: '/property', icon: Settings },
 ];
 
