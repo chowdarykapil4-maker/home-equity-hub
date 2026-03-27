@@ -282,8 +282,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget, budgetConfig, planningColumns,
-      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget, setBudgetConfig, setPlanningColumns,
+      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget, budgetConfig, planningColumns, homePLConfig,
+      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget, setBudgetConfig, setPlanningColumns, setHomePLConfig,
       addProject, updateProject, deleteProject,
       addMortgagePayment, updateMortgagePayment, deleteMortgagePayment,
       addValueEntry, updateValueEntry, deleteValueEntry,
