@@ -97,8 +97,8 @@ export default function Dashboard() {
             <p className="text-2xl font-bold">{formatCurrency(homeValue)}</p>
             {valueTrend.length > 1 && (
               <div className="h-8 mt-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></LineChart>
+              <ResponsiveContainer width="100%" height="100%">
+                  <ReLineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></ReLineChart>
                 </ResponsiveContainer>
               </div>
             )}
