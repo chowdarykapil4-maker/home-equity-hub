@@ -18,8 +18,6 @@ export default function Renovations() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <h2 className="text-2xl font-bold text-foreground">Renovation Planner</h2>
-
       <RenovationSummaryHeader projects={projects} onTabChange={setActiveTab} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

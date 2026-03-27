@@ -15,8 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
-  ChevronDown, Trophy, DollarSign, TrendingUp, BarChart3, Calendar,
-  Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, X,
+  ChevronDown, Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, X,
 } from 'lucide-react';
 
 const CATEGORIES: ProjectCategory[] = ['Structural', 'HVAC & Mechanical', 'Insulation & Envelope', 'Windows & Doors', 'Interior Finish', 'Kitchen & Bath', 'Exterior', 'Electrical', 'Plumbing', 'Landscaping', 'Other'];
@@ -116,28 +115,7 @@ export default function CompletedTab({ projects }: Props) {
   const hasActiveFilters = searchQuery || categoryFilter !== 'all' || sortOrder !== 'newest';
 
   return (
-    <div className="space-y-6">
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <SummaryCard icon={<BarChart3 className="h-4 w-4" />} label="Completed" value={String(completed.length)} />
-        <SummaryCard icon={<DollarSign className="h-4 w-4" />} label="Total Spent" value={formatCurrency(totalSpent)} />
-        <SummaryCard icon={<TrendingUp className="h-4 w-4" />} label="Value Added" value={formatCurrency(totalValueAdded)} />
-        <SummaryCard icon={<Trophy className="h-4 w-4" />} label="Best ROI" value={bestROI ? bestROI.projectName.slice(0, 20) : '—'} sub={bestROI ? formatPercent(getROIPercentage(bestROI)) : ''} />
-        <SummaryCard icon={<DollarSign className="h-4 w-4" />} label="Avg Cost" value={formatCurrency(avgCost)} />
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" /> By Year</p>
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(yearTotals).sort().map(([year, amount]) => (
-                <span key={year} className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
-                  {year}: {formatCurrency(amount)}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+    <div className="space-y-4">
       {/* Toolbar: Search + Sort + Filter + Add */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
@@ -245,17 +223,6 @@ export default function CompletedTab({ projects }: Props) {
   );
 }
 
-function SummaryCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
-  return (
-    <Card>
-      <CardContent className="p-3">
-        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">{icon} {label}</p>
-        <p className="text-sm font-bold truncate">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-      </CardContent>
-    </Card>
-  );
-}
 
 function TimelineCard({ project: p, onEdit, onDelete }: { project: RenovationProject; onEdit: (p: RenovationProject) => void; onDelete: (id: string) => void }) {
   const valueAdded = getEstimatedValueAdded(p);
