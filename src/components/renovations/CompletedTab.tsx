@@ -15,8 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
-  ChevronDown, Trophy, DollarSign, TrendingUp, BarChart3, Calendar,
-  Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, X,
+  ChevronDown, Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, X,
 } from 'lucide-react';
 
 const CATEGORIES: ProjectCategory[] = ['Structural', 'HVAC & Mechanical', 'Insulation & Envelope', 'Windows & Doors', 'Interior Finish', 'Kitchen & Bath', 'Exterior', 'Electrical', 'Plumbing', 'Landscaping', 'Other'];
