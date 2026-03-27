@@ -91,10 +91,6 @@ const defaultProjects: RenovationProject[] = [
   { id: 'rp-035', projectName: 'Upstairs patio structural repair', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 30, notes: 'Structural assessment and repair needed for upstairs patio deck.', dateAddedToWishlist: '2025-01-01' },
   { id: 'rp-036', projectName: 'Crawl space encapsulation', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Low 35%', customROIPercentage: 0, notes: '6-mil poly vapor barrier + dehumidification system. Recommended after ductwork replacement was completed in Aug 2025.', dateAddedToWishlist: '2025-01-01' },
 ];
-  { id: 'rp-021', projectName: 'Upstairs patio structural repair', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'Custom', customROIPercentage: 30, notes: 'Structural assessment and repair needed for upstairs patio', dateAddedToWishlist: '2025-01-01' },
-  { id: 'rp-022', projectName: 'Crawl space encapsulation', status: 'Wishlist', category: 'Structural', dateCompleted: '', estimateLow: 3000, estimateHigh: 8000, actualCost: 0, vendorName: '', roiCategory: 'Low 35%', customROIPercentage: 0, notes: '6-mil poly vapor barrier + dehumidification. Recommended after ductwork replacement.', dateAddedToWishlist: '2025-01-01' },
-  { id: 'rp-023', projectName: 'Exterior painting (post-stucco)', status: 'Planned 2027', category: 'Exterior', dateCompleted: '', estimateLow: 2000, estimateHigh: 5000, actualCost: 0, vendorName: '', roiCategory: 'High 75%', customROIPercentage: 0, notes: 'Exterior paint job after stucco siding is complete and cured.', planningColumn: '2027', dependencies: ['rp-013'] },
-];
 
 const defaultMortgage: MortgageProfile = {
   originalLoanAmount: 1156000,
