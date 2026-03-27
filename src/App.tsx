@@ -11,6 +11,7 @@ import PropertyProfile from "./pages/PropertyProfile";
 import Mortgage from "./pages/Mortgage";
 import ValueHistory from "./pages/ValueHistory";
 import Financing from "./pages/Financing";
+import HomePL from "./pages/HomePL";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
