@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, BudgetConfig, PlanningColumnsConfig, calculatePaymentSplit } from '@/types';
 
+export interface HomePLConfig {
+  annualPropertyTax: number;
+  monthlyInsurance: number;
+  monthlyHOA: number;
+  estimatedMonthlyRent: number;
+  annualMaintenance: number;
+}
+
 interface AppState {
   property: PropertyProfile;
   projects: RenovationProject[];
@@ -12,6 +20,7 @@ interface AppState {
   cashBudget: number;
   budgetConfig: BudgetConfig;
   planningColumns: PlanningColumnsConfig;
+  homePLConfig: HomePLConfig;
   setProperty: (p: PropertyProfile) => void;
   setProjects: (p: RenovationProject[]) => void;
   addProject: (p: RenovationProject) => void;
@@ -34,6 +43,7 @@ interface AppState {
   setCashBudget: (n: number) => void;
   setBudgetConfig: (b: BudgetConfig) => void;
   setPlanningColumns: (p: PlanningColumnsConfig) => void;
+  setHomePLConfig: (c: HomePLConfig) => void;
 }
 
 const defaultProperty: PropertyProfile = {
@@ -222,6 +232,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
 const defaultBudgetConfig: BudgetConfig = { '2026': 30000, '2027': 30000 };
 const defaultPlanningColumns: PlanningColumnsConfig = { columns: ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'] };
+const defaultHomePLConfig: HomePLConfig = { annualPropertyTax: 17500, monthlyInsurance: 170, monthlyHOA: 0, estimatedMonthlyRent: 4500, annualMaintenance: 2000 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
@@ -237,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cashBudget, setCashBudget] = useState<number>(() => loadFromStorage('casakat_cash_budget', 0));
   const [budgetConfig, setBudgetConfig] = useState<BudgetConfig>(() => loadFromStorage('casakat_budget_config', defaultBudgetConfig));
   const [planningColumns, setPlanningColumns] = useState<PlanningColumnsConfig>(() => loadFromStorage('casakat_planning_columns', defaultPlanningColumns));
+  const [homePLConfig, setHomePLConfig] = useState<HomePLConfig>(() => loadFromStorage('casakat_homepl_config', defaultHomePLConfig));
 
   useEffect(() => {
     const updated = autoGeneratePayments(mortgagePayments, mortgage.interestRate);
@@ -253,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('casakat_cash_budget', JSON.stringify(cashBudget)); }, [cashBudget]);
   useEffect(() => { localStorage.setItem('casakat_budget_config', JSON.stringify(budgetConfig)); }, [budgetConfig]);
   useEffect(() => { localStorage.setItem('casakat_planning_columns', JSON.stringify(planningColumns)); }, [planningColumns]);
+  useEffect(() => { localStorage.setItem('casakat_homepl_config', JSON.stringify(homePLConfig)); }, [homePLConfig]);
 
   const addProject = (p: RenovationProject) => setProjects(prev => [...prev, p]);
   const updateProject = (p: RenovationProject) => setProjects(prev => prev.map(x => x.id === p.id ? p : x));
@@ -269,8 +282,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget, budgetConfig, planningColumns,
-      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget, setBudgetConfig, setPlanningColumns,
+      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget, budgetConfig, planningColumns, homePLConfig,
+      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget, setBudgetConfig, setPlanningColumns, setHomePLConfig,
       addProject, updateProject, deleteProject,
       addMortgagePayment, updateMortgagePayment, deleteMortgagePayment,
       addValueEntry, updateValueEntry, deleteValueEntry,

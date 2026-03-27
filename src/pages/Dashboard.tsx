@@ -2,8 +2,10 @@ import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
+import { useHomePL } from '@/hooks/useHomePL';
+import { Link } from 'react-router-dom';
 
 const CHART_COLORS = [
   'hsl(217, 91%, 50%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)',
@@ -13,6 +15,7 @@ const CHART_COLORS = [
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries } = useAppContext();
+  const pl = useHomePL();
 
   const completeProjects = projects.filter(p => p.status === 'Complete');
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
@@ -95,8 +98,8 @@ export default function Dashboard() {
             <p className="text-2xl font-bold">{formatCurrency(homeValue)}</p>
             {valueTrend.length > 1 && (
               <div className="h-8 mt-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></LineChart>
+              <ResponsiveContainer width="100%" height="100%">
+                  <ReLineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></ReLineChart>
                 </ResponsiveContainer>
               </div>
             )}
@@ -197,6 +200,31 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">Unrealized Gain/Loss</p>
             <p className={`text-2xl font-bold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(unrealizedGainLoss)}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Home P&L Summary */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base">Home P&L</CardTitle>
+          <LineChart className="h-5 w-5 text-primary" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Wealth built</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(pl.wealthBuilt)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Sunk cost</p>
+              <p className="text-lg font-bold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">vs renting</p>
+              <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
+            </div>
+          </div>
+          <Link to="/home-pl" className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">View full P&L →</Link>
         </CardContent>
       </Card>
 
