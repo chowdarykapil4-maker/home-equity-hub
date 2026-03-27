@@ -120,7 +120,7 @@ export default function RenovationSummaryHeader({ projects, onTabChange }: Props
           {detailOpen ? 'Hide breakdown' : 'Show breakdown'}
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-3 pb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-3 pb-3 [&>div]:flex-1">
             {/* By year */}
             <div className="space-y-1">
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">By year</p>
