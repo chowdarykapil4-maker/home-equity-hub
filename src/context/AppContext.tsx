@@ -248,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cashBudget, setCashBudget] = useState<number>(() => loadFromStorage('casakat_cash_budget', 0));
   const [budgetConfig, setBudgetConfig] = useState<BudgetConfig>(() => loadFromStorage('casakat_budget_config', defaultBudgetConfig));
   const [planningColumns, setPlanningColumns] = useState<PlanningColumnsConfig>(() => loadFromStorage('casakat_planning_columns', defaultPlanningColumns));
+  const [homePLConfig, setHomePLConfig] = useState<HomePLConfig>(() => loadFromStorage('casakat_homepl_config', defaultHomePLConfig));
 
   useEffect(() => {
     const updated = autoGeneratePayments(mortgagePayments, mortgage.interestRate);
