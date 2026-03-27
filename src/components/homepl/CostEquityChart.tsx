@@ -9,10 +9,10 @@ export default function CostEquityChart({ d }: { d: HomePLData }) {
   const ratio = sunkGrowthRate > 0 ? (equityGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
-      <p className="text-sm font-medium text-foreground">Cost & equity over time</p>
+    <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+      <p className="text-[13px] font-medium text-foreground">Cost & equity over time</p>
 
-      <div className="h-72">
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={d.chartData}>
             <defs>

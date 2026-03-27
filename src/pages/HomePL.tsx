@@ -12,9 +12,9 @@ export default function HomePL() {
   const d = useHomePL();
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-2.5 max-w-5xl mx-auto">
       {/* Section 1 — Title bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-1">
         <div>
           <h2 className="text-lg font-medium text-foreground">Home P&L</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -24,25 +24,12 @@ export default function HomePL() {
         <AssumptionsEditor />
       </div>
 
-      {/* Section 2 — Verdict hero */}
       <VerdictHero d={d} />
-
-      {/* Section 3 — Money flow */}
       <MoneyFlowBar d={d} />
-
-      {/* Section 4 — Equity composition */}
       <EquityComposition d={d} />
-
-      {/* Section 5 — Own vs rent */}
       <OwnVsRent d={d} />
-
-      {/* Section 6 — Collapsible detail */}
       <DetailedBreakdown d={d} />
-
-      {/* Section 7 — Chart */}
       <CostEquityChart d={d} />
-
-      {/* Section 8 — Monthly snapshot */}
       <MonthlySnapshot d={d} />
     </div>
   );
