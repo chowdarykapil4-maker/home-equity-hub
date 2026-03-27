@@ -232,6 +232,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
 const defaultBudgetConfig: BudgetConfig = { '2026': 30000, '2027': 30000 };
 const defaultPlanningColumns: PlanningColumnsConfig = { columns: ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'] };
+const defaultHomePLConfig: HomePLConfig = { annualPropertyTax: 17500, monthlyInsurance: 170, monthlyHOA: 0, estimatedMonthlyRent: 4500, annualMaintenance: 2000 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
