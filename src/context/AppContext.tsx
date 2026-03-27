@@ -32,7 +32,7 @@ const defaultProperty: PropertyProfile = {
 };
 
 const defaultMortgage: MortgageProfile = {
-  originalLoanAmount: 1155000,
+  originalLoanAmount: 1156000,
   loanStartDate: '2022-11-01',
   interestRate: 5.5,
   loanType: '10yr ARM',
@@ -62,7 +62,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
       const stored = localStorage.getItem(key);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.monthlyPayment === 6190 || parsed.originalLoanAmount === 1090000) {
+        if (parsed.monthlyPayment === 6190 || parsed.originalLoanAmount === 1090000 || parsed.originalLoanAmount === 1155000) {
           localStorage.removeItem(key);
           return fallback;
         }
