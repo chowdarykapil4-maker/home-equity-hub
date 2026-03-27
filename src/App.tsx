@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Renovations from "./pages/Renovations";
 import PropertyProfile from "./pages/PropertyProfile";
 import Mortgage from "./pages/Mortgage";
+import ValueHistory from "./pages/ValueHistory";
+import Financing from "./pages/Financing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/renovations" element={<Renovations />} />
               <Route path="/mortgage" element={<Mortgage />} />
+              <Route path="/value-history" element={<ValueHistory />} />
+              <Route path="/financing" element={<Financing />} />
               <Route path="/property" element={<PropertyProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

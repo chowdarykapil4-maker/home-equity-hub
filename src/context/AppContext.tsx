@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, calculatePaymentSplit } from '@/types';
+import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, calculatePaymentSplit } from '@/types';
 
 interface AppState {
   property: PropertyProfile;
   projects: RenovationProject[];
   mortgage: MortgageProfile;
   mortgagePayments: MortgagePayment[];
+  valueEntries: ValueEntry[];
+  financingEntries: FinancingEntry[];
+  helocConfig: HELOCConfig;
+  cashBudget: number;
   setProperty: (p: PropertyProfile) => void;
   setProjects: (p: RenovationProject[]) => void;
   addProject: (p: RenovationProject) => void;
@@ -16,6 +20,16 @@ interface AppState {
   addMortgagePayment: (p: MortgagePayment) => void;
   updateMortgagePayment: (p: MortgagePayment) => void;
   deleteMortgagePayment: (id: string) => void;
+  setValueEntries: (v: ValueEntry[]) => void;
+  addValueEntry: (v: ValueEntry) => void;
+  updateValueEntry: (v: ValueEntry) => void;
+  deleteValueEntry: (id: string) => void;
+  setFinancingEntries: (f: FinancingEntry[]) => void;
+  addFinancingEntry: (f: FinancingEntry) => void;
+  updateFinancingEntry: (f: FinancingEntry) => void;
+  deleteFinancingEntry: (id: string) => void;
+  setHelocConfig: (h: HELOCConfig) => void;
+  setCashBudget: (n: number) => void;
 }
 
 const defaultProperty: PropertyProfile = {
@@ -42,7 +56,6 @@ const defaultMortgage: MortgageProfile = {
   estimatedMarketRate: 6.5,
 };
 
-// Historical payments Dec 2022 – Feb 2026 (actual data, balance lands on $1,090,554.64)
 const defaultPayments: MortgagePayment[] = [
   { id: 'mp-001', paymentDate: '2022-12-01', paymentAmount: 6557.54, principalPortion: 1259.21, interestPortion: 5298.33, extraPrincipal: 313.93, remainingBalance: 1154426.86, notes: '' },
   { id: 'mp-002', paymentDate: '2023-01-01', paymentAmount: 6557.54, principalPortion: 1266.42, interestPortion: 5291.12, extraPrincipal: 313.93, remainingBalance: 1152846.51, notes: '' },
@@ -87,59 +100,37 @@ const defaultPayments: MortgagePayment[] = [
 
 const AUTO_PAYMENT_AMOUNT = 6600;
 const PI_PAYMENT = 6557.54;
-const AUTO_EXTRA_PRINCIPAL = Math.round((AUTO_PAYMENT_AMOUNT - PI_PAYMENT) * 100) / 100; // $42.46
-const AUTO_START_DATE = new Date(2026, 2, 31); // March 31, 2026
+const AUTO_EXTRA_PRINCIPAL = Math.round((AUTO_PAYMENT_AMOUNT - PI_PAYMENT) * 100) / 100;
+const AUTO_START_DATE = new Date(2026, 2, 31);
 
 function getLastDayOfMonth(year: number, month: number): string {
   const lastDay = new Date(year, month + 1, 0).getDate();
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 }
 
-/** Auto-generate $6,600 payment entries from March 2026 onward up to today */
 function autoGeneratePayments(existing: MortgagePayment[], rate: number): MortgagePayment[] {
   const sorted = [...existing].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
   const existingDates = new Set(sorted.map(p => p.paymentDate));
-
   const now = new Date();
   let year = AUTO_START_DATE.getFullYear();
-  let month = AUTO_START_DATE.getMonth(); // 0-indexed, so 2 = March
-
-  // Get the latest balance from existing payments
+  let month = AUTO_START_DATE.getMonth();
   let balance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : 1090554.64;
-
   const newPayments: MortgagePayment[] = [];
-
   while (balance > 0) {
     const dateStr = getLastDayOfMonth(year, month);
-    const paymentDate = new Date(year, month + 1, 0); // last day of month
-
-    // Stop if this payment date is in the future (after today)
+    const paymentDate = new Date(year, month + 1, 0);
     if (paymentDate > now) break;
-
-    // Skip if a payment already exists for this date
     if (!existingDates.has(dateStr)) {
       const { interest, principal, newBalance } = calculatePaymentSplit(balance, rate, PI_PAYMENT, AUTO_EXTRA_PRINCIPAL);
-      newPayments.push({
-        id: `auto-${dateStr}`,
-        paymentDate: dateStr,
-        paymentAmount: AUTO_PAYMENT_AMOUNT,
-        principalPortion: principal,
-        interestPortion: interest,
-        extraPrincipal: AUTO_EXTRA_PRINCIPAL,
-        remainingBalance: newBalance,
-        notes: 'Auto-generated',
-      });
+      newPayments.push({ id: `auto-${dateStr}`, paymentDate: dateStr, paymentAmount: AUTO_PAYMENT_AMOUNT, principalPortion: principal, interestPortion: interest, extraPrincipal: AUTO_EXTRA_PRINCIPAL, remainingBalance: newBalance, notes: 'Auto-generated' });
       balance = newBalance;
     } else {
-      // Use existing payment's balance for continuation
-      const existingPayment = sorted.find(p => p.paymentDate === dateStr);
-      if (existingPayment) balance = existingPayment.remainingBalance;
+      const ep = sorted.find(p => p.paymentDate === dateStr);
+      if (ep) balance = ep.remainingBalance;
     }
-
     month++;
     if (month > 11) { month = 0; year++; }
   }
-
   return newPayments.length > 0 ? [...existing, ...newPayments] : existing;
 }
 
@@ -149,42 +140,17 @@ function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     if (key === 'casakat_property') {
       const stored = localStorage.getItem(key);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (!parsed.address) {
-          localStorage.removeItem(key);
-          return fallback;
-        }
-        return parsed;
-      }
+      if (stored) { const parsed = JSON.parse(stored); if (!parsed.address) { localStorage.removeItem(key); return fallback; } return parsed; }
       return fallback;
     }
     if (key === 'casakat_mortgage') {
       const stored = localStorage.getItem(key);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.monthlyPayment === 6190 || parsed.monthlyPayment === 6600 || parsed.originalLoanAmount === 1090000 || parsed.originalLoanAmount === 1155000) {
-          localStorage.removeItem(key);
-          return fallback;
-        }
-        return parsed;
-      }
+      if (stored) { const parsed = JSON.parse(stored); if (parsed.monthlyPayment === 6190 || parsed.monthlyPayment === 6600 || parsed.originalLoanAmount === 1090000 || parsed.originalLoanAmount === 1155000) { localStorage.removeItem(key); return fallback; } return parsed; }
       return fallback;
     }
     if (key === 'casakat_mortgage_payments') {
       const stored = localStorage.getItem(key);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Clear cache if it has the wrong $6600 historical data
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].paymentAmount === 6600) {
-          localStorage.removeItem(key);
-          return fallback;
-        }
-        if (Array.isArray(parsed) && parsed.length === 0) {
-          return fallback;
-        }
-        return parsed;
-      }
+      if (stored) { const parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].paymentAmount === 6600) { localStorage.removeItem(key); return fallback; } if (Array.isArray(parsed) && parsed.length === 0) { return fallback; } return parsed; }
       return fallback;
     }
     const stored = localStorage.getItem(key);
@@ -192,48 +158,56 @@ function loadFromStorage<T>(key: string, fallback: T): T {
   } catch { return fallback; }
 }
 
+const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [property, setProperty] = useState<PropertyProfile>(() =>
-    loadFromStorage('casakat_property', defaultProperty)
-  );
-  const [projects, setProjects] = useState<RenovationProject[]>(() =>
-    loadFromStorage('casakat_projects', [])
-  );
-  const [mortgage, setMortgage] = useState<MortgageProfile>(() =>
-    loadFromStorage('casakat_mortgage', defaultMortgage)
-  );
+  const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
+  const [projects, setProjects] = useState<RenovationProject[]>(() => loadFromStorage('casakat_projects', []));
+  const [mortgage, setMortgage] = useState<MortgageProfile>(() => loadFromStorage('casakat_mortgage', defaultMortgage));
   const [mortgagePayments, setMortgagePayments] = useState<MortgagePayment[]>(() => {
     const loaded = loadFromStorage('casakat_mortgage_payments', defaultPayments);
     return autoGeneratePayments(loaded, defaultMortgage.interestRate);
   });
+  const [valueEntries, setValueEntries] = useState<ValueEntry[]>(() => loadFromStorage('casakat_value_entries', []));
+  const [financingEntries, setFinancingEntries] = useState<FinancingEntry[]>(() => loadFromStorage('casakat_financing_entries', []));
+  const [helocConfig, setHelocConfig] = useState<HELOCConfig>(() => loadFromStorage('casakat_heloc_config', defaultHelocConfig));
+  const [cashBudget, setCashBudget] = useState<number>(() => loadFromStorage('casakat_cash_budget', 0));
 
-  // Auto-generate new payment entries on each app load
   useEffect(() => {
     const updated = autoGeneratePayments(mortgagePayments, mortgage.interestRate);
-    if (updated.length !== mortgagePayments.length) {
-      setMortgagePayments(updated);
-    }
+    if (updated.length !== mortgagePayments.length) setMortgagePayments(updated);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { localStorage.setItem('casakat_property', JSON.stringify(property)); }, [property]);
   useEffect(() => { localStorage.setItem('casakat_projects', JSON.stringify(projects)); }, [projects]);
   useEffect(() => { localStorage.setItem('casakat_mortgage', JSON.stringify(mortgage)); }, [mortgage]);
   useEffect(() => { localStorage.setItem('casakat_mortgage_payments', JSON.stringify(mortgagePayments)); }, [mortgagePayments]);
+  useEffect(() => { localStorage.setItem('casakat_value_entries', JSON.stringify(valueEntries)); }, [valueEntries]);
+  useEffect(() => { localStorage.setItem('casakat_financing_entries', JSON.stringify(financingEntries)); }, [financingEntries]);
+  useEffect(() => { localStorage.setItem('casakat_heloc_config', JSON.stringify(helocConfig)); }, [helocConfig]);
+  useEffect(() => { localStorage.setItem('casakat_cash_budget', JSON.stringify(cashBudget)); }, [cashBudget]);
 
   const addProject = (p: RenovationProject) => setProjects(prev => [...prev, p]);
   const updateProject = (p: RenovationProject) => setProjects(prev => prev.map(x => x.id === p.id ? p : x));
   const deleteProject = (id: string) => setProjects(prev => prev.filter(x => x.id !== id));
-
   const addMortgagePayment = (p: MortgagePayment) => setMortgagePayments(prev => [...prev, p]);
   const updateMortgagePayment = (p: MortgagePayment) => setMortgagePayments(prev => prev.map(x => x.id === p.id ? p : x));
   const deleteMortgagePayment = (id: string) => setMortgagePayments(prev => prev.filter(x => x.id !== id));
+  const addValueEntry = (v: ValueEntry) => setValueEntries(prev => [...prev, v]);
+  const updateValueEntry = (v: ValueEntry) => setValueEntries(prev => prev.map(x => x.id === v.id ? v : x));
+  const deleteValueEntry = (id: string) => setValueEntries(prev => prev.filter(x => x.id !== id));
+  const addFinancingEntry = (f: FinancingEntry) => setFinancingEntries(prev => [...prev, f]);
+  const updateFinancingEntry = (f: FinancingEntry) => setFinancingEntries(prev => prev.map(x => x.id === f.id ? f : x));
+  const deleteFinancingEntry = (id: string) => setFinancingEntries(prev => prev.filter(x => x.id !== id));
 
   return (
     <AppContext.Provider value={{
-      property, projects, mortgage, mortgagePayments,
-      setProperty, setProjects, setMortgage, setMortgagePayments,
+      property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, helocConfig, cashBudget,
+      setProperty, setProjects, setMortgage, setMortgagePayments, setValueEntries, setFinancingEntries, setHelocConfig, setCashBudget,
       addProject, updateProject, deleteProject,
       addMortgagePayment, updateMortgagePayment, deleteMortgagePayment,
+      addValueEntry, updateValueEntry, deleteValueEntry,
+      addFinancingEntry, updateFinancingEntry, deleteFinancingEntry,
     }}>
       {children}
     </AppContext.Provider>
