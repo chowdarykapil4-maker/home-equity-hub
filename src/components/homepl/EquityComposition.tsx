@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
+import ScenarioDelta from './ScenarioDelta';
 
 interface Segment {
   label: string;
@@ -8,11 +9,37 @@ interface Segment {
   type: 'guaranteed' | 'market';
 }
 
-export default function EquityComposition({ d }: { d: HomePLData }) {
+interface Props {
+  d: HomePLData;
+  baseD?: HomePLData;
+  scenarioActive?: boolean;
+}
+
+export default function EquityComposition({ d, baseD, scenarioActive = false }: Props) {
+  const b = baseD || d;
+  const isUnderwater = d.wealthBuilt < 0;
+
+  if (isUnderwater) {
+    return (
+      <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] font-medium text-foreground">Equity composition</p>
+          <p className="text-[13px] font-bold text-destructive tabular-nums">{formatCurrency(d.wealthBuilt)}</p>
+        </div>
+        <div className="relative h-6 rounded-lg overflow-hidden flex">
+          <div className="w-full bg-destructive/60 flex items-center justify-center">
+            <span className="text-[10px] font-semibold text-destructive-foreground">Negative equity: {formatCurrency(d.wealthBuilt)}</span>
+          </div>
+        </div>
+        <p className="text-xs text-destructive">Home value is below mortgage balance in this scenario</p>
+      </div>
+    );
+  }
+
   const segments: Segment[] = ([
     { label: 'Down payment', value: d.downPayment, color: 'hsl(142, 71%, 35%)', type: 'guaranteed' as const },
     { label: 'Principal paid', value: d.principalPaid, color: 'hsl(142, 60%, 48%)', type: 'guaranteed' as const },
-    { label: 'Market appreciation', value: d.marketAppreciation, color: 'hsl(142, 50%, 62%)', type: 'market' as const },
+    { label: 'Market appreciation', value: Math.max(0, d.marketAppreciation), color: 'hsl(142, 50%, 62%)', type: 'market' as const },
     { label: 'Reno value-add', value: d.totalRenoValueAdded, color: 'hsl(173, 55%, 50%)', type: 'market' as const },
   ] satisfies Segment[]).filter(s => s.value > 0);
 
@@ -24,7 +51,10 @@ export default function EquityComposition({ d }: { d: HomePLData }) {
     <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-[13px] font-medium text-foreground">Equity composition</p>
-        <p className="text-[13px] font-bold text-success tabular-nums">{formatCurrency(total)}</p>
+        <p className="text-[13px] font-bold text-success tabular-nums">
+          {formatCurrency(total)}
+          <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
+        </p>
       </div>
 
       <div className="relative h-6 rounded-lg overflow-hidden flex">
@@ -47,7 +77,6 @@ export default function EquityComposition({ d }: { d: HomePLData }) {
         })}
       </div>
 
-      {/* Legend — inline */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
         {segments.map(seg => (
           <div key={seg.label} className="flex items-center gap-1">
@@ -57,13 +86,15 @@ export default function EquityComposition({ d }: { d: HomePLData }) {
         ))}
       </div>
 
-      {/* Guaranteed vs market */}
       <div className="flex justify-between text-xs border-t border-border pt-1.5">
         <span className="text-muted-foreground">
           Guaranteed: <span className="font-semibold text-foreground">{formatCurrency(d.guaranteedEquity)} ({guaranteedPct}%)</span>
         </span>
         <span className="text-muted-foreground">
-          Market-dependent: <span className="font-semibold text-foreground">{formatCurrency(d.marketDependentEquity)} ({marketPct}%)</span>
+          Market-dependent: <span className="font-semibold text-foreground">
+            {formatCurrency(d.marketDependentEquity)} ({marketPct}%)
+            <ScenarioDelta scenarioVal={d.marketDependentEquity} baseVal={b.marketDependentEquity} active={scenarioActive} />
+          </span>
         </span>
       </div>
     </div>

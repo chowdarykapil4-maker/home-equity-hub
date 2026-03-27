@@ -1,12 +1,26 @@
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import ScenarioDelta from './ScenarioDelta';
 
-export default function CostEquityChart({ d }: { d: HomePLData }) {
+interface Props {
+  d: HomePLData;
+  baseD?: HomePLData;
+  scenarioActive?: boolean;
+}
+
+export default function CostEquityChart({ d, baseD, scenarioActive = false }: Props) {
+  const b = baseD || d;
   const todayKey = d.chartData.length > 0 ? d.chartData[d.chartData.length - 1].month : null;
   const equityGrowthRate = d.monthsOwned > 0 ? d.wealthBuilt / d.monthsOwned : 0;
   const sunkGrowthRate = d.monthsOwned > 0 ? d.sunkCost / d.monthsOwned : 0;
   const ratio = sunkGrowthRate > 0 ? (equityGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
+
+  const baseRatio = (() => {
+    const bEq = b.monthsOwned > 0 ? b.wealthBuilt / b.monthsOwned : 0;
+    const bSunk = b.monthsOwned > 0 ? b.sunkCost / b.monthsOwned : 0;
+    return bSunk > 0 ? (bEq / bSunk) : 0;
+  })();
 
   return (
     <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
@@ -40,6 +54,9 @@ export default function CostEquityChart({ d }: { d: HomePLData }) {
 
       <p className="text-xs text-muted-foreground text-center">
         Your equity is growing <span className="font-semibold text-success">{ratio}×</span> faster than your sunk cost
+        {scenarioActive && (
+          <ScenarioDelta scenarioVal={parseFloat(ratio as string) || 0} baseVal={baseRatio} active={true} />
+        )}
       </p>
     </div>
   );

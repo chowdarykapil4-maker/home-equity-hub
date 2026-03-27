@@ -14,7 +14,6 @@ export default function RefreshStatus() {
 
   async function checkStatus() {
     try {
-      // Check if settings table exists and has data
       const { data, error } = await supabase
         .from('auto_refresh_settings')
         .select('*')
