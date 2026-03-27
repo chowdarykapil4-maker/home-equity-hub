@@ -265,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem('casakat_cash_budget', JSON.stringify(cashBudget)); }, [cashBudget]);
   useEffect(() => { localStorage.setItem('casakat_budget_config', JSON.stringify(budgetConfig)); }, [budgetConfig]);
   useEffect(() => { localStorage.setItem('casakat_planning_columns', JSON.stringify(planningColumns)); }, [planningColumns]);
+  useEffect(() => { localStorage.setItem('casakat_homepl_config', JSON.stringify(homePLConfig)); }, [homePLConfig]);
 
   const addProject = (p: RenovationProject) => setProjects(prev => [...prev, p]);
   const updateProject = (p: RenovationProject) => setProjects(prev => prev.map(x => x.id === p.id ? p : x));
