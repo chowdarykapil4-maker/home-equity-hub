@@ -203,6 +203,31 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Home P&L Summary */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base">Home P&L</CardTitle>
+          <LineChart className="h-5 w-5 text-primary" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Wealth built</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(pl.wealthBuilt)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Sunk cost</p>
+              <p className="text-lg font-bold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">vs renting</p>
+              <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
+            </div>
+          </div>
+          <Link to="/home-pl" className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">View full P&L →</Link>
+        </CardContent>
+      </Card>
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
