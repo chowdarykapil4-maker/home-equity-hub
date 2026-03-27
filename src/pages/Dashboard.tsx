@@ -25,7 +25,7 @@ export default function Dashboard() {
     [pl, mortgage, homePLConfig, completedProjects]
   );
 
-  const completeProjects = projects.filter(p => p.status === 'Complete');
+  const completeProjects = completedProjects;
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
