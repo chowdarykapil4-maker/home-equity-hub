@@ -7,6 +7,8 @@ export type ProjectCategory =
   | 'Windows & Doors' | 'Interior Finish' | 'Kitchen & Bath'
   | 'Exterior' | 'Electrical' | 'Plumbing' | 'Landscaping' | 'Other';
 
+export type LoanType = '30yr Fixed' | '15yr Fixed' | '10yr ARM' | '7yr ARM' | '5yr ARM';
+
 export type ROICategory = 'High 75%' | 'Medium 60%' | 'Low 35%' | 'Maintenance 10%' | 'Custom';
 
 export const ROI_PERCENTAGES: Record<ROICategory, number> = {
