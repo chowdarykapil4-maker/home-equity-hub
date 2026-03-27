@@ -11,12 +11,28 @@ export type LoanType = '30yr Fixed' | '15yr Fixed' | '10yr ARM' | '7yr ARM' | '5
 
 export type ROICategory = 'High 75%' | 'Medium 60%' | 'Low 35%' | 'Maintenance 10%' | 'Custom';
 
+export type PlannedSubStatus = 'Researching' | 'Getting Quotes' | 'Vendor Selected' | 'Scheduled' | 'Ready to Start';
+
 export const ROI_PERCENTAGES: Record<ROICategory, number> = {
   'High 75%': 75,
   'Medium 60%': 60,
   'Low 35%': 35,
   'Maintenance 10%': 10,
   'Custom': 0,
+};
+
+export const CATEGORY_COLORS: Record<ProjectCategory, string> = {
+  'Structural': 'hsl(0, 72%, 51%)',
+  'HVAC & Mechanical': 'hsl(217, 91%, 50%)',
+  'Insulation & Envelope': 'hsl(262, 52%, 47%)',
+  'Windows & Doors': 'hsl(38, 92%, 50%)',
+  'Interior Finish': 'hsl(142, 71%, 45%)',
+  'Kitchen & Bath': 'hsl(330, 70%, 55%)',
+  'Exterior': 'hsl(190, 70%, 45%)',
+  'Electrical': 'hsl(45, 93%, 47%)',
+  'Plumbing': 'hsl(199, 89%, 48%)',
+  'Landscaping': 'hsl(120, 40%, 45%)',
+  'Other': 'hsl(215, 16%, 47%)',
 };
 
 export interface PropertyProfile {
@@ -45,6 +61,12 @@ export interface RenovationProject {
   roiCategory: ROICategory;
   customROIPercentage: number;
   notes: string;
+  // New planning fields
+  planningColumn?: string;
+  subStatus?: PlannedSubStatus;
+  dependencies?: string[]; // project IDs
+  dateAddedToWishlist?: string;
+  datePromotedToPlanned?: string;
 }
 
 export function getROIPercentage(project: RenovationProject): number {
@@ -95,7 +117,6 @@ export function calculateBlendedValue(entries: ValueEntry[]): { value: number; s
   });
   const sources = Object.values(latestBySource);
   if (sources.length === 0) return { value: 0, sourceCount: 0 };
-  const hasAppraisal = sources.some(s => s.source === 'Appraisal');
   let totalWeight = 0;
   let weightedSum = 0;
   sources.forEach(s => {
@@ -128,6 +149,13 @@ export interface HELOCConfig {
   totalCapacity: number;
 }
 
+export interface BudgetConfig {
+  [year: string]: number;
+}
+
+export interface PlanningColumnsConfig {
+  columns: string[];
+}
 
 export interface MortgageProfile {
   originalLoanAmount: number;
