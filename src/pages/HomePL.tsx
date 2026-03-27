@@ -9,6 +9,7 @@ import VerdictHero from '@/components/homepl/VerdictHero';
 import MoneyFlowBar from '@/components/homepl/MoneyFlowBar';
 import EquityComposition from '@/components/homepl/EquityComposition';
 import OwnVsRent from '@/components/homepl/OwnVsRent';
+import RentVsInvest from '@/components/homepl/RentVsInvest';
 import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import CostEquityChart from '@/components/homepl/CostEquityChart';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
