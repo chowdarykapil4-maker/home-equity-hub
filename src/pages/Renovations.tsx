@@ -1,15 +1,16 @@
+import { useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimateMidpoint } from '@/types';
-import { formatCurrency } from '@/lib/format';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CompletedTab from '@/components/renovations/CompletedTab';
 import PlannedTab from '@/components/renovations/PlannedTab';
 import WishlistTab from '@/components/renovations/WishlistTab';
 import AllProjectsTab from '@/components/renovations/AllProjectsTab';
+import RenovationSummaryHeader from '@/components/renovations/RenovationSummaryHeader';
 import { CheckCircle2, ClipboardList, Lightbulb, List } from 'lucide-react';
 
 export default function Renovations() {
   const { projects } = useAppContext();
+  const [activeTab, setActiveTab] = useState('completed');
 
   const completed = projects.filter(p => p.status === 'Complete');
   const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
@@ -17,19 +18,11 @@ export default function Renovations() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Renovation Planner</h2>
-        {/* Pipeline mini bar */}
-        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="bg-muted px-2 py-1 rounded">{wishlist.length} ideas</span>
-          <span>→</span>
-          <span className="bg-primary/10 text-primary px-2 py-1 rounded">{planned.length} planned</span>
-          <span>→</span>
-          <span className="bg-success/10 text-success px-2 py-1 rounded">{completed.length} done</span>
-        </div>
-      </div>
+      <h2 className="text-2xl font-bold text-foreground">Renovation Planner</h2>
 
-      <Tabs defaultValue="completed" className="w-full">
+      <RenovationSummaryHeader projects={projects} onTabChange={setActiveTab} />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="completed" className="gap-1">
             <CheckCircle2 className="h-3.5 w-3.5" /> Completed
