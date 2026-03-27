@@ -1,12 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, BudgetConfig, PlanningColumnsConfig, calculatePaymentSplit } from '@/types';
 
+export type FilingStatus = 'Married Filing Jointly' | 'Single' | 'Head of Household';
+
+export interface TaxConfig {
+  federalRate: number;
+  stateRate: number;
+  filingStatus: FilingStatus;
+  itemizeDeductions: boolean;
+  capitalGainsRate: number;
+  stateCapGainsRate: number;
+  saltCap: number;
+  annualAppreciation: number;
+  annualRentIncrease: number;
+}
+
 export interface HomePLConfig {
   annualPropertyTax: number;
   monthlyInsurance: number;
   monthlyHOA: number;
   estimatedMonthlyRent: number;
   annualMaintenance: number;
+  tax: TaxConfig;
 }
 
 interface AppState {
@@ -232,7 +247,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 const defaultHelocConfig: HELOCConfig = { totalCapacity: 238000 };
 const defaultBudgetConfig: BudgetConfig = { '2026': 30000, '2027': 30000 };
 const defaultPlanningColumns: PlanningColumnsConfig = { columns: ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'] };
-const defaultHomePLConfig: HomePLConfig = { annualPropertyTax: 17500, monthlyInsurance: 170, monthlyHOA: 0, estimatedMonthlyRent: 4500, annualMaintenance: 2000 };
+const defaultHomePLConfig: HomePLConfig = { annualPropertyTax: 17500, monthlyInsurance: 170, monthlyHOA: 0, estimatedMonthlyRent: 4500, annualMaintenance: 2000, tax: { federalRate: 32, stateRate: 9.3, filingStatus: 'Married Filing Jointly', itemizeDeductions: true, capitalGainsRate: 15, stateCapGainsRate: 13.3, saltCap: 10000, annualAppreciation: 3, annualRentIncrease: 3 } };
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [property, setProperty] = useState<PropertyProfile>(() => loadFromStorage('casakat_property', defaultProperty));
@@ -248,7 +263,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cashBudget, setCashBudget] = useState<number>(() => loadFromStorage('casakat_cash_budget', 0));
   const [budgetConfig, setBudgetConfig] = useState<BudgetConfig>(() => loadFromStorage('casakat_budget_config', defaultBudgetConfig));
   const [planningColumns, setPlanningColumns] = useState<PlanningColumnsConfig>(() => loadFromStorage('casakat_planning_columns', defaultPlanningColumns));
-  const [homePLConfig, setHomePLConfig] = useState<HomePLConfig>(() => loadFromStorage('casakat_homepl_config', defaultHomePLConfig));
+  const [homePLConfig, setHomePLConfig] = useState<HomePLConfig>(() => {
+    const loaded = loadFromStorage('casakat_homepl_config', defaultHomePLConfig);
+    // Migrate: add tax config if missing from stored data
+    if (!loaded.tax) {
+      return { ...loaded, tax: defaultHomePLConfig.tax };
+    }
+    return loaded;
+  });
 
   useEffect(() => {
     const updated = autoGeneratePayments(mortgagePayments, mortgage.interestRate);

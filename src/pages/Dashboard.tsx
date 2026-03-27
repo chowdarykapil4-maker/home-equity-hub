@@ -7,6 +7,8 @@ import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, Calend
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
 import { calculateRentInvest } from '@/lib/rentInvest';
+import { calculateTaxAdjusted } from '@/lib/taxCalcs';
+import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
 
 const CHART_COLORS = [
@@ -20,9 +22,15 @@ export default function Dashboard() {
   const pl = useHomePL();
 
   const completedProjects = projects.filter(p => p.status === 'Complete');
+  const tax = homePLConfig.tax;
   const rentInvest10 = useMemo(() =>
     calculateRentInvest(10, pl.monthsOwned, pl.downPayment, mortgage, homePLConfig, completedProjects, pl.wealthBuilt, pl.sunkCost, pl.purchaseDate),
     [pl, mortgage, homePLConfig, completedProjects]
+  );
+  const taxAdj10 = useMemo(() => calculateTaxAdjusted(pl, rentInvest10, tax), [pl, rentInvest10, tax]);
+  const breakeven10 = useMemo(() =>
+    calculateBreakevenTimeline(pl.downPayment, pl.purchasePrice, mortgage, homePLConfig, tax, 10, pl.totalRenoValueAdded, 15),
+    [pl, mortgage, homePLConfig, tax]
   );
 
   const completeProjects = completedProjects;
@@ -232,11 +240,17 @@ export default function Dashboard() {
               <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex flex-col gap-1 mt-2">
             <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">View full P&L →</Link>
-            <span className="text-[11px] text-muted-foreground">·</span>
-            <Link to="/home-pl" className={`text-xs hover:underline ${rentInvest10.ownershipMargin >= 0 ? 'text-success' : 'text-warning'}`}>
-              vs. rent + invest (10%): {rentInvest10.ownershipMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(rentInvest10.ownershipMargin))}
+            <Link to="/home-pl" className={`text-xs hover:underline ${taxAdj10.afterTaxMargin >= 0 ? 'text-success' : 'text-warning'}`}>
+              vs. rent + invest (10%, after-tax): {taxAdj10.afterTaxMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
+            </Link>
+            <Link to="/home-pl" className="text-xs text-muted-foreground hover:underline">
+              {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
+                ? `Past breakeven — owning advantage growing`
+                : breakeven10.crossoverYear
+                  ? `Breakeven: Year ${breakeven10.crossoverYear}`
+                  : 'Breakeven: 15+ years'}
             </Link>
           </div>
         </CardContent>
