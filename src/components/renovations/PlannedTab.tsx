@@ -28,8 +28,13 @@ interface Props {
 }
 
 export default function PlannedTab({ projects, allProjects }: Props) {
-  const { updateProject, planningColumns, setPlanningColumns, budgetConfig, setBudgetConfig } = useAppContext();
-  const columns = planningColumns.columns.length > 0 ? planningColumns.columns : DEFAULT_COLUMNS;
+  const ctx = useAppContext();
+  const { updateProject } = ctx;
+  const planningColumns = ctx.planningColumns || { columns: [] };
+  const setPlanningColumns = ctx.setPlanningColumns;
+  const budgetConfig = ctx.budgetConfig || {};
+  const setBudgetConfig = ctx.setBudgetConfig;
+  const columns = planningColumns.columns && planningColumns.columns.length > 0 ? planningColumns.columns : DEFAULT_COLUMNS;
 
   const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
   const wishlistProjects = projects.filter(p => p.status === 'Wishlist');

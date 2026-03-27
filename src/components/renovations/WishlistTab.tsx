@@ -23,8 +23,10 @@ interface Props {
 }
 
 export default function WishlistTab({ projects }: Props) {
-  const { addProject, updateProject, deleteProject, planningColumns } = useAppContext();
-  const columns = planningColumns.columns.length > 0 ? planningColumns.columns : ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'];
+  const ctx = useAppContext();
+  const { addProject, updateProject, deleteProject } = ctx;
+  const planningColumns = ctx.planningColumns || { columns: [] };
+  const columns = planningColumns.columns && planningColumns.columns.length > 0 ? planningColumns.columns : ['Q2-Q3 2026', 'Q4 2026', '2027', '2028+'];
   const wishlist = projects.filter(p => p.status === 'Wishlist');
 
   const [quickName, setQuickName] = useState('');
