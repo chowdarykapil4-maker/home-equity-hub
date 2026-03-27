@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, BudgetConfig, PlanningColumnsConfig, calculatePaymentSplit } from '@/types';
 
+export interface HomePLConfig {
+  annualPropertyTax: number;
+  monthlyInsurance: number;
+  monthlyHOA: number;
+  estimatedMonthlyRent: number;
+  annualMaintenance: number;
+}
+
 interface AppState {
   property: PropertyProfile;
   projects: RenovationProject[];
@@ -12,6 +20,7 @@ interface AppState {
   cashBudget: number;
   budgetConfig: BudgetConfig;
   planningColumns: PlanningColumnsConfig;
+  homePLConfig: HomePLConfig;
   setProperty: (p: PropertyProfile) => void;
   setProjects: (p: RenovationProject[]) => void;
   addProject: (p: RenovationProject) => void;
@@ -34,6 +43,7 @@ interface AppState {
   setCashBudget: (n: number) => void;
   setBudgetConfig: (b: BudgetConfig) => void;
   setPlanningColumns: (p: PlanningColumnsConfig) => void;
+  setHomePLConfig: (c: HomePLConfig) => void;
 }
 
 const defaultProperty: PropertyProfile = {
