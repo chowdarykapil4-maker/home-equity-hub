@@ -1,12 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment, ValueEntry, FinancingEntry, HELOCConfig, BudgetConfig, PlanningColumnsConfig, calculatePaymentSplit } from '@/types';
 
+export type FilingStatus = 'Married Filing Jointly' | 'Single' | 'Head of Household';
+
+export interface TaxConfig {
+  federalRate: number;
+  stateRate: number;
+  filingStatus: FilingStatus;
+  itemizeDeductions: boolean;
+  capitalGainsRate: number;
+  stateCapGainsRate: number;
+  saltCap: number;
+  annualAppreciation: number;
+  annualRentIncrease: number;
+}
+
 export interface HomePLConfig {
   annualPropertyTax: number;
   monthlyInsurance: number;
   monthlyHOA: number;
   estimatedMonthlyRent: number;
   annualMaintenance: number;
+  tax: TaxConfig;
 }
 
 interface AppState {
