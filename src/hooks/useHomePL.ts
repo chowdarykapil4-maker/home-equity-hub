@@ -59,7 +59,7 @@ export interface HomePLData {
   crossoverMonth: string | null;
 }
 
-export function useHomePL(prorated = false): HomePLData {
+export function useHomePL(): HomePLData {
   const { property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig } = useAppContext();
 
   return useMemo(() => {
