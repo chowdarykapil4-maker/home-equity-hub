@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Settings2, TrendingUp, DollarSign, Percent, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Settings2, TrendingUp, DollarSign, Percent, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, Legend } from 'recharts';
 
 function TagBadge({ type }: { type: 'equity' | 'sunk' | 'guaranteed' | 'market' }) {
