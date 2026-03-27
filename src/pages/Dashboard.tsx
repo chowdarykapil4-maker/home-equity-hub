@@ -2,7 +2,7 @@ import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const CHART_COLORS = [
@@ -13,12 +13,31 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { property, projects } = useAppContext();
+  const { property, projects, mortgage, mortgagePayments } = useAppContext();
 
   const completeProjects = projects.filter(p => p.status === 'Complete');
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
-  const netEquity = property.currentEstimatedValue - property.mortgageBalance;
+
+  // Live mortgage balance
+  const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
+  const liveMortgageBalance = sortedPayments.length > 0
+    ? sortedPayments[sortedPayments.length - 1].remainingBalance
+    : mortgage.originalLoanAmount;
+  const lastPaymentDate = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].paymentDate : null;
+
+  // Check if payment logged this month
+  const now = new Date();
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const paidThisMonth = lastPaymentDate?.startsWith(currentMonthStr);
+
+  // Principal paid this year
+  const currentYear = now.getFullYear().toString();
+  const principalThisYear = sortedPayments
+    .filter(p => p.paymentDate.startsWith(currentYear))
+    .reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
+
+  const netEquity = property.currentEstimatedValue - liveMortgageBalance;
   const unrealizedGainLoss = property.currentEstimatedValue - property.purchasePrice - property.closingCosts - totalSpent;
 
   // Bar chart: spending by year
@@ -50,9 +69,18 @@ export default function Dashboard() {
 
   const metrics = [
     { label: 'Current Home Value', value: formatCurrency(property.currentEstimatedValue), icon: Home, color: 'text-primary' },
-    { label: 'Mortgage Balance', value: formatCurrency(property.mortgageBalance), icon: Landmark, color: 'text-muted-foreground' },
+    {
+      label: 'Mortgage Balance',
+      value: formatCurrency(liveMortgageBalance),
+      icon: Landmark,
+      color: 'text-muted-foreground',
+      sub: lastPaymentDate
+        ? <span className={paidThisMonth ? 'text-muted-foreground' : 'text-warning'}>Last payment: {lastPaymentDate}</span>
+        : <span className="text-warning">No payments logged</span>,
+    },
     { label: 'Net Equity', value: formatCurrency(netEquity), icon: PiggyBank, color: 'text-success' },
     { label: 'Total Renovation Spend', value: formatCurrency(totalSpent), icon: DollarSign, color: 'text-primary' },
+    { label: 'Principal Paid This Year', value: formatCurrency(principalThisYear), icon: CalendarCheck, color: 'text-success' },
   ];
 
   return (
@@ -60,7 +88,7 @@ export default function Dashboard() {
       <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
 
       {/* Hero Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metrics.map(m => (
           <Card key={m.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -69,6 +97,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{m.value}</p>
+              {'sub' in m && m.sub && <p className="text-xs mt-1">{m.sub}</p>}
             </CardContent>
           </Card>
         ))}
