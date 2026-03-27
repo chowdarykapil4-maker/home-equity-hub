@@ -28,6 +28,8 @@ export default function HomePL() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<HomePLConfig>(homePLConfig);
   const d = useHomePL();
+  const completedYearsOwned = Math.floor(d.monthsOwned / 12);
+  const paidMonthsOwned = completedYearsOwned * 12;
 
   const saveConfig = () => { setHomePLConfig(draft); setEditing(false); };
 
@@ -48,6 +50,7 @@ export default function HomePL() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Home P&L</h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">Based on {d.monthsOwned} months of ownership since {d.purchaseDate.substring(0, 7)}</p>
+          <p className="text-[11px] text-muted-foreground">Paid-to-date costs use {completedYearsOwned} completed years ({paidMonthsOwned} months)</p>
         </div>
         {!editing && (
           <button onClick={() => { setDraft(homePLConfig); setEditing(true); }} className="text-xs text-primary hover:underline flex items-center gap-1">
