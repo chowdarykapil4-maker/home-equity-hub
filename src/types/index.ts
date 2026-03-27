@@ -67,6 +67,68 @@ export function getCostVariance(project: RenovationProject): number | null {
   return project.actualCost - getEstimateMidpoint(project);
 }
 
+// Value History
+export type ValueHistorySource = 'RentCast AVM' | 'Zillow' | 'Redfin' | 'Appraisal' | 'Manual';
+
+export interface ValueEntry {
+  id: string;
+  date: string;
+  estimatedValue: number;
+  source: ValueHistorySource;
+  notes: string;
+}
+
+export const VALUE_SOURCE_COLORS: Record<ValueHistorySource, string> = {
+  'RentCast AVM': 'hsl(270, 60%, 55%)',
+  'Zillow': 'hsl(217, 91%, 50%)',
+  'Redfin': 'hsl(0, 84%, 60%)',
+  'Appraisal': 'hsl(142, 71%, 45%)',
+  'Manual': 'hsl(215, 16%, 47%)',
+};
+
+export function calculateBlendedValue(entries: ValueEntry[]): { value: number; sourceCount: number } {
+  const latestBySource: Record<string, ValueEntry> = {};
+  entries.forEach(e => {
+    if (!latestBySource[e.source] || e.date > latestBySource[e.source].date) {
+      latestBySource[e.source] = e;
+    }
+  });
+  const sources = Object.values(latestBySource);
+  if (sources.length === 0) return { value: 0, sourceCount: 0 };
+  const hasAppraisal = sources.some(s => s.source === 'Appraisal');
+  let totalWeight = 0;
+  let weightedSum = 0;
+  sources.forEach(s => {
+    const weight = s.source === 'Appraisal' ? 2 : 1;
+    weightedSum += s.estimatedValue * weight;
+    totalWeight += weight;
+  });
+  return { value: Math.round(weightedSum / totalWeight), sourceCount: sources.length };
+}
+
+// Renovation Financing
+export type FinancingType = '0% Promo' | 'HELOC Draw' | 'Cash';
+
+export interface FinancingEntry {
+  id: string;
+  type: FinancingType;
+  sourceName: string;
+  amount: number;
+  termMonths: number;
+  monthlyPayment: number;
+  interestRate: number;
+  startDate: string;
+  endDate: string;
+  remainingBalance: number;
+  linkedRenovationId: string;
+  notes: string;
+}
+
+export interface HELOCConfig {
+  totalCapacity: number;
+}
+
+
 export interface MortgageProfile {
   originalLoanAmount: number;
   loanStartDate: string;
