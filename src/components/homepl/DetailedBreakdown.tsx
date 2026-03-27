@@ -13,16 +13,16 @@ interface FlowRow {
 export default function DetailedBreakdown({ d }: { d: HomePLData }) {
   const [open, setOpen] = useState(false);
 
-  const cashFlows: FlowRow[] = [
-    { label: 'Down payment', value: d.downPayment, type: 'equity' },
-    { label: 'Interest to bank', value: d.interestPaid, type: 'sunk' },
-    { label: 'Renovation spend', value: d.totalRenoSpend, type: 'sunk' },
-    { label: 'Property tax', value: d.totalPropertyTax, type: 'sunk' },
-    { label: 'Principal paid', value: d.principalPaid, type: 'equity' },
-    { label: 'Insurance', value: d.totalInsurance, type: 'sunk' },
-    { label: 'Maintenance', value: d.totalMaintenance, type: 'sunk' },
+  const cashFlows: FlowRow[] = ([
+    { label: 'Down payment', value: d.downPayment, type: 'equity' as const },
+    { label: 'Interest to bank', value: d.interestPaid, type: 'sunk' as const },
+    { label: 'Renovation spend', value: d.totalRenoSpend, type: 'sunk' as const },
+    { label: 'Property tax', value: d.totalPropertyTax, type: 'sunk' as const },
+    { label: 'Principal paid', value: d.principalPaid, type: 'equity' as const },
+    { label: 'Insurance', value: d.totalInsurance, type: 'sunk' as const },
+    { label: 'Maintenance', value: d.totalMaintenance, type: 'sunk' as const },
     ...(d.totalHOA > 0 ? [{ label: 'HOA', value: d.totalHOA, type: 'sunk' as const }] : []),
-  ].sort((a, b) => b.value - a.value);
+  ] satisfies FlowRow[]).sort((a, b) => b.value - a.value);
 
   const maxFlow = Math.max(...cashFlows.map(f => f.value));
 

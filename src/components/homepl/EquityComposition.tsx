@@ -9,12 +9,12 @@ interface Segment {
 }
 
 export default function EquityComposition({ d }: { d: HomePLData }) {
-  const segments: Segment[] = [
-    { label: 'Down payment', value: d.downPayment, color: 'hsl(142, 71%, 35%)', type: 'guaranteed' },
-    { label: 'Principal paid', value: d.principalPaid, color: 'hsl(142, 60%, 48%)', type: 'guaranteed' },
-    { label: 'Market appreciation', value: d.marketAppreciation, color: 'hsl(142, 50%, 62%)', type: 'market' },
-    { label: 'Reno value-add', value: d.totalRenoValueAdded, color: 'hsl(173, 55%, 50%)', type: 'market' },
-  ].filter(s => s.value > 0);
+  const segments: Segment[] = ([
+    { label: 'Down payment', value: d.downPayment, color: 'hsl(142, 71%, 35%)', type: 'guaranteed' as const },
+    { label: 'Principal paid', value: d.principalPaid, color: 'hsl(142, 60%, 48%)', type: 'guaranteed' as const },
+    { label: 'Market appreciation', value: d.marketAppreciation, color: 'hsl(142, 50%, 62%)', type: 'market' as const },
+    { label: 'Reno value-add', value: d.totalRenoValueAdded, color: 'hsl(173, 55%, 50%)', type: 'market' as const },
+  ] satisfies Segment[]).filter(s => s.value > 0);
 
   const total = d.wealthBuilt;
   const guaranteedPct = total > 0 ? Math.round((d.guaranteedEquity / total) * 100) : 0;
