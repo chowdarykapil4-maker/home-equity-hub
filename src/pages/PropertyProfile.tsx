@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded } from '@/types';
 import { formatCurrency } from '@/lib/format';
@@ -7,11 +8,55 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
 const VALUE_SOURCES: ValueSource[] = ['Zillow', 'Redfin', 'Appraisal', 'Manual'];
+const REFRESH_OPTIONS = [
+  { label: '30 days', value: 30 },
+  { label: '60 days', value: 60 },
+  { label: '90 days', value: 90 },
+  { label: 'Manual only', value: 0 },
+];
 
 export default function PropertyProfilePage() {
   const { property, setProperty, projects } = useAppContext();
+  const [rentcastKey, setRentcastKey] = useState('');
+  const [refreshInterval, setRefreshInterval] = useState(30);
+  const [apiCallsThisMonth, setApiCallsThisMonth] = useState(0);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    loadRefreshSettings();
+  }, []);
+
+  async function loadRefreshSettings() {
+    try {
+      const { data } = await supabase
+        .from('auto_refresh_settings')
+        .select('*')
+        .eq('id', 'default')
+        .maybeSingle();
+      if (data) {
+        setRentcastKey(data.rentcast_api_key || '');
+        setRefreshInterval(data.refresh_interval_days);
+        setApiCallsThisMonth(data.api_calls_this_month);
+      }
+      setSettingsLoaded(true);
+    } catch {
+      setSettingsLoaded(true);
+    }
+  }
+
+  async function saveRefreshSettings() {
+    await supabase
+      .from('auto_refresh_settings')
+      .update({
+        rentcast_api_key: rentcastKey || null,
+        refresh_interval_days: refreshInterval,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', 'default');
+  }
 
   const totalRenovationSpend = projects.filter(p => p.status === 'Complete').reduce((s, p) => s + p.actualCost, 0);
   const totalCostBasis = property.purchasePrice + property.closingCosts + totalRenovationSpend;
@@ -53,6 +98,51 @@ export default function PropertyProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Auto-refresh settings */}
+      {settingsLoaded && (
+        <Card>
+          <CardHeader><CardTitle>Auto-Refresh Settings</CardTitle></CardHeader>
+          <CardContent className="grid gap-4">
+            <div>
+              <Label>RentCast API Key</Label>
+              <Input
+                type="password"
+                placeholder="Enter your RentCast API key"
+                value={rentcastKey}
+                onChange={e => setRentcastKey(e.target.value)}
+                onBlur={saveRefreshSettings}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Get your API key at <a href="https://www.rentcast.io" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">rentcast.io</a>
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Auto-refresh home value every</Label>
+                <Select
+                  value={String(refreshInterval)}
+                  onValueChange={v => {
+                    setRefreshInterval(Number(v));
+                    setTimeout(saveRefreshSettings, 100);
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {REFRESH_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>API calls this month</Label>
+                <p className="text-sm font-medium mt-2">{apiCallsThisMonth} calls (3 per refresh)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Calculated metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
