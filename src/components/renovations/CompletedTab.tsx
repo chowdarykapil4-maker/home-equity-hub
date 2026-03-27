@@ -117,26 +117,7 @@ export default function CompletedTab({ projects }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <SummaryCard icon={<BarChart3 className="h-4 w-4" />} label="Completed" value={String(completed.length)} />
-        <SummaryCard icon={<DollarSign className="h-4 w-4" />} label="Total Spent" value={formatCurrency(totalSpent)} />
-        <SummaryCard icon={<TrendingUp className="h-4 w-4" />} label="Value Added" value={formatCurrency(totalValueAdded)} />
-        <SummaryCard icon={<Trophy className="h-4 w-4" />} label="Best ROI" value={bestROI ? bestROI.projectName.slice(0, 20) : '—'} sub={bestROI ? formatPercent(getROIPercentage(bestROI)) : ''} />
-        <SummaryCard icon={<DollarSign className="h-4 w-4" />} label="Avg Cost" value={formatCurrency(avgCost)} />
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" /> By Year</p>
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(yearTotals).sort().map(([year, amount]) => (
-                <span key={year} className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
-                  {year}: {formatCurrency(amount)}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Toolbar: Search + Sort + Filter + Add */}
 
       {/* Toolbar: Search + Sort + Filter + Add */}
       <div className="flex flex-col sm:flex-row gap-2">
