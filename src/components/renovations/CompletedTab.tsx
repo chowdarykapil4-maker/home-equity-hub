@@ -226,17 +226,6 @@ export default function CompletedTab({ projects }: Props) {
   );
 }
 
-function SummaryCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
-  return (
-    <Card>
-      <CardContent className="p-3">
-        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">{icon} {label}</p>
-        <p className="text-sm font-bold truncate">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-      </CardContent>
-    </Card>
-  );
-}
 
 function TimelineCard({ project: p, onEdit, onDelete }: { project: RenovationProject; onEdit: (p: RenovationProject) => void; onDelete: (id: string) => void }) {
   const valueAdded = getEstimatedValueAdded(p);
