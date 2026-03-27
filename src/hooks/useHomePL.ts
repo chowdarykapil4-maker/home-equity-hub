@@ -69,8 +69,9 @@ export function useHomePL(): HomePLData {
     const purchaseDate = property.purchaseDate;
 
     const now = new Date();
-    const pd = new Date(purchaseDate);
-    const monthsOwned = (now.getFullYear() - pd.getFullYear()) * 12 + (now.getMonth() - pd.getMonth());
+    // Parse purchase date parts directly to avoid timezone issues with Date constructor
+    const [pYear, pMonth] = purchaseDate.split('-').map(Number);
+    const monthsOwned = Math.max(0, (now.getFullYear() - pYear) * 12 + (now.getMonth() + 1 - pMonth));
     const yearsOwned = monthsOwned / 12;
 
     // Home value
