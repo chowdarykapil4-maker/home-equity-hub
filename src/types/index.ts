@@ -7,6 +7,8 @@ export type ProjectCategory =
   | 'Windows & Doors' | 'Interior Finish' | 'Kitchen & Bath'
   | 'Exterior' | 'Electrical' | 'Plumbing' | 'Landscaping' | 'Other';
 
+export type LoanType = '30yr Fixed' | '15yr Fixed' | '10yr ARM' | '7yr ARM' | '5yr ARM';
+
 export type ROICategory = 'High 75%' | 'Medium 60%' | 'Low 35%' | 'Maintenance 10%' | 'Custom';
 
 export const ROI_PERCENTAGES: Record<ROICategory, number> = {
@@ -63,4 +65,50 @@ export function getEstimatedValueAdded(project: RenovationProject): number {
 export function getCostVariance(project: RenovationProject): number | null {
   if (project.status !== 'Complete') return null;
   return project.actualCost - getEstimateMidpoint(project);
+}
+
+export interface MortgageProfile {
+  originalLoanAmount: number;
+  loanStartDate: string;
+  interestRate: number;
+  loanType: LoanType;
+  armResetDate: string;
+  loanTermYears: number;
+  monthlyPayment: number;
+  estimatedMarketRate: number;
+}
+
+export interface MortgagePayment {
+  id: string;
+  paymentDate: string;
+  paymentAmount: number;
+  principalPortion: number;
+  interestPortion: number;
+  extraPrincipal: number;
+  remainingBalance: number;
+  notes: string;
+}
+
+export function isARM(loanType: LoanType): boolean {
+  return loanType.includes('ARM');
+}
+
+export function calculateMonthlyInterest(balance: number, annualRate: number): number {
+  return (balance * (annualRate / 100)) / 12;
+}
+
+export function calculatePaymentSplit(balance: number, annualRate: number, paymentAmount: number, extraPrincipal: number = 0) {
+  const interest = calculateMonthlyInterest(balance, annualRate);
+  const principal = paymentAmount - interest;
+  const newBalance = Math.max(0, balance - principal - extraPrincipal);
+  return { interest: Math.round(interest * 100) / 100, principal: Math.round(principal * 100) / 100, newBalance: Math.round(newBalance * 100) / 100 };
+}
+
+export function calculateMonthsRemaining(balance: number, annualRate: number, monthlyPayment: number): number {
+  if (balance <= 0 || monthlyPayment <= 0) return 0;
+  const monthlyRate = annualRate / 100 / 12;
+  if (monthlyRate === 0) return Math.ceil(balance / monthlyPayment);
+  const interest = balance * monthlyRate;
+  if (monthlyPayment <= interest) return Infinity;
+  return Math.ceil(-Math.log(1 - (balance * monthlyRate) / monthlyPayment) / Math.log(1 + monthlyRate));
 }

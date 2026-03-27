@@ -1,4 +1,4 @@
-import { LayoutDashboard, Hammer, Settings, Home } from 'lucide-react';
+import { LayoutDashboard, Hammer, Settings, Home, Landmark } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -15,6 +15,7 @@ import {
 const items = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Renovations', url: '/renovations', icon: Hammer },
+  { title: 'Mortgage', url: '/mortgage', icon: Landmark },
   { title: 'Property Profile', url: '/property', icon: Settings },
 ];
 

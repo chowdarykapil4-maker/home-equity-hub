@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PropertyProfile, RenovationProject } from '@/types';
+import { PropertyProfile, RenovationProject, MortgageProfile, MortgagePayment } from '@/types';
 
 interface AppState {
   property: PropertyProfile;
   projects: RenovationProject[];
+  mortgage: MortgageProfile;
+  mortgagePayments: MortgagePayment[];
   setProperty: (p: PropertyProfile) => void;
   setProjects: (p: RenovationProject[]) => void;
   addProject: (p: RenovationProject) => void;
   updateProject: (p: RenovationProject) => void;
   deleteProject: (id: string) => void;
+  setMortgage: (m: MortgageProfile) => void;
+  setMortgagePayments: (p: MortgagePayment[]) => void;
+  addMortgagePayment: (p: MortgagePayment) => void;
+  updateMortgagePayment: (p: MortgagePayment) => void;
+  deleteMortgagePayment: (id: string) => void;
 }
 
 const defaultProperty: PropertyProfile = {
@@ -24,11 +31,21 @@ const defaultProperty: PropertyProfile = {
   mortgageBalance: 0,
 };
 
+const defaultMortgage: MortgageProfile = {
+  originalLoanAmount: 1090000,
+  loanStartDate: '2022-10-01',
+  interestRate: 5.5,
+  loanType: '10yr ARM',
+  armResetDate: '2032-10-01',
+  loanTermYears: 30,
+  monthlyPayment: 6190,
+  estimatedMarketRate: 6.5,
+};
+
 const AppContext = createContext<AppState | undefined>(undefined);
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
-    // Force refresh property defaults if address is empty (old cached data)
     if (key === 'casakat_property') {
       const stored = localStorage.getItem(key);
       if (stored) {
@@ -53,16 +70,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<RenovationProject[]>(() =>
     loadFromStorage('casakat_projects', [])
   );
+  const [mortgage, setMortgage] = useState<MortgageProfile>(() =>
+    loadFromStorage('casakat_mortgage', defaultMortgage)
+  );
+  const [mortgagePayments, setMortgagePayments] = useState<MortgagePayment[]>(() =>
+    loadFromStorage('casakat_mortgage_payments', [])
+  );
 
   useEffect(() => { localStorage.setItem('casakat_property', JSON.stringify(property)); }, [property]);
   useEffect(() => { localStorage.setItem('casakat_projects', JSON.stringify(projects)); }, [projects]);
+  useEffect(() => { localStorage.setItem('casakat_mortgage', JSON.stringify(mortgage)); }, [mortgage]);
+  useEffect(() => { localStorage.setItem('casakat_mortgage_payments', JSON.stringify(mortgagePayments)); }, [mortgagePayments]);
 
   const addProject = (p: RenovationProject) => setProjects(prev => [...prev, p]);
   const updateProject = (p: RenovationProject) => setProjects(prev => prev.map(x => x.id === p.id ? p : x));
   const deleteProject = (id: string) => setProjects(prev => prev.filter(x => x.id !== id));
 
+  const addMortgagePayment = (p: MortgagePayment) => setMortgagePayments(prev => [...prev, p]);
+  const updateMortgagePayment = (p: MortgagePayment) => setMortgagePayments(prev => prev.map(x => x.id === p.id ? p : x));
+  const deleteMortgagePayment = (id: string) => setMortgagePayments(prev => prev.filter(x => x.id !== id));
+
   return (
-    <AppContext.Provider value={{ property, projects, setProperty, setProjects, addProject, updateProject, deleteProject }}>
+    <AppContext.Provider value={{
+      property, projects, mortgage, mortgagePayments,
+      setProperty, setProjects, setMortgage, setMortgagePayments,
+      addProject, updateProject, deleteProject,
+      addMortgagePayment, updateMortgagePayment, deleteMortgagePayment,
+    }}>
       {children}
     </AppContext.Provider>
   );
