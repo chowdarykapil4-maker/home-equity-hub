@@ -1,9 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { MortgageProfile, MortgagePayment, isARM, calculateMonthsRemaining } from '@/types';
-import { formatCurrency, formatPercent } from '@/lib/format';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { formatCurrency } from '@/lib/format';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface Props {
   mortgage: MortgageProfile;
@@ -12,9 +11,12 @@ interface Props {
 }
 
 export default function MortgageSummaryMetrics({ mortgage, payments, currentValue }: Props) {
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const sorted = useMemo(() => [...payments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate)), [payments]);
 
   const currentBalance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : mortgage.originalLoanAmount;
+  const paidDown = mortgage.originalLoanAmount - currentBalance;
   const totalPrincipalPaid = sorted.reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
   const totalInterestPaid = sorted.reduce((s, p) => s + p.interestPortion, 0);
   const totalPaid = sorted.reduce((s, p) => s + p.paymentAmount + p.extraPrincipal, 0);
@@ -25,95 +27,127 @@ export default function MortgageSummaryMetrics({ mortgage, payments, currentValu
   const monthsRemaining = calculateMonthsRemaining(currentBalance, mortgage.interestRate, mortgage.monthlyPayment);
   const paymentsMade = sorted.length;
   const totalTermMonths = mortgage.loanTermYears * 12;
-  const paymentsRemaining = Math.max(0, totalTermMonths - paymentsMade);
 
-  // Timeline
-  const startDate = new Date(mortgage.loanStartDate);
   const now = new Date();
-  const yearsIn = ((now.getTime() - startDate.getTime()) / (365.25 * 24 * 3600000));
-  const yearsRemStr = monthsRemaining === Infinity ? '∞' : (monthsRemaining / 12).toFixed(1);
+  const startDate = new Date(mortgage.loanStartDate);
+  const yearsIn = (now.getTime() - startDate.getTime()) / (365.25 * 24 * 3600000);
+  const yearsRemaining = monthsRemaining === Infinity ? Infinity : monthsRemaining / 12;
   const projectedPayoff = new Date(now.getFullYear(), now.getMonth() + monthsRemaining, 1);
+  const payoffStr = monthsRemaining === Infinity ? '∞' : projectedPayoff.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-  // P/I donut data
-  const donutData = [
-    { name: 'Principal', value: Math.round(totalPrincipalPaid) },
-    { name: 'Interest', value: Math.round(totalInterestPaid) },
-  ];
+  const principalPaidPct = mortgage.originalLoanAmount > 0 ? (totalPrincipalPaid / mortgage.originalLoanAmount) * 100 : 0;
+  const avgProjectNet = paymentsMade > 0 ? (totalPaid - totalInterestPaid) / paymentsMade : 0;
+  const progressPct = totalTermMonths > 0 ? (paymentsMade / totalTermMonths) * 100 : 0;
 
   // ARM
   const showARM = isARM(mortgage.loanType);
   const armReset = new Date(mortgage.armResetDate);
   const monthsUntilReset = (armReset.getFullYear() - now.getFullYear()) * 12 + (armReset.getMonth() - now.getMonth());
+  const armResetStr = armReset.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  const fmtK = (v: number) => {
+    if (Math.abs(v) >= 1000) return `$${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}K`;
+    return formatCurrency(v);
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Row 1 — Key Balances */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard label="Original Loan" value={formatCurrency(mortgage.originalLoanAmount)} />
-        <MetricCard label="Current Balance" value={formatCurrency(currentBalance)} accent />
-        <MetricCard label="Total Paid to Date" value={formatCurrency(totalPaid)} />
-        <MetricCard label="Equity" value={formatCurrency(equity)} sub={`LTV: ${formatPercent(ltv)}`} positive />
+    <div className="border-b border-border">
+      {/* ROW 1 — Title Bar */}
+      <div className="flex items-center justify-between px-3 py-2">
+        <h2 className="text-lg font-medium text-foreground">Mortgage</h2>
+        {showARM && (
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+            ARM resets {armResetStr} · {monthsUntilReset} mo
+          </span>
+        )}
       </div>
 
-      {/* Row 2 — P/I Breakdown with Donut */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_140px] gap-3">
-        <div className="grid grid-cols-3 gap-3">
-          <MetricCard label="Principal Paid" value={formatCurrency(totalPrincipalPaid)} positive sub={`${principalPct.toFixed(1)}% of payments`} />
-          <MetricCard label="Interest Paid" value={formatCurrency(totalInterestPaid)} negative sub={`${interestPct.toFixed(1)}% of payments`} />
-          <MetricCard label="Principal Paid %" value={formatPercent((totalPrincipalPaid / mortgage.originalLoanAmount) * 100)}>
-            <Progress value={(totalPrincipalPaid / mortgage.originalLoanAmount) * 100} className="mt-1.5 h-1.5" />
-          </MetricCard>
+      {/* ROW 2 — Hero Metrics Strip */}
+      <div className="flex flex-col sm:flex-row border-t border-b border-border divide-y sm:divide-y-0 sm:divide-x divide-border">
+        <div className="flex-1 px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Original loan</p>
+          <p className="text-xl font-bold text-foreground">{formatCurrency(mortgage.originalLoanAmount)}</p>
         </div>
-        <Card className="flex items-center justify-center">
-          <ResponsiveContainer width={100} height={100}>
-            <PieChart>
-              <Pie data={donutData} dataKey="value" innerRadius={28} outerRadius={42} paddingAngle={2} strokeWidth={0}>
-                <Cell fill="hsl(var(--success))" />
-                <Cell fill="hsl(var(--destructive))" />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
+        <div className="flex-1 px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Current balance</p>
+          <p className="text-xl font-bold text-primary">{formatCurrency(currentBalance)}</p>
+          <p className="text-[11px] text-muted-foreground">Paid down {formatCurrency(paidDown)}</p>
+        </div>
+        <div className="flex-1 px-3.5 py-2.5">
+          <p className="text-[11px] text-muted-foreground">Equity</p>
+          <p className="text-xl font-bold text-success">{formatCurrency(equity)}</p>
+          <p className="text-[11px] text-muted-foreground">LTV {ltv.toFixed(1)}%</p>
+        </div>
       </div>
 
-      {/* Row 3 — Timeline */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard label="Payments Made" value={String(paymentsMade)} sub={`of ~${totalTermMonths}`} />
-        <MetricCard label="Payments Remaining" value={monthsRemaining === Infinity ? '∞' : String(monthsRemaining)} />
-        <MetricCard label="Projected Payoff" value={projectedPayoff.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} />
-        <MetricCard label="Loan Progress" value={`${yearsIn.toFixed(1)} yrs in`} sub={`${yearsRemStr} yrs remaining`} />
+      {/* ROW 3 — P/I Split Bar */}
+      <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/30 border-b border-border">
+        <span className="text-xs font-medium text-success whitespace-nowrap">{fmtK(totalPrincipalPaid)} principal</span>
+        <div className="flex-1">
+          <div className="h-3.5 rounded-full overflow-hidden flex bg-muted">
+            <div className="bg-success/70 h-full transition-all" style={{ width: `${principalPct}%` }} />
+            <div className="bg-destructive/50 h-full transition-all" style={{ width: `${interestPct}%` }} />
+          </div>
+          <div className="flex justify-between mt-0.5">
+            <span className="text-[10px] text-muted-foreground">{principalPct.toFixed(1)}% to principal</span>
+            <span className="text-[10px] text-muted-foreground">{interestPct.toFixed(1)}% to interest</span>
+          </div>
+        </div>
+        <span className="text-xs font-medium text-destructive whitespace-nowrap">{fmtK(totalInterestPaid)} interest</span>
       </div>
 
-      {/* Row 4 — ARM (conditional) */}
+      {/* ROW 4 — Loan Progress Bar */}
+      <div className="flex items-center gap-3 px-3.5 py-1.5 border-b border-border">
+        <span className="text-[11px] text-muted-foreground whitespace-nowrap"><span className="font-semibold text-foreground">{paymentsMade}</span> paid</span>
+        <div className="flex-1 relative">
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full bg-primary/60 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+          </div>
+          <div
+            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-primary rounded-full"
+            style={{ left: `${progressPct}%` }}
+          />
+        </div>
+        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+          <span className="font-semibold text-foreground">{monthsRemaining === Infinity ? '∞' : totalTermMonths - paymentsMade}</span> remaining · payoff {payoffStr}
+        </span>
+      </div>
+
+      {/* ROW 5 — ARM Details (conditional) */}
       {showARM && (
-        <Card className={monthsUntilReset <= 12 ? 'border-warning bg-warning/5' : ''}>
-          <CardContent className="py-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div><p className="text-xs text-muted-foreground">ARM Reset</p><p className="font-semibold">{armReset.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p></div>
-              <div><p className="text-xs text-muted-foreground">Months Until Reset</p><p className="font-semibold">{monthsUntilReset}</p></div>
-              <div><p className="text-xs text-muted-foreground">Current Rate</p><p className="font-semibold">{mortgage.interestRate}%</p></div>
-              <div><p className="text-xs text-muted-foreground">Est. Market Rate</p><p className="font-semibold">{mortgage.estimatedMarketRate}%</p></div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 px-3.5 py-1.5 bg-amber-50/60 dark:bg-amber-900/10 border-b border-border text-xs">
+          <span><span className="text-amber-700/70 dark:text-amber-400/70">Reset:</span> <span className="font-medium text-amber-900 dark:text-amber-300">{armResetStr}</span></span>
+          <span><span className="text-amber-700/70 dark:text-amber-400/70">In:</span> <span className="font-medium text-amber-900 dark:text-amber-300">{monthsUntilReset} months</span></span>
+          <span><span className="text-amber-700/70 dark:text-amber-400/70">Current:</span> <span className="font-medium text-amber-900 dark:text-amber-300">{mortgage.interestRate}%</span></span>
+          <span><span className="text-amber-700/70 dark:text-amber-400/70">Est. market:</span> <span className="font-medium text-amber-900 dark:text-amber-300">{mortgage.estimatedMarketRate}%</span></span>
+        </div>
       )}
+
+      {/* ROW 6 — Collapsible Detail Row */}
+      <Collapsible open={detailOpen} onOpenChange={setDetailOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 px-3.5 py-1.5 text-xs text-primary hover:text-primary/80 cursor-pointer border-b border-border">
+          {detailOpen ? 'Hide full metrics' : 'Show full metrics'}
+          {detailOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border border-b border-border">
+            <DetailCell label="Total paid" value={formatCurrency(totalPaid)} />
+            <DetailCell label="Monthly payment" value={formatCurrency(mortgage.monthlyPayment)} />
+            <DetailCell label="Principal paid %" value={`${principalPaidPct.toFixed(1)}%`} sub="of original loan" />
+            <DetailCell label="Years in / remaining" value={`${yearsIn.toFixed(1)} / ${yearsRemaining === Infinity ? '∞' : yearsRemaining.toFixed(1)}`} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
 
-function MetricCard({ label, value, sub, accent, positive, negative, children }: {
-  label: string; value: string; sub?: string; accent?: boolean; positive?: boolean; negative?: boolean; children?: React.ReactNode;
-}) {
+function DetailCell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <Card>
-      <CardContent className="py-3 px-4">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-lg font-semibold mt-0.5 ${positive ? 'text-success' : negative ? 'text-destructive' : accent ? 'text-primary' : 'text-foreground'}`}>
-          {value}
-        </p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
-        {children}
-      </CardContent>
-    </Card>
+    <div className="flex-1 px-3.5 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value}</p>
+      {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
+    </div>
   );
 }

@@ -79,32 +79,7 @@ export default function MortgagePage() {
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
-      <h2 className="text-xl font-semibold text-foreground">Mortgage</h2>
-
-      {/* ARM Alert */}
-      {showArmAlert && monthsUntilReset <= 12 && (
-        <Card className="border-warning bg-warning/5">
-          <CardContent className="py-3">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-warning" />
-              <span className="text-sm font-medium">ARM resets in {monthsUntilReset} months</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-              <div><p className="text-xs text-muted-foreground">Reset Date</p><p className="font-semibold">{armResetDate.toLocaleDateString()}</p></div>
-              <div><p className="text-xs text-muted-foreground">Current → Est. Rate</p><p className="font-semibold">{mortgage.interestRate}% → {mortgage.estimatedMarketRate}%</p></div>
-              <div><p className="text-xs text-muted-foreground">Est. Payment Change</p><p className="font-semibold">{formatCurrency(estimatedNewPayment - mortgage.monthlyPayment)}/mo</p></div>
-              <div className="flex items-end gap-1">
-                <div>
-                  <Label className="text-xs">Market Rate</Label>
-                  <Input type="number" step="0.1" className="w-20 h-7 text-xs" value={mortgage.estimatedMarketRate || ''} onChange={e => update({ estimatedMarketRate: +e.target.value })} />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Summary Metrics */}
+      {/* Compact Summary Header */}
       <MortgageSummaryMetrics mortgage={mortgage} payments={sortedPayments} currentValue={property.currentEstimatedValue} />
 
       {/* Tabs */}
