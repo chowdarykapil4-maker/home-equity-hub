@@ -9,9 +9,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import ScenarioDelta from './ScenarioDelta';
-import AdvantageBreakdown from './AdvantageBreakdown';
-import { HelpTip } from './HelpTip';
 import {
   Tooltip,
   TooltipContent,
