@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { getROIPercentage, getEstimateMidpoint, getEstimatedValueAdded } from '@/types';
-import { fmtCurrency } from '@/lib/format';
+import { formatCurrency } from '@/lib/format';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { HelpTip } from '@/components/homepl/HelpTip';
