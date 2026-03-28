@@ -1,44 +1,41 @@
 
 
-## Plan: Add "Extra Payment Impact" Collapsible Section
+## Plan: Add "Renovation ROI Ranker" Collapsible Section
 
 ### What we're building
-A new collapsible section after the Refinance Analyzer that models the impact of extra monthly principal payments — showing interest saved, time saved, a timeline bar, and a sensitivity table.
+A collapsible section after "Extra payment impact" that ranks all Planned + Wishlist renovation projects by ROI, showing a sortable table, summary stats, and a "best next move" recommendation.
 
 ### Files to create/edit
 
-**1. Create `src/components/homepl/ExtraPaymentImpact.tsx`** (~200 lines)
+**1. Create `src/components/homepl/RenovationROIRanker.tsx`** (~150 lines)
 
-Props: `d: HomePLData`. Pulls `mortgage`, `mortgagePayments` from `useAppContext()`.
+- Pulls `projects` from `useAppContext()`
+- Filters to `status === 'Planned ...' || status === 'Wishlist'` (any status containing "Planned" or equal to "Wishlist")
+- For each project: uses existing `getROIPercentage()`, `getEstimateMidpoint()`, `getEstimatedValueAdded()` from `@/types`
+- Derives `netCost = cost - valueAdded`, ROI tier coloring (green >70%, amber 40-70%, coral <40%)
 
-Local state: `extra` (default 500), `open` (default false).
+**Collapsed:** "Renovation ROI ranker" left, "X projects ranked by return →" right, chevron.
 
-**Collapsed state:** Banner with "Extra payment impact" left, pre-calculated "$500/mo extra saves $XXX,XXX in interest" in green right, chevron.
+**Section A — Ranked table:** Projects sorted by ROI% descending. Columns: rank # with colored dot, name, cost (midpoint), ROI% with tiny inline bar, value added (green), net cost (coral), status pill. Alternating row backgrounds. Empty state links to Renovations page.
 
-**Section A — Slider:** Range 0–3000, step 100. Quick-select pills: $250, $500, $1,000, $2,000. Live "$X/mo extra" display.
+**Section B — Summary line:** Total planned cost → total value added (avg ROI%).
 
-**Section B — Impact comparison:** Two columns (without/with extra). Shows payment, payoff date, total remaining interest. Centered delta highlights: years/months saved + interest saved in green bold.
+**Section C — Best next move:** Highlights highest-ROI planned project with cost and value added.
 
-Calculation: month-by-month loop from `d.currentBalance` at `mortgage.interestRate`, comparing baseline vs with-extra. Sum interest in each path, record when balance hits zero.
-
-**Section C — Timeline bar:** Two horizontal bars — gray full-width for current remaining term, green shorter bar for with-extra term. Gap labeled "X years saved."
-
-**Section D — Sensitivity table:** 4 rows ($250/$500/$1k/$2k), columns: Extra/mo, Interest saved, Years saved, Monthly equity boost. Highlight row matching current slider with green left border. All computed via the same amortization loop in `useMemo`.
-
-**Tooltips** via `HelpTip` on: interest saved, years saved, extra payment slider, monthly equity boost.
+**Tooltips** via `HelpTip` on: ROI, value added, net cost, best next project.
 
 **2. Edit `src/pages/HomePL.tsx`**
-- Import `ExtraPaymentImpact`
-- Add after RefinanceAnalyzer (line 78), before AnnualReport:
+- Import `RenovationROIRanker`
+- Add after ExtraPaymentImpact, before AnnualReport:
 ```tsx
 <div className="mt-5">
-  <ExtraPaymentImpact d={scenario} />
+  <RenovationROIRanker />
 </div>
 ```
 
 ### Technical details
-- Reuses same amortization loop pattern as `calculateExtraPaymentImpact` in `lib/amortization.ts` but done inline in `useMemo` for the sensitivity table (4 scenarios at once)
-- Current balance from `d.currentBalance`, rate from `mortgage.interestRate`, payment from `mortgage.monthlyPayment`
-- Timeline bar widths: proportional — baseline months = 100%, extra months = (extraMonths/baselineMonths × 100)%
-- Collapsed preview uses a pre-computed $500 result from the same `useMemo`
+- All calculation functions already exist in `@/types/index.ts` — no new math needed
+- Cost uses `getEstimateMidpoint()` for non-complete projects
+- ROI tier thresholds: >70% green, 40-70% amber, <40% coral
+- Status matching: includes all statuses starting with "Planned" (e.g. "Planned 2026", "Planned 2027") plus "Wishlist"
 
