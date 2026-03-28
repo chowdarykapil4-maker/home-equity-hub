@@ -71,6 +71,11 @@ export default function HomePL() {
           <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
         </div>
 
+        {/* Act 3.6: Annual report */}
+        <div className="mt-5">
+          <AnnualReport d={scenario} />
+        </div>
+
         {/* Act 4: Deep dive — 20px gap */}
         <div className="mt-5 space-y-2">
           <DetailedBreakdown d={scenario} />
