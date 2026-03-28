@@ -213,6 +213,8 @@ export function useHomePL(): HomePLData {
       monthlyCostOfOwnership,
       totalRentWouldHavePaid, ownerSunkCost, renterSunkCost, ownershipAdvantage,
       monthlyWealthCreation, sunkCostDiff,
+      monthlyPrincipalPaydown, monthlyAppreciation, monthlyRenoValue,
+      trueMonthlyWealthCreation, sustainableMonthlyRate, downPaymentMonthlyEquivalent,
       chartData, crossoverMonth,
     };
   }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig]);
