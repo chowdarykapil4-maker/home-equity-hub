@@ -183,12 +183,12 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
           {/* Side-by-side comparison */}
           <div className="grid grid-cols-1 sm:grid-cols-[55%_45%]">
             {/* Owner column */}
-            <div className="pr-3 space-y-1.5">
+            <div className="pr-3 space-y-2">
               <p className="text-[12px] font-semibold tracking-wide uppercase text-muted-foreground">
                 You (homeowner){afterTax ? ' — after tax' : ''}
               </p>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Home equity</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">Home equity</p>
                 <p className="text-[20px] font-medium text-success leading-tight">
                   <HelpTip plain="If you sold today and paid off the mortgage, this is roughly what you'd pocket (before selling costs)" math={`Home value (${formatCurrency(d.currentHomeValue)}) − mortgage balance (${formatCurrency(d.currentBalance)}) = ${formatCurrency(d.wealthBuilt)}`}>
                     {formatCurrency(d.wealthBuilt)}
@@ -198,8 +198,8 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
               </div>
               {afterTax && (
                 <>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Tax savings realized</p>
+                  <div className="space-y-0">
+                    <p className="text-[11px] text-muted-foreground leading-none">Tax savings realized</p>
                     <HelpPopover content={
                       <div className="space-y-2">
                         <p className="font-medium text-[13px]">Real money you got back from the IRS because you own a home</p>
@@ -211,11 +211,11 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                         </div>
                       </div>
                     }>
-                      <p className="text-[14px] text-success/80">+{formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}</p>
+                      <p className="text-[14px] text-success/80 leading-tight">+{formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}</p>
                     </HelpPopover>
                   </div>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Tax savings at sale</p>
+                  <div className="space-y-0">
+                    <p className="text-[11px] text-muted-foreground leading-none">Tax savings at sale</p>
                     <HelpPopover content={
                       <div className="space-y-2">
                         <p className="font-medium text-[13px]">When you sell, up to ${tax.filingStatus === 'Single' ? '250' : '500'}K in profit is completely tax-free</p>
@@ -223,23 +223,23 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                         <p className="text-muted-foreground italic text-[10px]">This benefit is realized only when you sell, but it's a real and significant advantage</p>
                       </div>
                     }>
-                      <p className="text-[14px] text-success/60">+{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
+                      <p className="text-[14px] text-success/60 leading-tight">+{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
                         <span className="text-[10px] text-muted-foreground ml-1">realized at sale</span>
                       </p>
                     </HelpPopover>
                   </div>
                 </>
               )}
-              <div>
-                <p className="text-[11px] text-muted-foreground">{afterTax ? 'After-tax sunk cost' : 'Sunk cost'}</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">{afterTax ? 'After-tax sunk cost' : 'Sunk cost'}</p>
                 <HelpTip plain="Total money spent that you can never recover, reduced by tax savings from deductions" math={afterTax ? `Pre-tax sunk (${formatCurrency(d.sunkCost)}) − tax savings (${formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}) = ${formatCurrency(taxAdj.owner.afterTaxSunkCost)}` : `Interest + property tax + net reno cost + insurance + maintenance`}>
-                  <p className="text-[14px] text-destructive/70">{formatCurrency(afterTax ? taxAdj.owner.afterTaxSunkCost : d.sunkCost)}</p>
+                  <p className="text-[14px] text-destructive/70 leading-tight">{formatCurrency(afterTax ? taxAdj.owner.afterTaxSunkCost : d.sunkCost)}</p>
                 </HelpTip>
               </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">{afterTax ? 'Effective net wealth' : 'Net wealth'}</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">{afterTax ? 'Effective net wealth' : 'Net wealth'}</p>
                 <HelpTip plain={afterTax ? "Your net wealth from this home including tax benefits already received" : `Your total wealth from this home built over ${d.monthsOwned} months of ownership`}>
-                  <p className="text-[14px] font-medium">{formatCurrency(afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt)}</p>
+                  <p className="text-[14px] font-medium leading-tight">{formatCurrency(afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt)}</p>
                 </HelpTip>
                 <ScenarioDelta scenarioVal={afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt} baseVal={afterTax ? baseTaxAdj.owner.effectiveNetWealth : b.wealthBuilt} active={scenarioActive} />
               </div>
@@ -247,19 +247,19 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                 <span className="text-[10px] text-muted-foreground">Illiquid · tax-advantaged</span>
               </HelpTip>
               {afterTax && (
-                <p className="text-[10px] text-success/60">
+                <p className="text-[10px] text-success/60 leading-tight">
                   Interest deduction: +{formatCurrency(taxAdj.owner.interestDeductionSavings)} | Prop tax deduction: +{formatCurrency(taxAdj.owner.propertyTaxDeductionSavings)} | Cap gains exclusion: +{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
                 </p>
               )}
             </div>
 
             {/* Renter column */}
-            <div className="pl-3 border-l border-border/50 space-y-1.5 mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t sm:border-t-0">
+            <div className="pl-3 border-l border-border/50 space-y-2 mt-2.5 sm:mt-0 pt-2.5 sm:pt-0 border-t sm:border-t-0">
               <p className="text-[12px] font-semibold tracking-wide uppercase text-muted-foreground">
                 If you rented + invested at {activeRate}%{afterTax ? ' — after tax' : ''}
               </p>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Portfolio value{afterTax ? ' (pre-tax)' : ''}</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">Portfolio value{afterTax ? ' (pre-tax)' : ''}</p>
                 <p className={`text-[20px] font-medium text-primary leading-tight ${afterTax ? 'line-through opacity-50' : ''}`}>
                   <HelpTip plain={`If you invested your ${formatCurrency(d.downPayment)} down payment plus saved ${formatCurrency(result.monthlySavings)} every month at ${activeRate}% return`} math={`${formatCurrency(d.downPayment)} initial + ${formatCurrency(result.monthlySavings)}/mo × ${d.monthsOwned} months, compounded at ${activeRate}%`}>
                     {formatCurrency(result.portfolioValue)}
@@ -268,41 +268,41 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
               </div>
               {afterTax && (
                 <>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Capital gains tax</p>
+                  <div className="space-y-0">
+                    <p className="text-[11px] text-muted-foreground leading-none">Capital gains tax</p>
                     <HelpTip plain="If the renter sold stocks today, they'd owe this in federal + state capital gains tax" math={`Portfolio gains (${formatCurrency(Math.max(0, result.portfolioValue - d.downPayment - result.monthlySavings * d.monthsOwned))}) × combined rate (${(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}%)`}>
-                      <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.capitalGainsTax)}</p>
+                      <p className="text-[14px] text-destructive/70 leading-tight">-{formatCurrency(taxAdj.renter.capitalGainsTax)}</p>
                     </HelpTip>
                   </div>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Dividend tax drag</p>
+                  <div className="space-y-0">
+                    <p className="text-[11px] text-muted-foreground leading-none">Dividend tax drag</p>
                     <HelpTip plain="Stock investors pay tax on dividends annually, even if reinvested. This tax drags on compounding over time.">
-                      <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.dividendTaxDrag)}</p>
+                      <p className="text-[14px] text-destructive/70 leading-tight">-{formatCurrency(taxAdj.renter.dividendTaxDrag)}</p>
                     </HelpTip>
                   </div>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">After-tax portfolio</p>
+                  <div className="space-y-0">
+                    <p className="text-[11px] text-muted-foreground leading-none">After-tax portfolio</p>
                     <p className="text-[20px] font-medium text-primary leading-tight">{formatCurrency(taxAdj.renter.afterTaxPortfolio)}</p>
                   </div>
                 </>
               )}
-              <div>
-                <p className="text-[11px] text-muted-foreground">Rent paid (sunk)</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">Rent paid (sunk)</p>
                 <HelpTip plain={`Total rent over ${d.monthsOwned} months. Every dollar is sunk — you own nothing at the end.`} math={`${formatCurrency(result.monthlyRent)}/mo × ${d.monthsOwned} months`}>
-                  <p className="text-[14px] text-destructive/70">{formatCurrency(result.totalRentPaid)}</p>
+                  <p className="text-[14px] text-destructive/70 leading-tight">{formatCurrency(result.totalRentPaid)}</p>
                 </HelpTip>
               </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">{afterTax ? 'After-tax net wealth' : 'Net wealth'}</p>
+              <div className="space-y-0">
+                <p className="text-[11px] text-muted-foreground leading-none">{afterTax ? 'After-tax net wealth' : 'Net wealth'}</p>
                 <HelpTip plain={afterTax ? "Renter-investor's total wealth — all in stocks, reduced by capital gains and dividend taxes" : "Renter-investor's total wealth — all in stocks, fully liquid but subject to capital gains taxes when sold"}>
-                  <p className="text-[14px] font-medium">{formatCurrency(afterTax ? taxAdj.renter.afterTaxNetWealth : result.portfolioValue)}</p>
+                  <p className="text-[14px] font-medium leading-tight">{formatCurrency(afterTax ? taxAdj.renter.afterTaxNetWealth : result.portfolioValue)}</p>
                 </HelpTip>
               </div>
               <HelpTip plain="Stocks can be sold anytime, but you pay 15-28% tax on profits. No tax-free exclusion like home sales get.">
                 <span className="text-[10px] text-muted-foreground">Liquid · taxable gains</span>
               </HelpTip>
               {afterTax && (
-                <p className="text-[10px] text-destructive/60">
+                <p className="text-[10px] text-destructive/60 leading-tight">
                   Capital gains tax: −{formatCurrency(taxAdj.renter.capitalGainsTax)} | Dividend tax: −{formatCurrency(taxAdj.renter.dividendTaxDrag)}
                 </p>
               )}
