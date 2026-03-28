@@ -13,6 +13,7 @@ import UnifiedComparison from '@/components/homepl/UnifiedComparison';
 import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
 import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
+import AnnualReport from '@/components/homepl/AnnualReport';
 
 export default function HomePL() {
   const baseD = useHomePL();
@@ -68,6 +69,11 @@ export default function HomePL() {
         {/* Act 3.5: Sale modeling */}
         <div className="mt-5">
           <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
+        </div>
+
+        {/* Act 3.6: Annual report */}
+        <div className="mt-5">
+          <AnnualReport d={scenario} />
         </div>
 
         {/* Act 4: Deep dive — 20px gap */}
