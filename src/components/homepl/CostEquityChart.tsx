@@ -2,6 +2,7 @@ import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import ScenarioDelta from './ScenarioDelta';
+import { HelpTip } from './HelpTip';
 
 interface Props {
   d: HomePLData;
@@ -53,7 +54,14 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        Your equity is growing <span className="font-semibold text-success">{ratio}×</span> faster than your sunk cost
+        Your equity is growing{' '}
+        <HelpTip
+          plain={`For every $1 you lose to sunk costs (interest, taxes, etc.), your equity grows by $${ratio}. This ratio improves over time as your mortgage shifts more toward principal.`}
+          math={`Monthly equity growth (${formatCurrency(equityGrowthRate)}) ÷ monthly sunk cost (${formatCurrency(sunkGrowthRate)}) = ${ratio}×`}
+        >
+          <span className="font-semibold text-success">{ratio}×</span>
+        </HelpTip>
+        {' '}faster than your sunk cost
         {scenarioActive && (
           <ScenarioDelta scenarioVal={parseFloat(ratio as string) || 0} baseVal={baseRatio} active={true} />
         )}

@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/lib/format';
+import { HelpTip } from './HelpTip';
 
 interface Props {
   scenarioPercent: number;
@@ -8,10 +9,10 @@ interface Props {
 }
 
 const PRESETS = [
-  { label: 'Crash −20%', value: -20, bg: 'bg-destructive/10', activeBg: 'bg-destructive/25', text: 'text-destructive' },
-  { label: 'Flat 0%', value: 0, bg: 'bg-muted', activeBg: 'bg-muted-foreground/25', text: 'text-muted-foreground' },
-  { label: 'Growth +15%', value: 15, bg: 'bg-success/10', activeBg: 'bg-success/25', text: 'text-success' },
-  { label: 'Hot +25%', value: 25, bg: 'bg-success/15', activeBg: 'bg-success/35', text: 'text-success' },
+  { label: 'Crash −20%', value: -20, bg: 'bg-destructive/10', activeBg: 'bg-destructive/25', text: 'text-destructive', tip: 'Simulates a housing market downturn' },
+  { label: 'Flat 0%', value: 0, bg: 'bg-muted', activeBg: 'bg-muted-foreground/25', text: 'text-muted-foreground', tip: 'No change from current estimate' },
+  { label: 'Growth +15%', value: 15, bg: 'bg-success/10', activeBg: 'bg-success/25', text: 'text-success', tip: 'Simulates strong appreciation' },
+  { label: 'Hot +25%', value: 25, bg: 'bg-success/15', activeBg: 'bg-success/35', text: 'text-success', tip: 'Simulates a hot market' },
 ];
 
 export default function ValueSensitivitySlider({ scenarioPercent, onChange, modeledValue, baseValue }: Props) {
@@ -27,9 +28,14 @@ export default function ValueSensitivitySlider({ scenarioPercent, onChange, mode
         <div className="flex items-center gap-2">
           {isActive ? (
             <>
-              <span className={`text-lg font-medium tabular-nums ${scenarioPercent < 0 ? 'text-destructive' : 'text-success'}`}>
-                Modeled: {formatCurrency(modeledValue)}
-              </span>
+              <HelpTip
+                plain="This is a hypothetical — what your home would be worth if the market moved by this percentage"
+                math={`Current value (${formatCurrency(baseValue)}) × (1 + ${sign}${scenarioPercent}%) = ${formatCurrency(modeledValue)}`}
+              >
+                <span className={`text-lg font-medium tabular-nums ${scenarioPercent < 0 ? 'text-destructive' : 'text-success'}`}>
+                  Modeled: {formatCurrency(modeledValue)}
+                </span>
+              </HelpTip>
               <span className={`text-[10px] font-medium ${scenarioPercent < 0 ? 'text-destructive' : 'text-success'}`}>
                 ({sign}{scenarioPercent}% / {sign}{formatCurrency(diff)})
               </span>
@@ -47,7 +53,6 @@ export default function ValueSensitivitySlider({ scenarioPercent, onChange, mode
       <div className="flex items-center gap-2">
         <span className="text-[11px] text-muted-foreground shrink-0">−30%</span>
         <div className="relative flex-1 h-7 flex items-center">
-          {/* Color zones behind slider */}
           <div className="absolute inset-x-0 h-1.5 rounded-full overflow-hidden flex">
             <div className="w-1/3 bg-destructive/10" />
             <div className="w-1/3 bg-muted/60" />
@@ -75,16 +80,18 @@ export default function ValueSensitivitySlider({ scenarioPercent, onChange, mode
       <div className="flex flex-wrap gap-1.5">
         {PRESETS.map(p => {
           const isSelected = scenarioPercent === p.value;
+          const modeledVal = Math.round(baseValue * (1 + p.value / 100));
           return (
-            <button
-              key={p.value}
-              onClick={() => onChange(p.value)}
-              className={`px-2.5 py-1 rounded-full text-[11px] transition-colors
-                ${isSelected ? `${p.activeBg} ${p.text} font-medium` : `${p.bg} ${p.text}`}
-              `}
-            >
-              {p.label}
-            </button>
+            <HelpTip key={p.value} plain={`${p.tip} — your home ${p.value === 0 ? 'stays at' : p.value > 0 ? 'rises to' : 'drops to'} ${formatCurrency(modeledVal)}`}>
+              <button
+                onClick={() => onChange(p.value)}
+                className={`px-2.5 py-1 rounded-full text-[11px] transition-colors
+                  ${isSelected ? `${p.activeBg} ${p.text} font-medium` : `${p.bg} ${p.text}`}
+                `}
+              >
+                {p.label}
+              </button>
+            </HelpTip>
           );
         })}
       </div>
