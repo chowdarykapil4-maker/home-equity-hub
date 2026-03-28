@@ -10,6 +10,7 @@ import { generateAmortizationSchedule } from '@/lib/amortization';
 
 interface AnnualReportProps {
   d: HomePLData;
+  defaultOpen?: boolean;
 }
 
 interface YearData {
