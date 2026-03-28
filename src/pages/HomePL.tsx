@@ -16,6 +16,7 @@ import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 import AnnualReport from '@/components/homepl/AnnualReport';
 import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
 import ExtraPaymentImpact from '@/components/homepl/ExtraPaymentImpact';
+import RenovationROIRanker from '@/components/homepl/RenovationROIRanker';
 
 export default function HomePL() {
   const baseD = useHomePL();
@@ -81,6 +82,11 @@ export default function HomePL() {
         {/* Act 3.56: Extra payment impact */}
         <div className="mt-5">
           <ExtraPaymentImpact d={scenario} />
+        </div>
+
+        {/* Act 3.57: Renovation ROI ranker */}
+        <div className="mt-5">
+          <RenovationROIRanker />
         </div>
 
         {/* Act 3.6: Annual report */}
