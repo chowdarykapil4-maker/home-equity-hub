@@ -13,12 +13,12 @@ interface Props {
 export default function CostEquityChart({ d, baseD, scenarioActive = false }: Props) {
   const b = baseD || d;
   const todayKey = d.chartData.length > 0 ? d.chartData[d.chartData.length - 1].month : null;
-  const equityGrowthRate = d.monthsOwned > 0 ? d.wealthBuilt / d.monthsOwned : 0;
+  const equityGrowthRate = d.trueMonthlyWealthCreation;
   const sunkGrowthRate = d.monthsOwned > 0 ? d.sunkCost / d.monthsOwned : 0;
   const ratio = sunkGrowthRate > 0 ? (equityGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
 
   const baseRatio = (() => {
-    const bEq = b.monthsOwned > 0 ? b.wealthBuilt / b.monthsOwned : 0;
+    const bEq = b.trueMonthlyWealthCreation;
     const bSunk = b.monthsOwned > 0 ? b.sunkCost / b.monthsOwned : 0;
     return bSunk > 0 ? (bEq / bSunk) : 0;
   })();
