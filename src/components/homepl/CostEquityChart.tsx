@@ -24,7 +24,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   })();
 
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+    <div className="border-t border-border/30 px-4 py-2 space-y-2">
       <p className="text-[13px] font-medium text-foreground">Cost & equity over time</p>
 
       <div className="h-64">
@@ -56,7 +56,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       <p className="text-xs text-muted-foreground text-center">
         Your equity is growing{' '}
         <HelpTip
-          plain={`For every $1 you lose to sunk costs (interest, taxes, etc.), your equity grows by $${ratio}. This ratio improves over time as your mortgage shifts more toward principal.`}
+          plain={`For every $1 you lose to sunk costs, your equity grows by $${ratio}. This ratio improves over time as your mortgage shifts more toward principal.`}
           math={`Monthly equity growth (${formatCurrency(equityGrowthRate)}) ÷ monthly sunk cost (${formatCurrency(sunkGrowthRate)}) = ${ratio}×`}
         >
           <span className="font-semibold text-success">{ratio}×</span>
