@@ -135,6 +135,19 @@ export function useHomePL(): HomePLData {
     const ownershipAdvantage = renterSunkCost - ownerSunkCost + wealthBuilt;
     const monthlyWealthCreation = monthsOwned > 0 ? wealthBuilt / monthsOwned : 0;
 
+    // Decomposed wealth creation
+    const monthlyPrincipalPaydown = monthsOwned > 0 ? principalPaid / monthsOwned : 0;
+    const monthlyAppreciation = monthsOwned > 0 ? marketAppreciation / monthsOwned : 0;
+    const monthlyRenoValue = monthsOwned > 0 ? totalRenoValueAdded / monthsOwned : 0;
+    const trueMonthlyWealthCreation = monthlyPrincipalPaydown + monthlyAppreciation + monthlyRenoValue;
+    const downPaymentMonthlyEquivalent = monthsOwned > 0 ? downPayment / monthsOwned : 0;
+
+    // Forward-looking sustainable rate
+    const currentMonthlyPrincipal = sorted.length > 0 ? sorted[sorted.length - 1].principalPortion + sorted[sorted.length - 1].extraPrincipal : monthlyPrincipalPaydown;
+    const assumedAnnualAppreciation = homePLConfig.tax?.annualAppreciation || 3;
+    const sustainableMonthlyAppreciation = (currentHomeValue * (assumedAnnualAppreciation / 100)) / 12;
+    const sustainableMonthlyRate = currentMonthlyPrincipal + sustainableMonthlyAppreciation;
+
     // Chart data — month by month cumulative
     const chartData: { month: string; sunkCost: number; equity: number; rent: number }[] = [];
     let crossoverMonth: string | null = null;
