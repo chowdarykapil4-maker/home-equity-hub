@@ -1,51 +1,44 @@
 
 
-## Plan: Add "Refinance Analyzer" Collapsible Section
+## Plan: Add "Extra Payment Impact" Collapsible Section
 
 ### What we're building
-A new collapsible section after "If you sold today" that lets the user model refinancing scenarios — comparing current loan vs a new rate/term, showing monthly savings, total interest saved, breakeven timeline, and P/I impact.
+A new collapsible section after the Refinance Analyzer that models the impact of extra monthly principal payments — showing interest saved, time saved, a timeline bar, and a sensitivity table.
 
 ### Files to create/edit
 
-**1. Create `src/components/homepl/RefinanceAnalyzer.tsx`** (~220 lines)
+**1. Create `src/components/homepl/ExtraPaymentImpact.tsx`** (~200 lines)
 
-- Props: `d: HomePLData`
-- Pulls `mortgage`, `mortgagePayments` from `useAppContext()`
-- Local state: `newRate` (default 4.5), `closingCosts` (default 8000), `newTermYears` (default 30)
+Props: `d: HomePLData`. Pulls `mortgage`, `mortgagePayments` from `useAppContext()`.
 
-**Collapsed state:** Banner with "Refinance analyzer" left, "See savings at lower rates →" right, chevron.
+Local state: `extra` (default 500), `open` (default false).
 
-**Expanded — Section A (Inputs):**
-- Compact row: rate input (60px) with "%" suffix, quick-select pills (4.0/4.5/5.0/current dimmed), closing costs input, term dropdown (30/20/15yr)
+**Collapsed state:** Banner with "Extra payment impact" left, pre-calculated "$500/mo extra saves $XXX,XXX in interest" in green right, chevron.
 
-**Expanded — Section B (Side-by-side):**
-- Two columns with vertical divider
-- Left "Current loan": rate, monthly payment, remaining balance, remaining interest (summed from amortization schedule future rows), ARM reset date
-- Right "After refinance": new rate, new monthly payment (standard amortization formula), same balance, new total interest (iterate new schedule), monthly savings
-- Uses `generateAmortizationSchedule` for current remaining interest; computes new schedule inline with standard formula: `P × r(1+r)^n / ((1+r)^n - 1)`
+**Section A — Slider:** Range 0–3000, step 100. Quick-select pills: $250, $500, $1,000, $2,000. Live "$X/mo extra" display.
 
-**Expanded — Section C (Verdict):**
-- Monthly savings (18px green), total interest saved (14px), breakeven months = ceil(closingCosts / monthlySavings)
-- Breakeven color: <24mo green "Strong candidate", 24-48 amber "Worth considering", >48 red "Weak"
+**Section B — Impact comparison:** Two columns (without/with extra). Shows payment, payoff date, total remaining interest. Centered delta highlights: years/months saved + interest saved in green bold.
 
-**Expanded — Section D (P&L Impact):**
-- Current vs new first-month principal percentage
-- Wealth creation boost = new first-month principal - current first-month principal
+Calculation: month-by-month loop from `d.currentBalance` at `mortgage.interestRate`, comparing baseline vs with-extra. Sum interest in each path, record when balance hits zero.
 
-**Tooltips** via `HelpTip` on: remaining interest, breakeven, ARM resets, monthly savings, P/I split.
+**Section C — Timeline bar:** Two horizontal bars — gray full-width for current remaining term, green shorter bar for with-extra term. Gap labeled "X years saved."
+
+**Section D — Sensitivity table:** 4 rows ($250/$500/$1k/$2k), columns: Extra/mo, Interest saved, Years saved, Monthly equity boost. Highlight row matching current slider with green left border. All computed via the same amortization loop in `useMemo`.
+
+**Tooltips** via `HelpTip` on: interest saved, years saved, extra payment slider, monthly equity boost.
 
 **2. Edit `src/pages/HomePL.tsx`**
-- Import `RefinanceAnalyzer`
-- Add between `IfYouSoldToday` and `AnnualReport`:
+- Import `ExtraPaymentImpact`
+- Add after RefinanceAnalyzer (line 78), before AnnualReport:
 ```tsx
 <div className="mt-5">
-  <RefinanceAnalyzer d={scenario} />
+  <ExtraPaymentImpact d={scenario} />
 </div>
 ```
 
 ### Technical details
-- Current remaining interest: filter amortization schedule rows where `!isPast && !isCurrentMonth`, sum `interestPortion`
-- New amortization: iterate month-by-month from current balance at new rate/term, sum all interest
-- Current balance: last actual payment's `remainingBalance`, or fallback to `d.currentMortgageBalance`
-- All calculations client-side in `useMemo`, instant updates on input change
+- Reuses same amortization loop pattern as `calculateExtraPaymentImpact` in `lib/amortization.ts` but done inline in `useMemo` for the sensitivity table (4 scenarios at once)
+- Current balance from `d.currentBalance`, rate from `mortgage.interestRate`, payment from `mortgage.monthlyPayment`
+- Timeline bar widths: proportional — baseline months = 100%, extra months = (extraMonths/baselineMonths × 100)%
+- Collapsed preview uses a pre-computed $500 result from the same `useMemo`
 
