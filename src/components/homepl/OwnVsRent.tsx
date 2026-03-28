@@ -1,6 +1,7 @@
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import ScenarioDelta from './ScenarioDelta';
+import { HelpTip } from './HelpTip';
 
 interface Props {
   d: HomePLData;
@@ -30,13 +31,17 @@ export default function OwnVsRent({ d, baseD, scenarioActive = false }: Props) {
           <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">You (owner)</p>
           <div className="rounded-l-lg overflow-hidden flex flex-col" style={{ height: barHeight }}>
             {!isUnderwater && ownerEquityPct > 0 && (
-              <div className="bg-success/80 flex items-center justify-center" style={{ flex: ownerEquityPct }}>
-                <span className="text-[11px] font-semibold text-success-foreground">{formatCurrency(d.wealthBuilt)} equity</span>
-              </div>
+              <HelpTip plain={`If you sold your home today and paid off the mortgage, this is roughly what you'd walk away with (before selling costs)`} math={`Home value (${formatCurrency(d.currentHomeValue)}) − mortgage balance (${formatCurrency(d.currentBalance)}) = ${formatCurrency(d.wealthBuilt)}`}>
+                <div className="bg-success/80 flex items-center justify-center" style={{ flex: ownerEquityPct }}>
+                  <span className="text-[11px] font-semibold text-success-foreground">{formatCurrency(d.wealthBuilt)} equity</span>
+                </div>
+              </HelpTip>
             )}
-            <div className="bg-destructive/60 flex items-center justify-center" style={{ flex: ownerSunkPct }}>
-              <span className="text-[11px] font-semibold text-destructive-foreground">{formatCurrency(d.sunkCost)} sunk</span>
-            </div>
+            <HelpTip plain="Total money spent on the house that you can never recover — interest payments to the bank, taxes to the county, etc.">
+              <div className="bg-destructive/60 flex items-center justify-center" style={{ flex: ownerSunkPct }}>
+                <span className="text-[11px] font-semibold text-destructive-foreground">{formatCurrency(d.sunkCost)} sunk</span>
+              </div>
+            </HelpTip>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">{formatCurrency(ownerTotal)} total</p>
@@ -51,12 +56,14 @@ export default function OwnVsRent({ d, baseD, scenarioActive = false }: Props) {
         <div className="space-y-1.5 border-l border-border pl-px">
           <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">If you rented</p>
           <div className="relative rounded-r-lg overflow-hidden bg-muted/30" style={{ height: barHeight }}>
-            <div
-              className="absolute inset-x-0 bottom-0 bg-destructive/50 flex items-center justify-center"
-              style={{ height: `${Math.min(renterFillPct, 100)}%` }}
-            >
-              <span className="text-[11px] font-semibold text-destructive-foreground">{formatCurrency(renterTotal)} rent</span>
-            </div>
+            <HelpTip plain={`Total rent over ${d.monthsOwned} months. Every dollar of rent is a sunk cost — you own nothing at the end.`} math={`${formatCurrency(d.totalRentWouldHavePaid / Math.max(d.monthsOwned, 1))}/month × ${d.monthsOwned} months`}>
+              <div
+                className="absolute inset-x-0 bottom-0 bg-destructive/50 flex items-center justify-center"
+                style={{ height: `${Math.min(renterFillPct, 100)}%` }}
+              >
+                <span className="text-[11px] font-semibold text-destructive-foreground">{formatCurrency(renterTotal)} rent</span>
+              </div>
+            </HelpTip>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">{formatCurrency(renterTotal)} total</p>
