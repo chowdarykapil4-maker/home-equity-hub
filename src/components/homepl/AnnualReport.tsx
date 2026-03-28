@@ -10,6 +10,7 @@ import { generateAmortizationSchedule } from '@/lib/amortization';
 
 interface AnnualReportProps {
   d: HomePLData;
+  defaultOpen?: boolean;
 }
 
 interface YearData {
@@ -31,8 +32,8 @@ interface YearData {
   equityGained: number;
 }
 
-export default function AnnualReport({ d }: AnnualReportProps) {
-  const [open, setOpen] = useState(false);
+export default function AnnualReport({ d, defaultOpen = false }: AnnualReportProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const [showAllYears, setShowAllYears] = useState(false);
   const { mortgagePayments, projects, homePLConfig, property, valueEntries, mortgage } = useAppContext();
 
