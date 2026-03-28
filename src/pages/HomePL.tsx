@@ -13,6 +13,7 @@ import UnifiedComparison from '@/components/homepl/UnifiedComparison';
 import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
 import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
+import AnnualReport from '@/components/homepl/AnnualReport';
 
 export default function HomePL() {
   const baseD = useHomePL();
