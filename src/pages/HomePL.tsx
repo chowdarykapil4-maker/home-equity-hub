@@ -78,6 +78,11 @@ export default function HomePL() {
           <RefinanceAnalyzer d={scenario} />
         </div>
 
+        {/* Act 3.56: Extra payment impact */}
+        <div className="mt-5">
+          <ExtraPaymentImpact d={scenario} />
+        </div>
+
         {/* Act 3.6: Annual report */}
         <div className="mt-5">
           <AnnualReport d={scenario} />
