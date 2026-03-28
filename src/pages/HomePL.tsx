@@ -12,6 +12,7 @@ import CostEquityChart from '@/components/homepl/CostEquityChart';
 import UnifiedComparison from '@/components/homepl/UnifiedComparison';
 import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
+import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 
 export default function HomePL() {
   const baseD = useHomePL();
