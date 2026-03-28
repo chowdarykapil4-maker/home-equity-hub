@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHomePL } from '@/hooks/useHomePL';
 import { applyScenario } from '@/lib/scenario';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { LayoutDashboard, Scale, SlidersHorizontal, Hammer, Calendar } from 'lucide-react';
 import AssumptionsEditor from '@/components/homepl/AssumptionsEditor';
 import RefreshStatus from '@/components/homepl/RefreshStatus';
 import ScenarioBanner from '@/components/homepl/ScenarioBanner';
@@ -18,17 +19,56 @@ import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
 import ExtraPaymentImpact from '@/components/homepl/ExtraPaymentImpact';
 import RenovationROIRanker from '@/components/homepl/RenovationROIRanker';
 
+type TabId = 'snapshot' | 'compare' | 'scenarios' | 'renovations' | 'history';
+
+const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
+  { id: 'snapshot', label: 'Snapshot', icon: LayoutDashboard },
+  { id: 'compare', label: 'Own vs rent', icon: Scale },
+  { id: 'scenarios', label: 'Scenarios', icon: SlidersHorizontal },
+  { id: 'renovations', label: 'Renovations', icon: Hammer },
+  { id: 'history', label: 'History', icon: Calendar },
+];
+
+function getHashTab(): TabId {
+  const hash = window.location.hash.replace('#', '') as TabId;
+  return TABS.some(t => t.id === hash) ? hash : 'snapshot';
+}
+
 export default function HomePL() {
   const baseD = useHomePL();
   const [scenarioPercent, setScenarioPercent] = useState(0);
+  const [activeTab, setActiveTab] = useState<TabId>(getHashTab);
 
   const scenario = applyScenario(baseD, scenarioPercent);
   const scenarioActive = scenarioPercent !== 0;
 
+  // Sync hash to tab
+  useEffect(() => {
+    const onHash = () => setActiveTab(getHashTab());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const switchTab = (id: TabId) => {
+    setActiveTab(id);
+    window.location.hash = id;
+  };
+
+  const handleTabKeyDown = (e: React.KeyboardEvent) => {
+    const idx = TABS.findIndex(t => t.id === activeTab);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      switchTab(TABS[(idx + 1) % TABS.length].id);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      switchTab(TABS[(idx - 1 + TABS.length) % TABS.length].id);
+    }
+  };
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="max-w-5xl mx-auto">
-        {/* Section 1 — Title bar */}
+        {/* Pinned header */}
         <div className="flex items-center justify-between mb-1 px-1">
           <div>
             <div className="flex items-center gap-3">
@@ -42,12 +82,10 @@ export default function HomePL() {
           <AssumptionsEditor />
         </div>
 
-        {/* Section 2 — Scenario banner */}
         <div className="mb-2">
           <ScenarioBanner scenarioPercent={scenarioPercent} onReset={() => setScenarioPercent(0)} />
         </div>
 
-        {/* Act 1: Headline */}
         <div className="space-y-2">
           <VerdictHero d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
           <ValueSensitivitySlider
@@ -58,47 +96,70 @@ export default function HomePL() {
           />
         </div>
 
-        {/* Act 2: Proof — 20px gap */}
-        <div className="mt-5 space-y-2">
-          <FinancialFlow d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-          <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+        {/* Tab bar */}
+        <div
+          className="flex items-center gap-1 border-b border-border px-1 mb-3 mt-4 overflow-x-auto"
+          role="tablist"
+          onKeyDown={handleTabKeyDown}
+        >
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => switchTab(tab.id)}
+                className={`inline-flex items-center gap-1 whitespace-nowrap px-3 py-2 text-[13px] transition-colors cursor-pointer border-b-2 sm:px-3 px-2.5 ${
+                  isActive
+                    ? 'text-foreground font-medium border-primary'
+                    : 'text-muted-foreground border-transparent hover:text-foreground'
+                }`}
+              >
+                <Icon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Act 3: Context — 20px gap */}
-        <div className="mt-5">
-          <UnifiedComparison d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-        </div>
+        {/* Tab content */}
+        {activeTab === 'snapshot' && (
+          <div className="space-y-2">
+            <FinancialFlow d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            <DetailedBreakdown d={scenario} />
+          </div>
+        )}
 
-        {/* Act 3.5: Sale modeling */}
-        <div className="mt-5">
-          <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
-        </div>
+        {activeTab === 'compare' && (
+          <div>
+            <UnifiedComparison d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+          </div>
+        )}
 
-        {/* Act 3.55: Refinance analyzer */}
-        <div className="mt-5">
-          <RefinanceAnalyzer d={scenario} />
-        </div>
+        {activeTab === 'scenarios' && (
+          <div className="space-y-3">
+            <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} defaultOpen />
+            <RefinanceAnalyzer d={scenario} />
+            <ExtraPaymentImpact d={scenario} />
+          </div>
+        )}
 
-        {/* Act 3.56: Extra payment impact */}
-        <div className="mt-5">
-          <ExtraPaymentImpact d={scenario} />
-        </div>
+        {activeTab === 'renovations' && (
+          <div>
+            <RenovationROIRanker defaultOpen />
+          </div>
+        )}
 
-        {/* Act 3.57: Renovation ROI ranker */}
-        <div className="mt-5">
-          <RenovationROIRanker />
-        </div>
-
-        {/* Act 3.6: Annual report */}
-        <div className="mt-5">
-          <AnnualReport d={scenario} />
-        </div>
-
-        {/* Act 4: Deep dive — 20px gap */}
-        <div className="mt-5 space-y-2">
-          <DetailedBreakdown d={scenario} />
-          <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-        </div>
+        {activeTab === 'history' && (
+          <div>
+            <AnnualReport d={scenario} defaultOpen />
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
