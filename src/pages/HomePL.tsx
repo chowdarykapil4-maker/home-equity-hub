@@ -15,6 +15,7 @@ import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
 import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 import AnnualReport from '@/components/homepl/AnnualReport';
 import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
+import ExtraPaymentImpact from '@/components/homepl/ExtraPaymentImpact';
 
 export default function HomePL() {
   const baseD = useHomePL();
@@ -75,6 +76,11 @@ export default function HomePL() {
         {/* Act 3.55: Refinance analyzer */}
         <div className="mt-5">
           <RefinanceAnalyzer d={scenario} />
+        </div>
+
+        {/* Act 3.56: Extra payment impact */}
+        <div className="mt-5">
+          <ExtraPaymentImpact d={scenario} />
         </div>
 
         {/* Act 3.6: Annual report */}
