@@ -72,6 +72,11 @@ export default function HomePL() {
           <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
         </div>
 
+        {/* Act 3.55: Refinance analyzer */}
+        <div className="mt-5">
+          <RefinanceAnalyzer d={scenario} />
+        </div>
+
         {/* Act 3.6: Annual report */}
         <div className="mt-5">
           <AnnualReport d={scenario} />
