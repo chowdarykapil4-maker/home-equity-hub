@@ -14,6 +14,7 @@ import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
 import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 import AnnualReport from '@/components/homepl/AnnualReport';
+import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
 
 export default function HomePL() {
   const baseD = useHomePL();
