@@ -16,6 +16,7 @@ import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 import AnnualReport from '@/components/homepl/AnnualReport';
 import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
 import ExtraPaymentImpact from '@/components/homepl/ExtraPaymentImpact';
+import RenovationROIRanker from '@/components/homepl/RenovationROIRanker';
 
 export default function HomePL() {
   const baseD = useHomePL();
