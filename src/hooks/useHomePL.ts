@@ -54,6 +54,14 @@ export interface HomePLData {
   monthlyWealthCreation: number;
   sunkCostDiff: number;
 
+  // Decomposed monthly metrics
+  monthlyPrincipalPaydown: number;
+  monthlyAppreciation: number;
+  monthlyRenoValue: number;
+  trueMonthlyWealthCreation: number;
+  sustainableMonthlyRate: number;
+  downPaymentMonthlyEquivalent: number;
+
   // Chart data
   chartData: { month: string; sunkCost: number; equity: number; rent: number }[];
   crossoverMonth: string | null;
