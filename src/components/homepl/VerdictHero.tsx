@@ -5,6 +5,11 @@ import ScenarioDelta from './ScenarioDelta';
 import AdvantageBreakdown from './AdvantageBreakdown';
 import { HelpTip } from './HelpTip';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -33,14 +38,44 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
           </div>
           <p className="text-sm text-muted-foreground">
             You're building{' '}
-            <HelpTip
-              plain="Every month you own this home, your net worth grows by this much on average"
-              math={`Total equity (${formatCurrency(d.wealthBuilt)}) ÷ months owned (${d.monthsOwned}) = ${formatCurrency(d.monthlyWealthCreation)}/mo`}
-            >
-              <span className="font-semibold text-foreground">{formatCurrency(d.monthlyWealthCreation)}/mo</span>
-            </HelpTip>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="inline cursor-help border-b border-dotted border-muted-foreground/30 hover:border-muted-foreground transition-colors">
+                  <span className="font-semibold text-foreground">{formatCurrency(d.trueMonthlyWealthCreation)}/mo</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="center" className="w-[360px] p-3 rounded-xl shadow-md z-[100]">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium">Monthly Wealth Creation Breakdown</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Actual wealth generated each month on average — excludes your down payment which was a transfer of existing cash, not new wealth creation.
+                  </p>
+                  <div className="border-t border-border pt-1.5 space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Principal paydown</span>
+                      <span className="tabular-nums text-success">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Appreciation</span>
+                      <span className="tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reno value</span>
+                      <span className="tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</span>
+                    </div>
+                    <div className="flex justify-between font-semibold border-t border-border pt-1">
+                      <span>True wealth creation</span>
+                      <span className="tabular-nums text-success">{formatCurrency(d.trueMonthlyWealthCreation)}/mo</span>
+                    </div>
+                  </div>
+                  <div className="bg-accent/50 rounded px-2 py-1.5 text-[10px] text-muted-foreground leading-relaxed">
+                    Note: Your {formatCurrency(d.downPayment)} down payment adds {formatCurrency(d.downPaymentMonthlyEquivalent)}/mo when averaged, but that was existing cash moved into the home — not new wealth.
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             {' '}in wealth that a renter never would
-            <ScenarioDelta scenarioVal={d.monthlyWealthCreation} baseVal={b.monthlyWealthCreation} active={scenarioActive} />
+            <ScenarioDelta scenarioVal={d.trueMonthlyWealthCreation} baseVal={b.trueMonthlyWealthCreation} active={scenarioActive} />
           </p>
 
           {d.wealthBuilt < 0 && (
