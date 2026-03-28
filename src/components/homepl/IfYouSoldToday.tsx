@@ -11,6 +11,7 @@ import { useAppContext } from '@/context/AppContext';
 interface Props {
   d: HomePLData;
   scenarioPercent: number;
+  defaultOpen?: boolean;
 }
 
 interface HoldRow {
