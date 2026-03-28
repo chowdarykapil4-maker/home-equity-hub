@@ -96,15 +96,15 @@ export default function RenovationROIRanker() {
                           </span>
                         </td>
                         <td className="px-1 font-medium truncate max-w-[160px]">{r.projectName}</td>
-                        <td className="px-1 text-right tabular-nums">{fmtCurrency(r.cost)}</td>
+                        <td className="px-1 text-right tabular-nums">{formatCurrency(r.cost)}</td>
                         <td className="px-1 text-right">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="tabular-nums">{r.roi}%</span>
                             <span className="inline-block h-1.5 rounded-full" style={{ width: `${Math.min(r.roi, 100) * 0.4}px`, backgroundColor: r.tier.color }} />
                           </span>
                         </td>
-                        <td className="px-1 text-right tabular-nums text-emerald-600">{fmtCurrency(r.valueAdded)}</td>
-                        <td className="px-1 text-right tabular-nums text-red-500">{fmtCurrency(r.netCost)}</td>
+                        <td className="px-1 text-right tabular-nums text-emerald-600">{formatCurrency(r.valueAdded)}</td>
+                        <td className="px-1 text-right tabular-nums text-red-500">{formatCurrency(r.netCost)}</td>
                         <td className="px-1 text-center">
                           {r.status === 'Wishlist' ? (
                             <span className="inline-block text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Wishlist</span>
@@ -120,7 +120,7 @@ export default function RenovationROIRanker() {
 
               {/* Section B — Summary */}
               <p className="text-xs text-muted-foreground">
-                If you complete all planned projects: {fmtCurrency(totalCost)} invested → {fmtCurrency(totalValue)} value added ({avgROI}% avg ROI)
+                If you complete all planned projects: {formatCurrency(totalCost)} invested → {formatCurrency(totalValue)} value added ({avgROI}% avg ROI)
               </p>
 
               {/* Section C — Best next move */}
@@ -129,8 +129,8 @@ export default function RenovationROIRanker() {
                   <HelpTip plain="The planned project with the highest estimated ROI. Completing high-ROI projects first maximizes your renovation efficiency.">
                     Best next project
                   </HelpTip>
-                  : {bestPlanned.projectName} — spend {fmtCurrency(bestPlanned.cost)}, add{' '}
-                  <span className="text-emerald-600 font-medium">~{fmtCurrency(bestPlanned.valueAdded)}</span>{' '}
+                  : {bestPlanned.projectName} — spend {formatCurrency(bestPlanned.cost)}, add{' '}
+                  <span className="text-emerald-600 font-medium">~{formatCurrency(bestPlanned.valueAdded)}</span>{' '}
                   to your equity ({bestPlanned.roi}% return)
                 </p>
               )}
