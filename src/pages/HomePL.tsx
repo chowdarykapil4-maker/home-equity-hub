@@ -84,6 +84,11 @@ export default function HomePL() {
           <ExtraPaymentImpact d={scenario} />
         </div>
 
+        {/* Act 3.57: Renovation ROI ranker */}
+        <div className="mt-5">
+          <RenovationROIRanker />
+        </div>
+
         {/* Act 3.6: Annual report */}
         <div className="mt-5">
           <AnnualReport d={scenario} />
