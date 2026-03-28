@@ -22,8 +22,8 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="rounded-xl border border-success/20 bg-success/[0.04] px-5 pt-4 pb-3">
-        <div className="text-center space-y-1">
+      <div className="rounded-xl border border-success/20 bg-success/[0.04] px-4 pt-3 pb-2">
+        <div className="text-center space-y-0.5">
           <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
             Ownership advantage over renting
           </p>
@@ -47,16 +47,16 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
             <p className="text-xs text-destructive font-medium">Underwater — home value below mortgage balance</p>
           )}
 
-          <div className="border-t border-border my-2" />
+          <div className="mx-auto w-[60px] h-[2px] bg-success/40 my-2" />
 
-          <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto">
+          <div className="flex items-center justify-center gap-6">
             {/* Equity built */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="space-y-0.5 cursor-help">
                   <div className="flex items-center justify-center gap-1">
                     <TrendingUp className="h-3 w-3 text-success" />
-                    <span className={`text-sm font-bold border-b border-dotted border-muted-foreground/30 ${d.wealthBuilt >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    <span className={`text-[13px] font-bold border-b border-dotted border-muted-foreground/30 ${d.wealthBuilt >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {formatCurrency(d.wealthBuilt)}
                     </span>
                     <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
@@ -70,25 +70,29 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
               </TooltipContent>
             </Tooltip>
 
+            <div className="w-px h-8 bg-border" />
+
             {/* Cost of ownership */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="space-y-0.5 cursor-help">
-                  <span className="text-sm font-bold border-b border-dotted border-muted-foreground/30">{formatCurrency(d.sunkCost)}</span>
+                  <span className="text-[13px] font-bold border-b border-dotted border-muted-foreground/30">{formatCurrency(d.sunkCost)}</span>
                   <p className="text-[11px] text-muted-foreground">cost of ownership</p>
                 </div>
               </TooltipTrigger>
               <TooltipContent className="max-w-[300px] text-xs">
-                <p>Total money spent that you can never recover — the price of living in and maintaining the home</p>
+                <p>Total money spent that you can never recover</p>
                 <p className="text-muted-foreground mt-0.5">Interest ({formatCurrency(d.interestPaid)}) + property tax ({formatCurrency(d.totalPropertyTax)}) + net reno cost ({formatCurrency(d.netRenoCost)}) + insurance ({formatCurrency(d.totalInsurance)}) + maintenance ({formatCurrency(d.totalMaintenance)})</p>
               </TooltipContent>
             </Tooltip>
+
+            <div className="w-px h-8 bg-border" />
 
             {/* Return on cash */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="space-y-0.5 cursor-help">
-                  <span className="text-sm font-bold border-b border-dotted border-muted-foreground/30">
+                  <span className="text-[13px] font-bold border-b border-dotted border-muted-foreground/30">
                     {formatPercent(d.returnOnCash)}
                     <ScenarioDelta scenarioVal={d.returnOnCash} baseVal={b.returnOnCash} active={scenarioActive} />
                   </span>
