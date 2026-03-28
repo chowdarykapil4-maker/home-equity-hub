@@ -2,6 +2,11 @@ import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import ScenarioDelta from './ScenarioDelta';
 import { HelpTip } from './HelpTip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface Segment {
   label: string;
@@ -40,7 +45,7 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
   const marketPct = 100 - guaranteedPct;
 
   return (
-    <div className="space-y-1.5">
+    <div className="w-full space-y-1.5">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <HelpTip
@@ -54,58 +59,75 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
         </p>
       </div>
 
-      {/* Outflow bar */}
-      <div className="relative h-6 rounded-lg overflow-hidden flex" style={{ gap: '1px' }}>
-        <HelpTip
-          plain={`This spending built wealth you'll recover when you sell. Down payment (${formatCurrency(d.downPayment)}) + principal paid (${formatCurrency(d.principalPaid)}) + renovation value recovered (${formatCurrency(d.totalRenoValueAdded)})`}
-        >
-          <div
-            className="bg-success/70 flex items-center justify-center transition-all h-6"
-            style={{ width: `${equityPct}%`, minWidth: 0 }}
-          >
-            <span className="text-[11px] font-semibold text-success-foreground whitespace-nowrap px-2">
-              Builds equity · {formatCurrency(d.equityBuildingSpend)} ({Math.round(equityPct)}%)
-            </span>
-          </div>
-        </HelpTip>
-        <HelpTip
-          plain={`Gone forever — the price of living in and maintaining the home. Interest (${formatCurrency(d.interestPaid)}) + property tax (${formatCurrency(d.totalPropertyTax)}) + net reno cost (${formatCurrency(d.netRenoCost)}) + insurance (${formatCurrency(d.totalInsurance)}) + maintenance (${formatCurrency(d.totalMaintenance)})`}
-        >
-          <div
-            className="bg-destructive/50 flex items-center justify-center transition-all h-6"
-            style={{ width: `${sunkPct}%`, minWidth: 0 }}
-          >
-            <span className="text-[11px] font-semibold text-destructive-foreground whitespace-nowrap px-2">
-              Sunk cost · {formatCurrency(d.sunkCost)} ({Math.round(sunkPct)}%)
-            </span>
-          </div>
-        </HelpTip>
+      {/* Outflow bar — use Tooltip directly so divs can be flex children */}
+      <div className="w-full h-6 rounded-lg overflow-hidden flex" style={{ gap: '1px' }}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="bg-success/70 flex items-center justify-center transition-all h-6 cursor-help"
+              style={{ width: `${equityPct}%`, minWidth: 0 }}
+            >
+              {equityPct > 15 && (
+                <span className="text-[11px] font-semibold text-success-foreground whitespace-nowrap px-2">
+                  Builds equity · {formatCurrency(d.equityBuildingSpend)} ({Math.round(equityPct)}%)
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[320px] text-xs p-2.5">
+            <p>This spending built wealth you'll recover when you sell.</p>
+            <p className="text-muted-foreground text-[11px]">Down payment ({formatCurrency(d.downPayment)}) + principal paid ({formatCurrency(d.principalPaid)}) + renovation value recovered ({formatCurrency(d.totalRenoValueAdded)})</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="bg-destructive/50 flex items-center justify-center transition-all h-6 cursor-help"
+              style={{ width: `${sunkPct}%`, minWidth: 0 }}
+            >
+              {sunkPct > 15 && (
+                <span className="text-[11px] font-semibold text-destructive-foreground whitespace-nowrap px-2">
+                  Sunk cost · {formatCurrency(d.sunkCost)} ({Math.round(sunkPct)}%)
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[320px] text-xs p-2.5">
+            <p>Gone forever — the price of living in and maintaining the home.</p>
+            <p className="text-muted-foreground text-[11px]">Interest ({formatCurrency(d.interestPaid)}) + property tax ({formatCurrency(d.totalPropertyTax)}) + net reno cost ({formatCurrency(d.netRenoCost)}) + insurance ({formatCurrency(d.totalInsurance)}) + maintenance ({formatCurrency(d.totalMaintenance)})</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Equity composition */}
       {isUnderwater ? (
-        <div className="h-5 rounded-lg overflow-hidden bg-destructive/60 flex items-center justify-center">
+        <div className="w-full h-5 rounded-lg overflow-hidden bg-destructive/60 flex items-center justify-center">
           <span className="text-[10px] font-semibold text-destructive-foreground">Negative equity: {formatCurrency(d.wealthBuilt)}</span>
         </div>
       ) : (
         <>
           <p className="text-[11px] text-muted-foreground px-1">Equity is built from:</p>
-          <div className="relative h-5 rounded-lg overflow-hidden flex">
+          <div className="w-full h-5 rounded-lg overflow-hidden flex">
             {segments.map(seg => {
               const pct = total > 0 ? (seg.value / total) * 100 : 0;
               return (
-                <HelpTip key={seg.label} plain={seg.tip}>
-                  <div
-                    className="flex items-center justify-center transition-all h-5"
-                    style={{ width: `${pct}%`, backgroundColor: seg.color, minWidth: 0 }}
-                  >
-                    {pct > 12 && (
-                      <span className="text-[10px] font-semibold text-white whitespace-nowrap px-1">
-                        {formatCurrency(seg.value)}
-                      </span>
-                    )}
-                  </div>
-                </HelpTip>
+                <Tooltip key={seg.label}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex items-center justify-center transition-all h-5 cursor-help"
+                      style={{ width: `${pct}%`, backgroundColor: seg.color, minWidth: 0 }}
+                    >
+                      {pct > 15 && (
+                        <span className="text-[10px] font-semibold text-white whitespace-nowrap px-1">
+                          {formatCurrency(seg.value)}
+                        </span>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[320px] text-xs p-2.5">
+                    <p>{seg.tip}</p>
+                  </TooltipContent>
+                </Tooltip>
               );
             })}
           </div>
