@@ -230,7 +230,7 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
                 <>
                   <div>
                     <p className="text-[11px] text-muted-foreground">Capital gains tax</p>
-                    <HelpTip plain="If the renter-investor sold their stocks today, they'd owe this in federal and state capital gains tax on their profits" math={`Portfolio gains (${formatCurrency(result.portfolioValue - result.totalContributions)}) × combined cap gains rate (${(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}%) = ${formatCurrency(taxAdj.renter.capitalGainsTax)}`}>
+                    <HelpTip plain="If the renter-investor sold their stocks today, they'd owe this in federal and state capital gains tax on their profits" math={`Portfolio gains (${formatCurrency(Math.max(0, result.portfolioValue - d.downPayment - result.monthlySavings * d.monthsOwned))}) × combined cap gains rate (${(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}%) = ${formatCurrency(taxAdj.renter.capitalGainsTax)}`}>
                       <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.capitalGainsTax)}</p>
                     </HelpTip>
                   </div>
