@@ -65,6 +65,11 @@ export default function HomePL() {
           <UnifiedComparison d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
         </div>
 
+        {/* Act 3.5: Sale modeling */}
+        <div className="mt-5">
+          <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
+        </div>
+
         {/* Act 4: Deep dive — 20px gap */}
         <div className="mt-5 space-y-2">
           <DetailedBreakdown d={scenario} />
