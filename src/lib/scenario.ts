@@ -39,6 +39,18 @@ export function applyScenario(d: HomePLData, pct: number): ScenarioResult {
   const ownershipAdvantage = d.renterSunkCost - d.ownerSunkCost + wealthBuilt;
   const monthlyWealthCreation = d.monthsOwned > 0 ? wealthBuilt / d.monthsOwned : 0;
 
+  // Decomposed monthly metrics
+  const monthlyPrincipalPaydown = d.monthlyPrincipalPaydown; // unchanged
+  const monthlyAppreciationScenario = d.monthsOwned > 0 ? marketAppreciation / d.monthsOwned : 0;
+  const monthlyRenoValue = d.monthlyRenoValue; // unchanged
+  const trueMonthlyWealthCreation = monthlyPrincipalPaydown + monthlyAppreciationScenario + monthlyRenoValue;
+  const downPaymentMonthlyEquivalent = d.downPaymentMonthlyEquivalent; // unchanged
+
+  // Sustainable rate recalculates with modeled appreciation
+  const assumedAppreciation = 3;
+  const sustainableMonthlyAppreciation = (modeledHomeValue * (assumedAppreciation / 100)) / 12;
+  const sustainableMonthlyRate = d.monthlyPrincipalPaydown + sustainableMonthlyAppreciation;
+
   return {
     ...d,
     currentHomeValue: modeledHomeValue,
@@ -50,6 +62,12 @@ export function applyScenario(d: HomePLData, pct: number): ScenarioResult {
     netWealthCreated,
     ownershipAdvantage,
     monthlyWealthCreation,
+    monthlyPrincipalPaydown,
+    monthlyAppreciation: monthlyAppreciationScenario,
+    monthlyRenoValue,
+    trueMonthlyWealthCreation,
+    downPaymentMonthlyEquivalent,
+    sustainableMonthlyRate,
     isScenario: true,
     scenarioPercent: pct,
     modeledHomeValue,

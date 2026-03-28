@@ -133,7 +133,7 @@ export default function AdvantageBreakdown({ d, scenarioActive = false }: Props)
             <span className={d.ownershipAdvantage >= 0 ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
               {d.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(d.ownershipAdvantage)}
             </span>{' '}
-            in your favor.
+            in your favor. Of your {formatCurrency(d.wealthBuilt)} total equity, {formatCurrency(d.downPayment)} is your original down payment (transferred wealth) and {formatCurrency(d.trueMonthlyWealthCreation * d.monthsOwned)} is actual wealth created through principal paydown, appreciation, and renovation value.
           </div>
 
           {/* Footer */}

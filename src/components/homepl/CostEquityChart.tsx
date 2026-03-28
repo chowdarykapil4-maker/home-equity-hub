@@ -56,8 +56,8 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       <p className="text-xs text-muted-foreground text-center">
         Your equity is growing{' '}
         <HelpTip
-          plain={`For every $1 you lose to sunk costs, your equity grows by $${ratio}. This ratio improves over time as your mortgage shifts more toward principal.`}
-          math={`Monthly equity growth (${formatCurrency(equityGrowthRate)}) ÷ monthly sunk cost (${formatCurrency(sunkGrowthRate)}) = ${ratio}×`}
+          plain={`For every $1 you lose to sunk costs, $${ratio} in new wealth is generated (excluding your initial down payment). This ratio improves each year as more of your mortgage goes to principal.`}
+          math={`Monthly true wealth creation (${formatCurrency(equityGrowthRate)}) ÷ monthly sunk cost (${formatCurrency(sunkGrowthRate)}) = ${ratio}×`}
         >
           <span className="font-semibold text-success">{ratio}×</span>
         </HelpTip>
