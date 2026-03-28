@@ -23,9 +23,9 @@ interface HoldRow {
   returnPct: number;
 }
 
-export default function IfYouSoldToday({ d, scenarioPercent }: Props) {
+export default function IfYouSoldToday({ d, scenarioPercent, defaultOpen = false }: Props) {
   const { mortgage, mortgagePayments, homePLConfig } = useAppContext();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [holdOpen, setHoldOpen] = useState(false);
 
   // Sale price slider: -10% to +20%, default to scenario % clamped into that range

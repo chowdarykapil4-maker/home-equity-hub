@@ -13,9 +13,13 @@ function roiTier(pct: number) {
   return { label: 'Low', color: 'hsl(0, 72%, 51%)' };
 }
 
-export default function RenovationROIRanker() {
+interface RenovationROIRankerProps {
+  defaultOpen?: boolean;
+}
+
+export default function RenovationROIRanker({ defaultOpen = false }: RenovationROIRankerProps = {}) {
   const { projects } = useAppContext();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   const ranked = useMemo(() => {
     const eligible = projects.filter(
