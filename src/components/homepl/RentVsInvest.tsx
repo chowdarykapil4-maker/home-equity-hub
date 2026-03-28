@@ -7,6 +7,7 @@ import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
 import ScenarioDelta from './ScenarioDelta';
+import { HelpTip, HelpPopover } from './HelpTip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Area, AreaChart, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid } from 'recharts';
@@ -51,31 +52,26 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
     [b, baseResult, scenarioActive, tax, taxAdj]
   );
 
-  // Preview at 10%
   const preview10 = useMemo(() =>
     calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate),
     [d, mortgage, homePLConfig, completedProjects]
   );
   const preview10Tax = useMemo(() => calculateTaxAdjusted(d, preview10, tax), [d, preview10, tax]);
 
-  // Sensitivity
   const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate);
   const sensitivity = useMemo(() =>
     calculateTaxAdjustedSensitivity(SENSITIVITY_RATES, d, makeRI, tax),
     [d, mortgage, homePLConfig, completedProjects, tax]
   );
 
-  // Breakeven
   const breakeven = useMemo(() =>
     calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15),
     [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded]
   );
 
-  // Collapsed preview
   const previewMargin = afterTax ? preview10Tax.afterTaxMargin : preview10.ownershipMargin;
   const owningWinsPreview = previewMargin >= 0;
 
-  // Current verdict
   const currentMargin = afterTax ? taxAdj.afterTaxMargin : result.ownershipMargin;
   const owningWins = currentMargin >= 0;
   const margin = Math.abs(currentMargin);
@@ -150,38 +146,66 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
               <div>
                 <p className="text-[11px] text-muted-foreground">Home equity</p>
                 <p className="text-[20px] font-medium text-success leading-tight">
-                  {formatCurrency(d.wealthBuilt)}
+                  <HelpTip plain="If you sold your home today and paid off the mortgage, this is roughly what you'd walk away with (before selling costs)" math={`Home value (${formatCurrency(d.currentHomeValue)}) − mortgage balance (${formatCurrency(d.currentBalance)}) = ${formatCurrency(d.wealthBuilt)}`}>
+                    {formatCurrency(d.wealthBuilt)}
+                  </HelpTip>
                   <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
                 </p>
               </div>
               {afterTax && (
                 <div>
                   <p className="text-[11px] text-muted-foreground">Tax savings realized</p>
-                  <p className="text-[14px] text-success/80">+{formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}</p>
+                  <HelpPopover content={
+                    <div className="space-y-2">
+                      <p className="font-medium text-[13px]">Real money you got back from the IRS because you own a home</p>
+                      <div className="border-t border-border pt-1.5 space-y-1 text-muted-foreground">
+                        <p>Mortgage interest deduction: +{formatCurrency(taxAdj.owner.interestDeductionSavings)}</p>
+                        <p className="text-[10px]">You deducted {formatCurrency(d.interestPaid)} in interest at your {(tax.federalRate + tax.stateRate).toFixed(1)}% tax rate</p>
+                        <p>Property tax deduction: +{formatCurrency(taxAdj.owner.propertyTaxDeductionSavings)}</p>
+                        <p className="text-[10px]">You deducted ${(Math.min(d.totalPropertyTax / Math.max(d.yearsOwned, 1), tax.saltCap)).toLocaleString()}/year (SALT cap) at your {(tax.federalRate + tax.stateRate).toFixed(1)}% tax rate</p>
+                      </div>
+                    </div>
+                  }>
+                    <p className="text-[14px] text-success/80">+{formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}</p>
+                  </HelpPopover>
                 </div>
               )}
               {afterTax && (
                 <div>
                   <p className="text-[11px] text-muted-foreground">Tax savings at sale</p>
-                  <p className="text-[14px] text-success/60">+{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
-                    <span className="text-[10px] text-muted-foreground ml-1">realized at sale</span>
-                  </p>
+                  <HelpPopover content={
+                    <div className="space-y-2">
+                      <p className="font-medium text-[13px]">When you sell, up to ${tax.filingStatus === 'Single' ? '250' : '500'}K in profit is completely tax-free</p>
+                      <p className="text-muted-foreground">Your appreciation (~{formatCurrency(d.marketAppreciation + d.totalRenoValueAdded)}) × tax rate on stocks (~{(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}%) = ~{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)} in taxes you'll never pay</p>
+                      <p className="text-muted-foreground italic text-[10px]">This benefit is realized only when you sell, but it's a real and significant advantage</p>
+                    </div>
+                  }>
+                    <p className="text-[14px] text-success/60">+{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
+                      <span className="text-[10px] text-muted-foreground ml-1">realized at sale</span>
+                    </p>
+                  </HelpPopover>
                 </div>
               )}
               <div>
                 <p className="text-[11px] text-muted-foreground">{afterTax ? 'After-tax sunk cost' : 'Sunk cost'}</p>
                 <p className="text-[14px] text-destructive/70">
-                  {formatCurrency(afterTax ? taxAdj.owner.afterTaxSunkCost : d.sunkCost)}
+                  <HelpTip plain="Total money spent that you can never recover, reduced by tax savings from deductions" math={afterTax ? `Pre-tax sunk cost (${formatCurrency(d.sunkCost)}) − tax savings (${formatCurrency(taxAdj.owner.totalTaxSavingsRealized)}) = ${formatCurrency(taxAdj.owner.afterTaxSunkCost)}` : `Interest + property tax + net reno cost + insurance + maintenance`}>
+                    {formatCurrency(afterTax ? taxAdj.owner.afterTaxSunkCost : d.sunkCost)}
+                  </HelpTip>
                 </p>
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">{afterTax ? 'Effective net wealth' : 'Net wealth'}</p>
                 <p className="text-[14px] font-medium">
-                  {formatCurrency(afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt)}
+                  <HelpTip plain={afterTax ? "Your net wealth from this home including tax benefits already received as refunds" : "Your net wealth from this home — the equity you've built"}>
+                    {formatCurrency(afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt)}
+                  </HelpTip>
                   <ScenarioDelta scenarioVal={afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt} baseVal={afterTax ? baseTaxAdj.owner.effectiveNetWealth : b.wealthBuilt} active={scenarioActive} />
                 </p>
               </div>
-              <span className="inline-block text-[10px] bg-muted rounded px-2 py-0.5 text-muted-foreground">Illiquid · tax-advantaged</span>
+              <HelpTip plain="Your home equity is 'locked up' — you can't spend it without selling or taking a loan against it. But when you do sell, up to $500K in profit is tax-free for married couples.">
+                <span className="inline-block text-[10px] bg-muted rounded px-2 py-0.5 text-muted-foreground">Illiquid · tax-advantaged</span>
+              </HelpTip>
               {afterTax && (
                 <p className="text-[10px] text-success/60">
                   Interest deduction: +{formatCurrency(taxAdj.owner.interestDeductionSavings)} | Prop tax deduction: +{formatCurrency(taxAdj.owner.propertyTaxDeductionSavings)} | Cap gains exclusion: +{formatCurrency(taxAdj.owner.capGainsExclusionBenefit)}
@@ -197,18 +221,24 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
               <div>
                 <p className="text-[11px] text-muted-foreground">Portfolio value{afterTax ? ' (pre-tax)' : ''}</p>
                 <p className={`text-[20px] font-medium text-primary leading-tight ${afterTax ? 'line-through opacity-50' : ''}`}>
-                  {formatCurrency(result.portfolioValue)}
+                  <HelpTip plain={`If you had invested your ${formatCurrency(d.downPayment)} down payment plus saved ${formatCurrency(result.monthlySavings)} every month, this is what your stock portfolio would be worth at ${activeRate}% return`} math={`${formatCurrency(d.downPayment)} initial + ${formatCurrency(result.monthlySavings)}/mo × ${d.monthsOwned} months, compounded at ${activeRate}% annually`}>
+                    {formatCurrency(result.portfolioValue)}
+                  </HelpTip>
                 </p>
               </div>
               {afterTax && (
                 <>
                   <div>
                     <p className="text-[11px] text-muted-foreground">Capital gains tax</p>
-                    <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.capitalGainsTax)}</p>
+                    <HelpTip plain="If the renter-investor sold their stocks today, they'd owe this in federal and state capital gains tax on their profits" math={`Portfolio gains (${formatCurrency(Math.max(0, result.portfolioValue - d.downPayment - result.monthlySavings * d.monthsOwned))}) × combined cap gains rate (${(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}%) = ${formatCurrency(taxAdj.renter.capitalGainsTax)}`}>
+                      <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.capitalGainsTax)}</p>
+                    </HelpTip>
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground">Dividend tax drag</p>
-                    <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.dividendTaxDrag)}</p>
+                    <HelpTip plain="Stock investors pay tax on dividends every year, even if they reinvest them. This tax eats into compounding returns over time." math={`Estimated: average portfolio × 1.5% dividend yield × ${(tax.capitalGainsRate + tax.stateCapGainsRate).toFixed(1)}% tax rate × ${d.yearsOwned.toFixed(1)} years`}>
+                      <p className="text-[14px] text-destructive/70">-{formatCurrency(taxAdj.renter.dividendTaxDrag)}</p>
+                    </HelpTip>
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground">After-tax portfolio</p>
@@ -218,13 +248,19 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
               )}
               <div>
                 <p className="text-[11px] text-muted-foreground">Rent paid (sunk)</p>
-                <p className="text-[14px] text-destructive/70">{formatCurrency(result.totalRentPaid)}</p>
+                <HelpTip plain={`Total rent over ${d.monthsOwned} months. Every dollar of rent is a sunk cost — you own nothing at the end.`} math={`${formatCurrency(result.monthlyRent)}/month × ${d.monthsOwned} months`}>
+                  <p className="text-[14px] text-destructive/70">{formatCurrency(result.totalRentPaid)}</p>
+                </HelpTip>
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">{afterTax ? 'After-tax net wealth' : 'Net wealth'}</p>
-                <p className="text-[14px] font-medium">{formatCurrency(afterTax ? taxAdj.renter.afterTaxNetWealth : result.portfolioValue)}</p>
+                <HelpTip plain={afterTax ? "The renter-investor's total wealth — all in stocks, fully liquid, but reduced by capital gains and dividend taxes" : "The renter-investor's total wealth — all in stocks, fully liquid but subject to capital gains taxes when sold"}>
+                  <p className="text-[14px] font-medium">{formatCurrency(afterTax ? taxAdj.renter.afterTaxNetWealth : result.portfolioValue)}</p>
+                </HelpTip>
               </div>
-              <span className="inline-block text-[10px] bg-muted rounded px-2 py-0.5 text-muted-foreground">Liquid · taxable gains</span>
+              <HelpTip plain="Stocks can be sold anytime (liquid), but you'll pay 15-28% tax on any profits. There's no tax-free exclusion like there is for a home sale.">
+                <span className="inline-block text-[10px] bg-muted rounded px-2 py-0.5 text-muted-foreground">Liquid · taxable gains</span>
+              </HelpTip>
               {afterTax && (
                 <p className="text-[10px] text-destructive/60">
                   Capital gains tax: −{formatCurrency(taxAdj.renter.capitalGainsTax)} | Dividend tax: −{formatCurrency(taxAdj.renter.dividendTaxDrag)}
@@ -235,12 +271,33 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
 
           {/* Section D — Verdict */}
           <div className={`rounded-lg px-4 py-2.5 text-center ${owningWins ? 'bg-success/10' : 'bg-warning/10'}`}>
-            <p className={`text-[18px] font-medium ${owningWins ? 'text-success' : 'text-warning'}`}>
-              {afterTax ? 'After taxes, ' : ''}{owningWins ? `Owning wins by +${formatCurrency(margin)}` : `Renting + investing wins by +${formatCurrency(margin)} at ${activeRate}% return`}
-              {scenarioActive && (
-                <ScenarioDelta scenarioVal={currentMargin} baseVal={afterTax ? baseTaxAdj.afterTaxMargin : baseResult.ownershipMargin} active={scenarioActive} />
-              )}
-            </p>
+            <HelpPopover content={
+              <div className="space-y-2">
+                <p className="font-medium text-[13px]">
+                  {owningWins
+                    ? `After accounting for all costs, taxes, and wealth built — owning put you ${formatCurrency(margin)} ahead`
+                    : `At ${activeRate}% return, a disciplined renter-investor would have ${formatCurrency(margin)} more total wealth`}
+                </p>
+                <div className="border-t border-border pt-1.5 space-y-0.5 text-muted-foreground">
+                  <p>Your wealth{afterTax ? ' (after tax)' : ''}: {formatCurrency(afterTax ? taxAdj.owner.effectiveNetWealth : d.wealthBuilt)}</p>
+                  <p>Renter wealth{afterTax ? ' (after tax)' : ''}: {formatCurrency(afterTax ? taxAdj.renter.afterTaxNetWealth : result.portfolioValue)}</p>
+                  <p className="font-medium text-foreground">Difference: {owningWins ? '+' : '-'}{formatCurrency(margin)} {owningWins ? 'in your favor' : 'for the renter'}</p>
+                </div>
+                {afterTax && owningWins && (
+                  <div className="bg-success/10 rounded p-1.5 text-[11px]">
+                    <p className="font-medium text-foreground">Why owning wins after taxes:</p>
+                    <p className="text-muted-foreground">You saved ~{formatCurrency(taxAdj.owner.totalTaxSavingsRealized)} in tax deductions (mortgage interest + property tax), and your {formatCurrency(d.marketAppreciation + d.totalRenoValueAdded)} in appreciation is tax-free when you sell. The renter-investor would owe ~{formatCurrency(taxAdj.renter.capitalGainsTax)} in capital gains tax.</p>
+                  </div>
+                )}
+              </div>
+            }>
+              <p className={`text-[18px] font-medium ${owningWins ? 'text-success' : 'text-warning'}`}>
+                {afterTax ? 'After taxes, ' : ''}{owningWins ? `Owning wins by +${formatCurrency(margin)}` : `Renting + investing wins by +${formatCurrency(margin)} at ${activeRate}% return`}
+                {scenarioActive && (
+                  <ScenarioDelta scenarioVal={currentMargin} baseVal={afterTax ? baseTaxAdj.afterTaxMargin : baseResult.ownershipMargin} active={scenarioActive} />
+                )}
+              </p>
+            </HelpPopover>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {owningWins
                 ? (afterTax ? 'Tax advantages make homeownership significantly more competitive' : 'Your home equity exceeds what a disciplined renter-investor would have built')
@@ -277,12 +334,16 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
                         {scenarioActive && <ScenarioDelta scenarioVal={ownerWealth} baseVal={afterTax ? baseTaxAdj.owner.effectiveNetWealth : b.wealthBuilt} active={scenarioActive} />}
                       </td>
                       <td className="py-0.5 px-1.5 text-center">
-                        <span className={`inline-block text-[10px] px-1.5 py-0 rounded-full ${wins ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'}`}>
-                          {wins ? 'Own' : 'Rent'}
-                        </span>
+                        <HelpTip plain={wins ? "At this return rate, your home equity exceeds what the renter-investor would have. Owning is the better financial choice." : "At this return rate, a disciplined renter-investor would have more total wealth. But this assumes perfect investment discipline and doesn't account for rent increases."}>
+                          <span className={`inline-block text-[10px] px-1.5 py-0 rounded-full ${wins ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'}`}>
+                            {wins ? 'Own' : 'Rent'}
+                          </span>
+                        </HelpTip>
                       </td>
                       <td className={`py-0.5 px-1.5 text-right ${wins ? 'text-success' : 'text-warning'}`}>
-                        +{formatCurrency(Math.abs(rowMargin))}
+                        <HelpTip plain={wins ? "You're ahead by this amount — the dollar advantage of owning over renting + investing at this return rate." : "The renter-investor is ahead by this amount. But home equity is tax-advantaged and rent would have increased over time."}>
+                          +{formatCurrency(Math.abs(rowMargin))}
+                        </HelpTip>
                       </td>
                     </tr>
                   );
@@ -313,11 +374,19 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
               </ResponsiveContainer>
             </div>
             <p className={`text-[12px] mt-1 ${breakeven.crossoverYear && breakeven.crossoverYear <= Math.ceil(d.yearsOwned) ? 'text-success' : breakeven.crossoverYear ? 'text-primary' : 'text-warning'}`}>
-              {breakeven.crossoverYear
-                ? (breakeven.crossoverYear <= Math.ceil(d.yearsOwned)
-                  ? `Owning has been winning since Year ${breakeven.crossoverYear}. After 15 years, the ownership advantage grows to +${formatCurrency(Math.abs(breakeven.yearlyData[14]?.margin || 0))}`
-                  : `Owning catches up in Year ${breakeven.crossoverYear}. Keep holding — the amortization shift and tax advantages accelerate from here.`)
-                : `At ${activeRate}% market return, renting + investing remains ahead through Year 15. However, this assumes perfect investment discipline and ignores rent increases.`}
+              <HelpTip plain={
+                breakeven.crossoverYear && breakeven.crossoverYear <= Math.ceil(d.yearsOwned)
+                  ? "You've already crossed the breakeven point. Every additional year of ownership widens your advantage over the renter-investor."
+                  : breakeven.crossoverYear
+                    ? "You haven't crossed yet, but the amortization schedule works in your favor — each year, more of your payment goes to principal (wealth) and less to interest (sunk cost)."
+                    : `At ${activeRate}% return, renting + investing stays ahead through Year 15. This assumes perfect investment discipline and ignores rent increases.`
+              }>
+                {breakeven.crossoverYear
+                  ? (breakeven.crossoverYear <= Math.ceil(d.yearsOwned)
+                    ? `Owning has been winning since Year ${breakeven.crossoverYear}. After 15 years, the ownership advantage grows to +${formatCurrency(Math.abs(breakeven.yearlyData[14]?.margin || 0))}`
+                    : `Owning catches up in Year ${breakeven.crossoverYear}. Keep holding — the amortization shift and tax advantages accelerate from here.`)
+                  : `At ${activeRate}% market return, renting + investing remains ahead through Year 15. However, this assumes perfect investment discipline and ignores rent increases.`}
+              </HelpTip>
             </p>
           </div>
 
