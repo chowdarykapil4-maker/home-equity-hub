@@ -14,6 +14,7 @@ import DetailedBreakdown from '@/components/homepl/DetailedBreakdown';
 import MonthlySnapshot from '@/components/homepl/MonthlySnapshot';
 import IfYouSoldToday from '@/components/homepl/IfYouSoldToday';
 import AnnualReport from '@/components/homepl/AnnualReport';
+import RefinanceAnalyzer from '@/components/homepl/RefinanceAnalyzer';
 
 export default function HomePL() {
   const baseD = useHomePL();
@@ -69,6 +70,11 @@ export default function HomePL() {
         {/* Act 3.5: Sale modeling */}
         <div className="mt-5">
           <IfYouSoldToday d={scenario} scenarioPercent={scenarioPercent} />
+        </div>
+
+        {/* Act 3.55: Refinance analyzer */}
+        <div className="mt-5">
+          <RefinanceAnalyzer d={scenario} />
         </div>
 
         {/* Act 3.6: Annual report */}
