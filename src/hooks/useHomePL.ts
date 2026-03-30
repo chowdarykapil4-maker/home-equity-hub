@@ -71,6 +71,15 @@ export interface HomePLData {
 export function useHomePL(): HomePLData {
   const { property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig } = useAppContext();
 
+  const rentCastRent = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('casakat_rentcast_data');
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return parsed?.rentEstimate?.rent || null;
+    } catch { return null; }
+  }, []);
+
   return useMemo(() => {
     const purchasePrice = property.purchasePrice;
     const loanAmount = mortgage.originalLoanAmount;

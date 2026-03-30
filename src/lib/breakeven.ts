@@ -56,7 +56,7 @@ export function calculateBreakevenTimeline(
   let cumTaxSavings = 0;
   let renterPortfolio = downPayment;
   let cumRenterContributions = downPayment;
-  let currentRent = config.estimatedMonthlyRent;
+  let currentRent = resolvedRent || config.estimatedMonthlyRent;
 
   for (let y = 1; y <= yearsToProject; y++) {
     let yearInterest = 0;

@@ -32,7 +32,7 @@ export function calculateRentInvest(
   const monthlyMaintenance = homePLConfig.annualMaintenance / 12;
   const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaintenance + homePLConfig.monthlyHOA;
 
-  const monthlyRent = homePLConfig.estimatedMonthlyRent;
+  const monthlyRent = resolvedRent || homePLConfig.estimatedMonthlyRent;
   const monthlySavings = totalMonthlyOwnerCost - monthlyRent;
 
   const monthlyReturnRate = Math.pow(1 + annualReturnPct / 100, 1 / 12) - 1;

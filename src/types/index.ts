@@ -131,6 +131,10 @@ export function resolveHomeValue(valueEntries: ValueEntry[], property: PropertyP
   return blended > 0 ? blended : property.currentEstimatedValue;
 }
 
+export function resolveRent(rentCastRent: number | null | undefined, manualRent: number): number {
+  return (rentCastRent && rentCastRent > 0) ? rentCastRent : manualRent;
+}
+
 // Renovation Financing
 export type FinancingType = '0% Promo' | 'HELOC Draw' | 'Cash';
 
