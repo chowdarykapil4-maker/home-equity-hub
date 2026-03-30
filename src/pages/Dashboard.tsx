@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
+import { getEstimatedValueAdded, getEstimateMidpoint, resolveHomeValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
