@@ -40,9 +40,7 @@ export default function Dashboard() {
   const homeValue = pl.currentHomeValue;
   const mortgageBalance = pl.currentBalance;
 
-  // Live mortgage balance
-  const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
-  const mortgageBalance = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].remainingBalance : mortgage.originalLoanAmount;
+  const lastPaymentDate = mortgagePayments.length > 0 ? [...mortgagePayments].sort((a, b) => b.paymentDate.localeCompare(a.paymentDate))[0].paymentDate : null;
   const lastPaymentDate = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].paymentDate : null;
 
   const now = new Date();
