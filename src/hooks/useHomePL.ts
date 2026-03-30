@@ -94,6 +94,7 @@ export function useHomePL(): HomePLData {
 
     // Home value
     const currentHomeValue = resolveHomeValue(valueEntries, property);
+    const resolvedRentValue = resolveRent(rentCastRent, homePLConfig.estimatedMonthlyRent);
 
     // Mortgage
     const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
