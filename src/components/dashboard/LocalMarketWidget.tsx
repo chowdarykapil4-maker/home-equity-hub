@@ -12,6 +12,7 @@ interface Props {
   data: RentCastData | null;
   loading: boolean;
   onRefresh: () => void;
+  hasApiKey: boolean;
 }
 
 export function LocalMarketWidget({ data, loading, onRefresh }: Props) {
