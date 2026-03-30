@@ -60,8 +60,8 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
   );
 
   const breakeven = useMemo(() =>
-    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15),
-    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded]
+    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15, d.resolvedRent),
+    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, d.resolvedRent]
   );
 
   // Margins
