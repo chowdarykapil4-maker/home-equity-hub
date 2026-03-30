@@ -92,8 +92,10 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/market?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const mktData = await marketRes.json();
+      console.log('Market response:', marketRes.status, JSON.stringify(mktData));
       if (marketRes.ok) {
-        marketData = await marketRes.json();
+        marketData = mktData;
       }
       apiCallCount++;
     } catch (e) {
