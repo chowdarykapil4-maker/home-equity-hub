@@ -41,7 +41,8 @@ export function useRentCastRefresh() {
           ? Math.floor((now.getTime() - lastRefresh.getTime()) / 86400000)
           : Infinity;
 
-        if (!force && daysSince < intervalDays) return;
+        const hasCachedData = !!localStorage.getItem(STORAGE_KEY);
+        if (!force && hasCachedData && daysSince < intervalDays) return;
 
         setLoading(true);
 
