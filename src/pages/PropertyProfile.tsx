@@ -194,6 +194,10 @@ function SettingsTab() {
         setRentcastKey(data.rentcast_api_key || '');
         setRefreshInterval(data.refresh_interval_days);
         setApiCallsThisMonth(data.api_calls_this_month);
+      } else {
+        await supabase
+          .from('auto_refresh_settings')
+          .insert({ id: 'default', rentcast_api_key: '', refresh_interval_days: 30, api_calls_this_month: 0 });
       }
       setSettingsLoaded(true);
     } catch {
