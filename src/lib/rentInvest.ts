@@ -24,6 +24,7 @@ export function calculateRentInvest(
   ownerEquity: number,
   ownerSunkCost: number,
   purchaseDate: string,
+  resolvedRent?: number,
 ): RentInvestResult {
   const monthlyMortgage = mortgage.monthlyPayment;
   const monthlyTax = homePLConfig.annualPropertyTax / 12;
