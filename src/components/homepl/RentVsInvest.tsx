@@ -58,7 +58,7 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
   );
   const preview10Tax = useMemo(() => calculateTaxAdjusted(d, preview10, tax), [d, preview10, tax]);
 
-  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate);
+  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent);
   const sensitivity = useMemo(() =>
     calculateTaxAdjustedSensitivity(SENSITIVITY_RATES, d, makeRI, tax),
     [d, mortgage, homePLConfig, completedProjects, tax]
