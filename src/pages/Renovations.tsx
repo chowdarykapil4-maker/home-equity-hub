@@ -70,7 +70,7 @@ export default function Renovations() {
   );
 }
 
-function SpendingAnalytics({ projects }: { projects: typeof import('@/types').RenovationProject[] extends (infer T)[] ? T[] : never }) {
+function SpendingAnalytics({ projects }: { projects: import('@/types').RenovationProject[] }) {
   const completed = projects.filter(p => p.status === 'Complete');
 
   // Spending by year
