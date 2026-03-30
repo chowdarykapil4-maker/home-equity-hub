@@ -210,79 +210,24 @@ export default function Dashboard() {
       <Card className="rounded-xl">
         <CardContent className="p-0">
           {/* Row 1: 7 metrics */}
-          <div className="grid grid-cols-4 md:grid-cols-7">
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Mortgage</p>
-              <p className="text-sm font-semibold leading-tight">
-                <HelpTip plain="Your remaining mortgage balance. This decreases with each monthly payment as principal is paid down.">
-                  {formatCurrency(mortgageBalance)}
-                </HelpTip>
-              </p>
-              <p className={`text-[10px] ${paidThisMonth ? 'text-success' : 'text-warning'}`}>{paidThisMonth ? '✓ Paid this month' : 'Payment due'}</p>
-            </div>
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Monthly cost</p>
-              <p className="text-sm font-semibold leading-tight">
-                <HelpTip
-                  plain="Your true monthly housing cost — only money gone forever (interest, tax, insurance, maintenance). Does NOT include principal since that builds equity."
-                  math={`Total sunk cost (${formatCurrency(pl.sunkCost)}) ÷ months owned (${pl.monthsOwned})`}
-                >
-                  {formatCurrency(pl.monthlyCostOfOwnership)}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">sunk cost/mo</p>
-            </div>
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth/mo</p>
-              <p className="text-sm font-semibold leading-tight text-success">
-                <HelpTip plain="Actual new wealth generated each month on average — principal paydown + appreciation + renovation value. Excludes down payment which was a transfer, not new wealth.">
-                  {formatCurrency(pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation)}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">equity growth rate</p>
-            </div>
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Principal YTD</p>
-              <p className="text-sm font-semibold leading-tight text-success">
-                <HelpTip plain="How much of your mortgage balance you've paid down so far this year. Every dollar of principal is equity you keep.">
-                  {formatCurrency(principalThisYear)}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">{currentYear}</p>
-            </div>
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Obligations</p>
-              <p className="text-sm font-semibold leading-tight">
-                <HelpTip
-                  plain="Total monthly payments across all debt — mortgage P&I plus any renovation financing (0% promos, HELOC payments)."
-                  math={`Mortgage (${formatCurrency(mortgage.monthlyPayment)}) + financing (${formatCurrency(totalFinancingMonthly)})`}
-                >
-                  {formatCurrency(totalMonthlyObligations)}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">Mortgage + financing</p>
-            </div>
-            <div className="text-center py-3 px-2 border-r border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">HELOC avail</p>
-              <p className="text-sm font-semibold leading-tight">
-                <HelpTip
-                  plain="How much you could borrow against your home equity via a HELOC, based on 80% combined loan-to-value ratio."
-                  math="Home value × 80% − mortgage − existing HELOC draws = available credit"
-                >
-                  {formatCurrency(availableHeloc80)}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">at 80% CLTV</p>
-            </div>
-            <div className="text-center py-3 px-2">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Payoff</p>
-              <p className="text-sm font-semibold leading-tight">
-                <HelpTip plain="Time until your mortgage is fully paid off at current payment rate. Extra payments or refinancing can shorten this significantly.">
-                  {payoffStr}
-                </HelpTip>
-              </p>
-              <p className="text-[10px] text-muted-foreground">({Math.round(percentComplete)}%) · {formatCurrency(remainingInterest)} int left</p>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7">
+            {[
+              { label: 'Mortgage', value: formatCurrency(mortgageBalance), sub: paidThisMonth ? '✓ Paid this month' : 'Payment due', subClass: paidThisMonth ? 'text-success' : 'text-warning', tip: 'Your remaining mortgage balance. This decreases with each monthly payment as principal is paid down.' },
+              { label: 'Monthly cost', value: formatCurrency(pl.monthlyCostOfOwnership), sub: 'sunk cost/mo', tip: 'Your true monthly housing cost — only money gone forever (interest, tax, insurance, maintenance). Does NOT include principal since that builds equity.', tipMath: `Total sunk cost (${formatCurrency(pl.sunkCost)}) ÷ months owned (${pl.monthsOwned})` },
+              { label: 'Wealth/mo', value: formatCurrency(pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation), sub: 'equity growth rate', valueClass: 'text-success', tip: 'Actual new wealth generated each month on average — principal paydown + appreciation + renovation value.' },
+              { label: 'Principal YTD', value: formatCurrency(principalThisYear), sub: currentYear, valueClass: 'text-success', tip: 'How much of your mortgage balance you\'ve paid down so far this year.' },
+              { label: 'Obligations', value: formatCurrency(totalMonthlyObligations), sub: 'Mortgage + financing', tip: 'Total monthly payments across all debt.', tipMath: `Mortgage (${formatCurrency(mortgage.monthlyPayment)}) + financing (${formatCurrency(totalFinancingMonthly)})` },
+              { label: 'HELOC avail', value: formatCurrency(availableHeloc80), sub: 'at 80% CLTV', tip: 'How much you could borrow via a HELOC, based on 80% combined loan-to-value.' },
+              { label: 'Payoff', value: payoffStr, sub: `(${Math.round(percentComplete)}%) · ${formatCurrency(remainingInterest)} int left`, tip: 'Time until your mortgage is fully paid off at current payment rate.' },
+            ].map((m, i) => (
+              <div key={i} className={`text-center py-3 px-2 border-border/30 ${i < 6 ? 'border-r' : ''} ${i === 1 ? 'max-sm:border-r-0' : ''} ${i === 3 ? 'sm:max-md:border-r-0 max-sm:border-r-0' : ''} ${i === 5 ? 'md:border-r' : ''}`}>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{m.label}</p>
+                <p className={`text-sm font-semibold leading-tight ${m.valueClass || ''}`}>
+                  <HelpTip plain={m.tip} math={m.tipMath}>{m.value}</HelpTip>
+                </p>
+                <p className={`text-[10px] ${m.subClass || 'text-muted-foreground'}`}>{m.sub}</p>
+              </div>
+            ))}
           </div>
 
           {/* Row 2: month-over-month deltas */}
