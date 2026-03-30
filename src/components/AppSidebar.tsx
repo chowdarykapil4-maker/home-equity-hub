@@ -1,4 +1,4 @@
-import { LayoutDashboard, Hammer, Settings, Home, Landmark, TrendingUp, CreditCard, LineChart } from 'lucide-react';
+import { LayoutDashboard, Hammer, Home, Landmark, LineChart } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -16,10 +16,8 @@ const items = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Home P&L', url: '/home-pl', icon: LineChart },
   { title: 'Renovations', url: '/renovations', icon: Hammer },
-  { title: 'Mortgage', url: '/mortgage', icon: Landmark },
-  { title: 'Value History', url: '/value-history', icon: TrendingUp },
-  { title: 'Financing', url: '/financing', icon: CreditCard },
-  { title: 'Property Profile', url: '/property', icon: Settings },
+  { title: 'Mortgage & Debt', url: '/mortgage', icon: Landmark },
+  { title: 'My Property', url: '/property', icon: Home },
 ];
 
 export function AppSidebar() {
