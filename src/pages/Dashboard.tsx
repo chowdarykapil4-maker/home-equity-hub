@@ -21,6 +21,7 @@ import { useRentCastRefresh } from '@/hooks/useRentCastRefresh';
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
   const pl = useHomePL();
+  const { data: rentCastData, loading: rentCastLoading, refresh: refreshRentCast } = useRentCastRefresh();
 
   const completedProjects = projects.filter(p => p.status === 'Complete');
   const tax = homePLConfig.tax;
