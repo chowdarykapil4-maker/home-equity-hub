@@ -74,7 +74,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
 
   // Preview (for collapsed header)
   const preview10 = useMemo(() =>
-    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate),
+    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
     [d, mortgage, homePLConfig, completedProjects]
   );
   const preview10Tax = useMemo(() => calculateTaxAdjusted(d, preview10, tax), [d, preview10, tax]);
