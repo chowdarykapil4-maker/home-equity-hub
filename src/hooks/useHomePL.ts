@@ -138,7 +138,7 @@ export function useHomePL(): HomePLData {
     const monthlyCostOfOwnership = monthsOwned > 0 ? sunkCost / monthsOwned : 0;
 
     // Section 5
-    const totalRentWouldHavePaid = homePLConfig.estimatedMonthlyRent * monthsOwned;
+    const totalRentWouldHavePaid = resolvedRentValue * monthsOwned;
     const ownerSunkCost = sunkCost;
     const renterSunkCost = totalRentWouldHavePaid;
     const sunkCostDiff = ownerSunkCost - renterSunkCost;
