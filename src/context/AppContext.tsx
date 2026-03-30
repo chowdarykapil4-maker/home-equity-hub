@@ -183,6 +183,7 @@ function autoGeneratePayments(existing: MortgagePayment[], rate: number): Mortga
   const sorted = [...existing].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
   const existingDates = new Set(sorted.map(p => p.paymentDate));
   const now = new Date();
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   let year = AUTO_START_DATE.getFullYear();
   let month = AUTO_START_DATE.getMonth();
   let balance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : 1090554.64;
@@ -190,7 +191,8 @@ function autoGeneratePayments(existing: MortgagePayment[], rate: number): Mortga
   while (balance > 0) {
     const dateStr = getLastDayOfMonth(year, month);
     const paymentDate = new Date(year, month + 1, 0);
-    if (paymentDate > now) break;
+    // Generate payments through the current month (assume payment is made this month)
+    if (paymentDate > currentMonthEnd) break;
     if (!existingDates.has(dateStr)) {
       const { interest, principal, newBalance } = calculatePaymentSplit(balance, rate, PI_PAYMENT, AUTO_EXTRA_PRINCIPAL);
       newPayments.push({ id: `auto-${dateStr}`, paymentDate: dateStr, paymentAmount: AUTO_PAYMENT_AMOUNT, principalPortion: principal, interestPortion: interest, extraPrincipal: AUTO_EXTRA_PRINCIPAL, remainingBalance: newBalance, notes: 'Auto-generated' });
