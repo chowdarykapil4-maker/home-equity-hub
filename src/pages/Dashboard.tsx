@@ -224,6 +224,12 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Mortgage Payoff Countdown */}
+      <MortgagePayoffCountdown />
+
+      {/* Month-over-Month Delta Strip */}
+      <MonthOverMonthDelta />
+
       {/* SECTION 4 — Home P&L Summary */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
