@@ -71,7 +71,6 @@ const defaultProperty: PropertyProfile = {
   valueSource: 'Zillow',
   yearBuilt: 1969,
   squareFootage: 1800,
-  mortgageBalance: 0,
 };
 
 const defaultProjects: RenovationProject[] = [

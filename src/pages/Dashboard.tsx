@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, getEstimateMidpoint, calculateBlendedValue } from '@/types';
+import { getEstimatedValueAdded, getEstimateMidpoint, resolveHomeValue } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
@@ -37,28 +37,23 @@ export default function Dashboard() {
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
-  // Blended value
-  const { value: blendedValue, sourceCount } = calculateBlendedValue(valueEntries);
-  const homeValue = blendedValue > 0 ? blendedValue : property.currentEstimatedValue;
+  const homeValue = pl.currentHomeValue;
+  const mortgageBalance = pl.currentBalance;
 
-  // Live mortgage balance
-  const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
-  const mortgageBalance = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].remainingBalance : mortgage.originalLoanAmount;
+  const lastPaymentDate = mortgagePayments.length > 0 ? [...mortgagePayments].sort((a, b) => b.paymentDate.localeCompare(a.paymentDate))[0].paymentDate : null;
   const lastPaymentDate = sortedPayments.length > 0 ? sortedPayments[sortedPayments.length - 1].paymentDate : null;
 
   const now = new Date();
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const paidThisMonth = lastPaymentDate?.startsWith(currentMonthStr);
 
-  const currentYear = now.getFullYear().toString();
-  const principalThisYear = sortedPayments.filter(p => p.paymentDate.startsWith(currentYear)).reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
+  const principalThisYear = mortgagePayments.filter(p => p.paymentDate.startsWith(currentYear)).reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
 
   // Financing
   const totalHelocDrawn = financingEntries.filter(f => f.type === 'HELOC Draw').reduce((s, f) => s + f.remainingBalance, 0);
   const totalFinancingMonthly = financingEntries.reduce((s, f) => s + f.monthlyPayment, 0);
   const totalMonthlyObligations = mortgage.monthlyPayment + totalFinancingMonthly;
 
-  // Equity
   const netEquity = homeValue - mortgageBalance - totalHelocDrawn;
   const ltv = homeValue > 0 ? (mortgageBalance / homeValue) * 100 : 0;
   const cltv = homeValue > 0 ? ((mortgageBalance + totalHelocDrawn) / homeValue) * 100 : 0;
@@ -174,39 +169,18 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Equity Position Summary */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Equity Position Summary</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-muted-foreground">Blended Home Value</span>
-              <span className="text-lg font-semibold">{formatCurrency(homeValue)}</span>
+      {/* Link to Home P&L */}
+      <Link to="/home-pl">
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors">
+          <CardContent className="pt-6 flex items-center justify-between">
+            <div>
+              <p className="text-base font-medium">See full equity analysis</p>
+              <p className="text-sm text-muted-foreground">Detailed P&L, rent comparison, and scenarios</p>
             </div>
-            <div className="flex justify-between items-center py-2 border-t">
-              <span className="text-sm text-muted-foreground">Minus: Mortgage Balance</span>
-              <span className="text-lg font-semibold text-destructive">−{formatCurrency(mortgageBalance)}</span>
-            </div>
-            {totalHelocDrawn > 0 && (
-              <div className="flex justify-between items-center py-2 border-t">
-                <span className="text-sm text-muted-foreground">Minus: HELOC Drawn</span>
-                <span className="text-lg font-semibold text-destructive">−{formatCurrency(totalHelocDrawn)}</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center py-3 border-t-2 border-foreground/20">
-              <span className="text-base font-bold">NET EQUITY</span>
-              <span className={`text-2xl font-bold ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-4 border-t">
-            <div><p className="text-xs text-muted-foreground">LTV Ratio</p><p className="text-lg font-bold">{formatPercent(ltv)}</p></div>
-            <div><p className="text-xs text-muted-foreground">CLTV Ratio</p><p className="text-lg font-bold">{formatPercent(cltv)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 80% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc80)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 90% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc90)}</p></div>
-          </div>
-        </CardContent>
-      </Card>
+            <ArrowRight className="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* Unrealized Gain/Loss */}
       <Card>

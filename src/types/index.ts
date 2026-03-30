@@ -45,7 +45,6 @@ export interface PropertyProfile {
   valueSource: ValueSource;
   yearBuilt: number;
   squareFootage: number;
-  mortgageBalance: number;
 }
 
 export interface RenovationProject {
@@ -125,6 +124,11 @@ export function calculateBlendedValue(entries: ValueEntry[]): { value: number; s
     totalWeight += weight;
   });
   return { value: Math.round(weightedSum / totalWeight), sourceCount: sources.length };
+}
+
+export function resolveHomeValue(valueEntries: ValueEntry[], property: PropertyProfile): number {
+  const { value: blended } = calculateBlendedValue(valueEntries);
+  return blended > 0 ? blended : property.currentEstimatedValue;
 }
 
 // Renovation Financing
