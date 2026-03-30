@@ -37,12 +37,12 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
   const activeRate = customRate !== '' ? parseFloat(customRate) || 0 : selectedRate;
 
   const result = useMemo(() =>
-    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate),
-    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, mortgage, homePLConfig, completedProjects]
+    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
+    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, mortgage, homePLConfig, completedProjects]
   );
 
   const baseResult = useMemo(() =>
-    scenarioActive ? calculateRentInvest(activeRate, b.monthsOwned, b.downPayment, mortgage, homePLConfig, completedProjects, b.wealthBuilt, b.sunkCost, b.purchaseDate) : result,
+    scenarioActive ? calculateRentInvest(activeRate, b.monthsOwned, b.downPayment, mortgage, homePLConfig, completedProjects, b.wealthBuilt, b.sunkCost, b.purchaseDate, b.resolvedRent) : result,
     [activeRate, b, scenarioActive, mortgage, homePLConfig, completedProjects, result]
   );
 
@@ -53,20 +53,20 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
   );
 
   const preview10 = useMemo(() =>
-    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate),
+    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
     [d, mortgage, homePLConfig, completedProjects]
   );
   const preview10Tax = useMemo(() => calculateTaxAdjusted(d, preview10, tax), [d, preview10, tax]);
 
-  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate);
+  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent);
   const sensitivity = useMemo(() =>
     calculateTaxAdjustedSensitivity(SENSITIVITY_RATES, d, makeRI, tax),
     [d, mortgage, homePLConfig, completedProjects, tax]
   );
 
   const breakeven = useMemo(() =>
-    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15),
-    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded]
+    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15, d.resolvedRent),
+    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, d.resolvedRent]
   );
 
   const previewMargin = afterTax ? preview10Tax.afterTaxMargin : preview10.ownershipMargin;

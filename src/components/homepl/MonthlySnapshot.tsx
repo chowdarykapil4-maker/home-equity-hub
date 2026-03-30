@@ -64,8 +64,11 @@ export default function MonthlySnapshot({ d, baseD, scenarioActive = false }: Pr
 
         <div className="text-center space-y-0.5">
           <p className="text-sm font-bold tabular-nums text-muted-foreground">
-            <HelpTip plain="What a comparable home costs to rent. A renter pays this with $0 equity to show for it.">
-              {formatCurrency(homePLConfig.estimatedMonthlyRent)}
+            <HelpTip
+              plain="Comparable monthly rent used in all P&L calculations."
+              math={d.resolvedRent !== homePLConfig.estimatedMonthlyRent ? `Source: RentCast estimate (${formatCurrency(d.resolvedRent)}/mo)` : `Source: manual entry — connect RentCast for auto-updates`}
+            >
+              {formatCurrency(d.resolvedRent)}
             </HelpTip>
           </p>
           <p className="text-[10px] text-muted-foreground">Equivalent rent</p>

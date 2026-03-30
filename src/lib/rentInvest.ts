@@ -24,6 +24,7 @@ export function calculateRentInvest(
   ownerEquity: number,
   ownerSunkCost: number,
   purchaseDate: string,
+  resolvedRent?: number,
 ): RentInvestResult {
   const monthlyMortgage = mortgage.monthlyPayment;
   const monthlyTax = homePLConfig.annualPropertyTax / 12;
@@ -31,7 +32,7 @@ export function calculateRentInvest(
   const monthlyMaintenance = homePLConfig.annualMaintenance / 12;
   const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaintenance + homePLConfig.monthlyHOA;
 
-  const monthlyRent = homePLConfig.estimatedMonthlyRent;
+  const monthlyRent = resolvedRent || homePLConfig.estimatedMonthlyRent;
   const monthlySavings = totalMonthlyOwnerCost - monthlyRent;
 
   const monthlyReturnRate = Math.pow(1 + annualReturnPct / 100, 1 / 12) - 1;

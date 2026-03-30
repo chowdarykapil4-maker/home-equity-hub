@@ -135,11 +135,11 @@ export function LocalMarketWidget({ data, loading, onRefresh, hasApiKey }: Props
             </p>
             {rentEst && (
               <p
-                className={`text-[10px] ${rentDiffPct <= 10 ? 'text-success' : 'text-warning'}`}
+                className={`text-[10px] ${rentEst === pl.resolvedRent ? 'text-success' : 'text-warning'}`}
               >
-                {rentDiffPct <= 10
-                  ? '✓ Matches your assumption'
-                  : `P&L assumes ${formatCurrency(assumedRent)}`}
+                {rentEst === pl.resolvedRent
+                  ? '✓ Used in calculations'
+                  : `Using manual fallback: ${formatCurrency(assumedRent)}/mo`}
               </p>
             )}
           </div>

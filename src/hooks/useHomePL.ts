@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, resolveHomeValue } from '@/types';
+import { getEstimatedValueAdded, resolveHomeValue, resolveRent } from '@/types';
 
 export interface HomePLData {
   // Inputs
@@ -63,12 +63,22 @@ export interface HomePLData {
   downPaymentMonthlyEquivalent: number;
 
   // Chart data
+  resolvedRent: number;
   chartData: { month: string; sunkCost: number; equity: number; rent: number }[];
   crossoverMonth: string | null;
 }
 
 export function useHomePL(): HomePLData {
   const { property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig } = useAppContext();
+
+  const rentCastRent = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('casakat_rentcast_data');
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return parsed?.rentEstimate?.rent || null;
+    } catch { return null; }
+  }, []);
 
   return useMemo(() => {
     const purchasePrice = property.purchasePrice;
@@ -84,6 +94,7 @@ export function useHomePL(): HomePLData {
 
     // Home value
     const currentHomeValue = resolveHomeValue(valueEntries, property);
+    const resolvedRentValue = resolveRent(rentCastRent, homePLConfig.estimatedMonthlyRent);
 
     // Mortgage
     const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
@@ -127,7 +138,7 @@ export function useHomePL(): HomePLData {
     const monthlyCostOfOwnership = monthsOwned > 0 ? sunkCost / monthsOwned : 0;
 
     // Section 5
-    const totalRentWouldHavePaid = homePLConfig.estimatedMonthlyRent * monthsOwned;
+    const totalRentWouldHavePaid = resolvedRentValue * monthsOwned;
     const ownerSunkCost = sunkCost;
     const renterSunkCost = totalRentWouldHavePaid;
     const sunkCostDiff = ownerSunkCost - renterSunkCost;
@@ -153,7 +164,7 @@ export function useHomePL(): HomePLData {
 
     const monthlyTax = homePLConfig.annualPropertyTax / 12;
     const monthlyMaint = homePLConfig.annualMaintenance / 12;
-    const monthlyRent = homePLConfig.estimatedMonthlyRent;
+    const monthlyRent = resolvedRentValue;
     const monthlyIns = homePLConfig.monthlyInsurance;
     const monthlyHoa = homePLConfig.monthlyHOA;
 
@@ -214,7 +225,8 @@ export function useHomePL(): HomePLData {
       monthlyWealthCreation, sunkCostDiff,
       monthlyPrincipalPaydown, monthlyAppreciation, monthlyRenoValue,
       trueMonthlyWealthCreation, sustainableMonthlyRate, downPaymentMonthlyEquivalent,
+      resolvedRent: resolvedRentValue,
       chartData, crossoverMonth,
     };
-  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig]);
+  }, [property, projects, mortgage, mortgagePayments, valueEntries, homePLConfig, rentCastRent]);
 }
