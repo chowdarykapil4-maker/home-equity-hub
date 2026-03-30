@@ -279,7 +279,32 @@ function SettingsTab() {
             <div><Label className="text-[11px]">Annual property tax</Label><Input type="number" value={draft.annualPropertyTax} onChange={e => setDraft({ ...draft, annualPropertyTax: +e.target.value })} /></div>
             <div><Label className="text-[11px]">Monthly insurance</Label><Input type="number" value={draft.monthlyInsurance} onChange={e => setDraft({ ...draft, monthlyInsurance: +e.target.value })} /></div>
             <div><Label className="text-[11px]">Monthly HOA</Label><Input type="number" value={draft.monthlyHOA} onChange={e => setDraft({ ...draft, monthlyHOA: +e.target.value })} /></div>
-            <div><Label className="text-[11px]">Comparable rent/mo</Label><Input type="number" value={draft.estimatedMonthlyRent} onChange={e => setDraft({ ...draft, estimatedMonthlyRent: +e.target.value })} /></div>
+            <div>
+              <Label className="text-[11px]">{(() => {
+                try {
+                  const stored = localStorage.getItem('casakat_rentcast_data');
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed?.rentEstimate?.rent > 0) return 'Fallback rent/mo';
+                  }
+                } catch {}
+                return 'Comparable rent/mo';
+              })()}</Label>
+              <Input type="number" value={draft.estimatedMonthlyRent} onChange={e => setDraft({ ...draft, estimatedMonthlyRent: +e.target.value })} />
+              {(() => {
+                try {
+                  const stored = localStorage.getItem('casakat_rentcast_data');
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    const rcRent = parsed?.rentEstimate?.rent;
+                    if (rcRent && rcRent > 0) {
+                      return <p className="text-[10px] text-success mt-1">RentCast estimate: {formatCurrency(rcRent)}/mo (using this for calculations)</p>;
+                    }
+                  }
+                } catch {}
+                return <p className="text-[10px] text-warning mt-1">No RentCast data — using this value for calculations</p>;
+              })()}
+            </div>
             <div className="col-span-2"><Label className="text-[11px]">Annual maintenance</Label><Input type="number" value={draft.annualMaintenance} onChange={e => setDraft({ ...draft, annualMaintenance: +e.target.value })} /></div>
           </div>
         </CardContent>
