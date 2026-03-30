@@ -30,6 +30,7 @@ export function calculateBreakevenTimeline(
   annualReturnPct: number,
   totalRenoValueAdded: number,
   yearsToProject: number = 15,
+  resolvedRent?: number,
 ): BreakevenResult {
   const combinedRate = (tax.federalRate + tax.stateRate) / 100;
   const combinedCapGains = (tax.capitalGainsRate + tax.stateCapGainsRate) / 100;
