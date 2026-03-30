@@ -75,7 +75,21 @@ export async function fetchRentEstimate(apiKey: string, address: string): Promis
 }
 
 export async function fetchMarketStats(apiKey: string, zipCode: string): Promise<RentCastMarketStats> {
-  return rentcastFetch('/markets', apiKey, { zipCode });
+  const raw = await rentcastFetch('/markets', apiKey, { zipCode });
+  const sale = raw.saleData || raw;
+  const rental = raw.rentalData || {};
+
+  return {
+    zipCode: raw.zipCode || zipCode,
+    medianPrice: sale.medianPrice || sale.averagePrice || undefined,
+    averagePrice: sale.averagePrice || undefined,
+    medianRent: rental.medianRent || rental.averageRent || undefined,
+    averageRent: rental.averageRent || undefined,
+    averageDaysOnMarket: sale.averageDaysOnMarket || undefined,
+    totalListings: sale.totalListings || undefined,
+    saleListings: sale.totalListings || undefined,
+    rentalListings: rental.totalListings || undefined,
+  };
 }
 
 export async function fetchAllRentCastData(apiKey: string, address: string, zipCode: string): Promise<RentCastData> {
@@ -84,6 +98,12 @@ export async function fetchAllRentCastData(apiKey: string, address: string, zipC
     fetchRentEstimate(apiKey, address),
     fetchMarketStats(apiKey, zipCode),
   ]);
+
+  if (marketStats.status === 'fulfilled') {
+    console.log('RentCast market stats raw response:', marketStats.value);
+  } else {
+    console.log('RentCast market stats failed:', marketStats.reason);
+  }
 
   return {
     valueEstimate: valueEstimate.status === 'fulfilled' ? valueEstimate.value : null,
