@@ -208,12 +208,12 @@ function SettingsTab() {
   async function saveRefreshSettings() {
     await supabase
       .from('auto_refresh_settings')
-      .update({
+      .upsert({
+        id: 'default',
         rentcast_api_key: rentcastKey || null,
         refresh_interval_days: refreshInterval,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', 'default');
+      }, { onConflict: 'id' });
   }
 
   const setTax = (partial: Partial<HomePLConfig['tax']>) =>
