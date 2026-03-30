@@ -164,7 +164,7 @@ export function useHomePL(): HomePLData {
 
     const monthlyTax = homePLConfig.annualPropertyTax / 12;
     const monthlyMaint = homePLConfig.annualMaintenance / 12;
-    const monthlyRent = homePLConfig.estimatedMonthlyRent;
+    const monthlyRent = resolvedRentValue;
     const monthlyIns = homePLConfig.monthlyInsurance;
     const monthlyHoa = homePLConfig.monthlyHOA;
 
