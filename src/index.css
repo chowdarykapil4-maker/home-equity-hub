@@ -61,3 +61,14 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .milestone-pulse {
+    animation: milestonePulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes milestonePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
