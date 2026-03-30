@@ -11,6 +11,10 @@ import { calculateTaxAdjusted } from '@/lib/taxCalcs';
 import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
 import { HelpTip } from '@/components/homepl/HelpTip';
+import { MonthOverMonthDelta } from '@/components/dashboard/MonthOverMonthDelta';
+import { EquityMilestoneTracker } from '@/components/dashboard/EquityMilestoneTracker';
+import { MortgagePayoffCountdown } from '@/components/dashboard/MortgagePayoffCountdown';
+import { NextRenovationUp } from '@/components/dashboard/NextRenovationUp';
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
@@ -220,6 +224,12 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Mortgage Payoff Countdown */}
+      <MortgagePayoffCountdown />
+
+      {/* Month-over-Month Delta Strip */}
+      <MonthOverMonthDelta />
+
       {/* SECTION 4 — Home P&L Summary */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
@@ -285,46 +295,52 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Equity Milestone Tracker */}
+      <EquityMilestoneTracker />
+
       {/* SECTION 5 — Renovation Snapshot */}
       <Card className="rounded-xl">
-        <CardContent className="px-4 py-4 flex items-center justify-center gap-12">
-          <div className="flex-[3] flex items-center justify-center gap-2">
-            <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
-              <p className="text-lg font-bold">{wishlist.length}</p>
-              <p className="text-[10px] text-muted-foreground">Wishlist</p>
-              <p className="text-[10px] text-muted-foreground">{formatCurrency(wishlistVal)}</p>
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center justify-center gap-12">
+            <div className="flex-[3] flex items-center justify-center gap-2">
+              <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold">{wishlist.length}</p>
+                <p className="text-[10px] text-muted-foreground">Wishlist</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(wishlistVal)}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="text-center bg-primary/10 rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold text-primary">{planned.length}</p>
+                <p className="text-[10px] text-muted-foreground">Planned</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(plannedVal)}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="text-center bg-success/10 rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold text-success">{completedProjects.length}</p>
+                <p className="text-[10px] text-muted-foreground">Completed</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(totalSpent)}</p>
+              </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="text-center bg-primary/10 rounded-full px-4 py-2 min-w-[80px]">
-              <p className="text-lg font-bold text-primary">{planned.length}</p>
-              <p className="text-[10px] text-muted-foreground">Planned</p>
-              <p className="text-[10px] text-muted-foreground">{formatCurrency(plannedVal)}</p>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="text-center bg-success/10 rounded-full px-4 py-2 min-w-[80px]">
-              <p className="text-lg font-bold text-success">{completedProjects.length}</p>
-              <p className="text-[10px] text-muted-foreground">Completed</p>
-              <p className="text-[10px] text-muted-foreground">{formatCurrency(totalSpent)}</p>
+            <div className="flex-[2] flex flex-col justify-center gap-0.5">
+              <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
+              <p className="text-[13px] text-success">
+                Value recovered:{' '}
+                <HelpTip plain="The estimated market value added by completed renovations. A 55% recovery means for every $1 spent, $0.55 shows up in home value.">
+                  {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)
+                </HelpTip>
+              </p>
+              <p className="text-[13px] text-destructive/70">
+                Net reno cost:{' '}
+                <HelpTip plain="The portion of renovation spending that didn't translate into home value — this is the true sunk cost of renovations.">
+                  {formatCurrency(totalSpent - totalValueAdded)}
+                </HelpTip>
+              </p>
+              <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
+                Manage projects <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
           </div>
-          <div className="flex-[2] flex flex-col justify-center gap-0.5">
-            <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
-            <p className="text-[13px] text-success">
-              Value recovered:{' '}
-              <HelpTip plain="The estimated market value added by completed renovations. A 55% recovery means for every $1 spent, $0.55 shows up in home value.">
-                {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)
-              </HelpTip>
-            </p>
-            <p className="text-[13px] text-destructive/70">
-              Net reno cost:{' '}
-              <HelpTip plain="The portion of renovation spending that didn't translate into home value — this is the true sunk cost of renovations.">
-                {formatCurrency(totalSpent - totalValueAdded)}
-              </HelpTip>
-            </p>
-            <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
-              Manage projects <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+          <NextRenovationUp />
         </CardContent>
       </Card>
 
