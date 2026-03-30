@@ -130,5 +130,5 @@ export function useRentCastRefresh() {
     refresh();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { data, loading, refresh };
+  return { data, loading, refresh, hasApiKey };
 }
