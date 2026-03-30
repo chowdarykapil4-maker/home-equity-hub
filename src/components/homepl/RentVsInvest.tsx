@@ -37,8 +37,8 @@ export default function RentVsInvest({ d, baseD, scenarioActive = false }: Props
   const activeRate = customRate !== '' ? parseFloat(customRate) || 0 : selectedRate;
 
   const result = useMemo(() =>
-    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate),
-    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, mortgage, homePLConfig, completedProjects]
+    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
+    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, mortgage, homePLConfig, completedProjects]
   );
 
   const baseResult = useMemo(() =>
