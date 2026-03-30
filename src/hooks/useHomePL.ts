@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, calculateBlendedValue } from '@/types';
+import { getEstimatedValueAdded, resolveHomeValue } from '@/types';
 
 export interface HomePLData {
   // Inputs
