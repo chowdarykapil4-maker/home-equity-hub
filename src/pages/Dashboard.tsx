@@ -193,9 +193,9 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* SECTION 5 — Renovation Snapshot (flex-grow to fill remaining space) */}
-      <Card className="rounded-xl flex-grow min-h-[120px]">
-        <CardContent className="px-4 py-3 h-full flex items-center justify-between">
+      {/* SECTION 5 — Renovation Snapshot */}
+      <Card className="rounded-xl">
+        <CardContent className="px-4 py-4 flex items-center justify-center gap-12">
           <div className="flex-[3] flex items-center justify-center gap-2">
             <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
               <p className="text-lg font-bold">{wishlist.length}</p>
