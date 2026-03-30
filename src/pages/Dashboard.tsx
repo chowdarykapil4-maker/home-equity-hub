@@ -78,7 +78,7 @@ export default function Dashboard() {
   if (plannedNoCost.length > 0) attentionItems.push({ text: `${plannedNoCost.length} planned project${plannedNoCost.length > 1 ? 's' : ''} need cost estimates`, link: '/renovations', amber: false });
 
   return (
-    <div className="max-w-5xl mx-auto min-h-[calc(100vh-80px)] flex flex-col gap-3">
+    <div className="space-y-3 max-w-5xl mx-auto">
       {/* SECTION 1 — Title */}
       <h2 className="text-xl font-medium text-foreground leading-none">Dashboard</h2>
 
