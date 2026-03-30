@@ -1,21 +1,15 @@
 import { useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { getEstimatedValueAdded, getEstimateMidpoint, resolveHomeValue } from '@/types';
+import { getEstimatedValueAdded, getEstimateMidpoint } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Home, Landmark, PiggyBank, CalendarCheck, Receipt, ArrowRight, LineChart } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart as ReLineChart, Line } from 'recharts';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ResponsiveContainer, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
 import { calculateRentInvest } from '@/lib/rentInvest';
 import { calculateTaxAdjusted } from '@/lib/taxCalcs';
 import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
-
-const CHART_COLORS = [
-  'hsl(217, 91%, 50%)', 'hsl(142, 71%, 45%)', 'hsl(38, 92%, 50%)',
-  'hsl(0, 84%, 60%)', 'hsl(270, 60%, 55%)', 'hsl(190, 70%, 45%)',
-  'hsl(330, 70%, 55%)', 'hsl(50, 80%, 50%)', 'hsl(160, 60%, 40%)',
-];
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
@@ -33,9 +27,8 @@ export default function Dashboard() {
     [pl, mortgage, homePLConfig, tax]
   );
 
-  const completeProjects = completedProjects;
-  const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
-  const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
+  const totalSpent = completedProjects.reduce((s, p) => s + p.actualCost, 0);
+  const totalValueAdded = completedProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
   const homeValue = pl.currentHomeValue;
   const mortgageBalance = pl.currentBalance;
@@ -49,275 +42,209 @@ export default function Dashboard() {
   const currentYear = now.getFullYear().toString();
   const principalThisYear = mortgagePayments.filter(p => p.paymentDate.startsWith(currentYear)).reduce((s, p) => s + p.principalPortion + p.extraPrincipal, 0);
 
-  // Financing
   const totalHelocDrawn = financingEntries.filter(f => f.type === 'HELOC Draw').reduce((s, f) => s + f.remainingBalance, 0);
   const totalFinancingMonthly = financingEntries.reduce((s, f) => s + f.monthlyPayment, 0);
   const totalMonthlyObligations = mortgage.monthlyPayment + totalFinancingMonthly;
 
   const netEquity = homeValue - mortgageBalance - totalHelocDrawn;
   const ltv = homeValue > 0 ? (mortgageBalance / homeValue) * 100 : 0;
-  const cltv = homeValue > 0 ? ((mortgageBalance + totalHelocDrawn) / homeValue) * 100 : 0;
   const availableHeloc80 = Math.max(0, homeValue * 0.80 - mortgageBalance - totalHelocDrawn);
-  const availableHeloc90 = Math.max(0, homeValue * 0.90 - mortgageBalance - totalHelocDrawn);
 
   const unrealizedGainLoss = homeValue - property.purchasePrice - property.closingCosts - totalSpent;
 
-  // Value trend sparkline (last 6 entries)
   const valueTrend = [...valueEntries].sort((a, b) => a.date.localeCompare(b.date)).slice(-6).map(e => ({ date: e.date, v: e.estimatedValue }));
-
-  // Last value update
   const latestValueEntry = valueEntries.length > 0 ? [...valueEntries].sort((a, b) => b.date.localeCompare(a.date))[0] : null;
   const daysSinceUpdate = latestValueEntry ? Math.floor((now.getTime() - new Date(latestValueEntry.date).getTime()) / 86400000) : Infinity;
 
-  // Bar chart: spending by year
-  const yearMap: Record<string, number> = {};
-  projects.forEach(p => {
-    let year = '';
-    if (p.status === 'Complete' && p.dateCompleted) year = new Date(p.dateCompleted).getFullYear().toString();
-    else if (p.status === 'Planned 2026') year = '2026';
-    else if (p.status === 'Planned 2027') year = '2027';
-    else return;
-    const cost = p.status === 'Complete' ? p.actualCost : (p.estimateLow + p.estimateHigh) / 2;
-    yearMap[year] = (yearMap[year] || 0) + cost;
-  });
-  const yearData = Object.entries(yearMap).sort().map(([year, amount]) => ({ year, amount }));
+  // Unique value sources
+  const valueSources = new Set(valueEntries.map(e => e.source)).size;
 
-  const catMap: Record<string, number> = {};
-  completeProjects.forEach(p => { catMap[p.category] = (catMap[p.category] || 0) + p.actualCost; });
-  const catData = Object.entries(catMap).map(([name, value]) => ({ name, value }));
+  // Renovation pipeline
+  const wishlist = projects.filter(p => p.status === 'Wishlist');
+  const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
+  const wishlistVal = wishlist.reduce((s, p) => s + getEstimateMidpoint(p), 0);
+  const plannedVal = planned.reduce((s, p) => s + getEstimateMidpoint(p), 0);
 
-  const marketAppreciation = homeValue - property.purchasePrice - totalValueAdded;
-  const waterfallData = [
-    { name: 'Purchase Price', value: property.purchasePrice },
-    { name: 'Market Appreciation', value: Math.max(0, marketAppreciation) },
-    { name: 'Renovation Value', value: totalValueAdded },
-  ];
+  // Planned projects missing cost estimates
+  const plannedNoCost = planned.filter(p => p.estimateLow === 0 && p.estimateHigh === 0);
+
+  const owningWins = taxAdj10.afterTaxMargin >= 0;
+
+  // Attention items
+  const attentionItems: { text: string; link: string; amber: boolean }[] = [];
+  if (valueEntries.length === 0) attentionItems.push({ text: 'Add your home value sources for accurate tracking', link: '/property#value-history', amber: true });
+  else if (daysSinceUpdate > 60) attentionItems.push({ text: `Home value last updated ${daysSinceUpdate} days ago`, link: '/property#value-history', amber: true });
+  if (!paidThisMonth) attentionItems.push({ text: `Log your ${currentMonthStr} mortgage payment`, link: '/mortgage#payments', amber: true });
+  if (plannedNoCost.length > 0) attentionItems.push({ text: `${plannedNoCost.length} planned project${plannedNoCost.length > 1 ? 's' : ''} need cost estimates`, link: '/renovations', amber: false });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+    <div className="space-y-3 max-w-7xl mx-auto">
+      {/* SECTION 1 — Title */}
+      <h2 className="text-xl font-medium text-foreground leading-none">Dashboard</h2>
 
-      {/* Hero Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {/* Home Value with sparkline */}
-        <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Blended Home Value</CardTitle>
-            <Home className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(homeValue)}</p>
+      {/* SECTION 2 — Three Hero Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Home Value */}
+        <Card className="border-l-[3px] border-l-primary rounded-xl">
+          <CardContent className="px-4 py-3">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Home value</p>
+            <p className="text-[28px] font-semibold leading-tight">{formatCurrency(homeValue)}</p>
             {valueTrend.length > 1 && (
-              <div className="h-8 mt-1">
-              <ResponsiveContainer width="100%" height="100%">
+              <div className="h-6 mt-1">
+                <ResponsiveContainer width="100%" height="100%">
                   <ReLineChart data={valueTrend}><Line type="monotone" dataKey="v" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} /></ReLineChart>
                 </ResponsiveContainer>
               </div>
             )}
-            <p className={`text-xs mt-1 ${daysSinceUpdate > 30 ? 'text-warning' : 'text-muted-foreground'}`}>
-              {latestValueEntry ? (daysSinceUpdate > 30 ? 'Consider updating' : `Updated ${latestValueEntry.date}`) : 'No value entries yet'}
-            </p>
+            {valueEntries.length > 0 ? (
+              <p className="text-[11px] text-muted-foreground mt-1">Blended from {valueSources} source{valueSources !== 1 ? 's' : ''} · last updated {latestValueEntry?.date}</p>
+            ) : (
+              <Link to="/property#value-history" className="text-[11px] text-warning hover:underline mt-1 inline-block">Manual estimate — add sources in My Property</Link>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Mortgage Balance</CardTitle>
-            <Landmark className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(mortgageBalance)}</p>
-            <p className={`text-xs mt-1 ${paidThisMonth ? 'text-muted-foreground' : 'text-warning'}`}>
-              {lastPaymentDate ? `Last payment: ${lastPaymentDate}` : 'No payments logged'}
-            </p>
+        {/* Equity */}
+        <Card className="border-l-[3px] border-l-success rounded-xl">
+          <CardContent className="px-4 py-3">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Equity</p>
+            <p className={`text-[28px] font-semibold leading-tight ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">on {formatCurrency(homeValue)} home · {formatPercent(ltv)} LTV</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Net Equity</CardTitle>
-            <PiggyBank className="h-5 w-5 text-success" />
-          </CardHeader>
-          <CardContent><p className={`text-2xl font-bold ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</p></CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Renovation Spend</CardTitle>
-            <DollarSign className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{formatCurrency(totalSpent)}</p></CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Principal This Year</CardTitle>
-            <CalendarCheck className="h-5 w-5 text-success" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-success">{formatCurrency(principalThisYear)}</p></CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Obligations</CardTitle>
-            <Receipt className="h-5 w-5 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalMonthlyObligations)}</p>
-            <p className="text-xs text-muted-foreground">Mortgage + Financing</p>
+        {/* Ownership Advantage */}
+        <Card className="border-l-[3px] border-l-success rounded-xl">
+          <CardContent className="px-4 py-3">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Ownership advantage</p>
+            <p className={`text-[28px] font-semibold leading-tight ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>
+              {pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">vs renting over {pl.monthsOwned} months</p>
+            <Link to="/home-pl" className="text-[11px] text-primary hover:underline mt-0.5 inline-block">Full P&L →</Link>
           </CardContent>
         </Card>
       </div>
 
-      {/* Link to Home P&L */}
-      <Link to="/home-pl">
-        <Card className="cursor-pointer hover:border-primary/50 transition-colors">
-          <CardContent className="pt-6 flex items-center justify-between">
-            <div>
-              <p className="text-base font-medium">See full equity analysis</p>
-              <p className="text-sm text-muted-foreground">Detailed P&L, rent comparison, and scenarios</p>
-            </div>
-            <ArrowRight className="h-5 w-5 text-primary" />
-          </CardContent>
-        </Card>
-      </Link>
-
-      {/* Unrealized Gain/Loss */}
-      <Card>
-        <CardContent className="pt-6 flex items-center gap-3">
-          {unrealizedGainLoss >= 0 ? <TrendingUp className="h-6 w-6 text-success" /> : <TrendingDown className="h-6 w-6 text-destructive" />}
-          <div>
-            <p className="text-sm text-muted-foreground">Unrealized Gain/Loss</p>
-            <p className={`text-2xl font-bold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(unrealizedGainLoss)}</p>
+      {/* SECTION 3 — Financial Health Strip */}
+      <Card className="rounded-xl">
+        <CardContent className="p-0">
+          <div className="grid grid-cols-3 md:grid-cols-6">
+            {[
+              { label: 'Mortgage', value: formatCurrency(mortgageBalance), sub: paidThisMonth ? '✓ Paid this month' : 'Payment due', subClass: paidThisMonth ? 'text-success' : 'text-warning' },
+              { label: 'Monthly cost', value: formatCurrency(pl.monthlyCostOfOwnership), sub: 'sunk cost/mo', subClass: 'text-muted-foreground' },
+              { label: 'Wealth/mo', value: formatCurrency(pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation), sub: 'equity growth rate', subClass: 'text-muted-foreground', valueClass: 'text-success' },
+              { label: 'Principal YTD', value: formatCurrency(principalThisYear), sub: currentYear, subClass: 'text-muted-foreground', valueClass: 'text-success' },
+              { label: 'Monthly obligations', value: formatCurrency(totalMonthlyObligations), sub: 'Mortgage + financing', subClass: 'text-muted-foreground' },
+              { label: 'HELOC available', value: formatCurrency(availableHeloc80), sub: 'at 80% CLTV', subClass: 'text-muted-foreground' },
+            ].map((m, i) => (
+              <div key={i} className={`text-center py-3 px-2 ${i < 5 ? 'border-r border-border/30' : ''}`}>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{m.label}</p>
+                <p className={`text-sm font-semibold leading-tight ${m.valueClass || ''}`}>{m.value}</p>
+                <p className={`text-[10px] ${m.subClass}`}>{m.sub}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Home P&L Summary */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base">Home P&L</CardTitle>
-          <LineChart className="h-5 w-5 text-primary" />
-        </CardHeader>
-        <CardContent>
+      {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
+      <Card className="rounded-xl">
+        <CardContent className="px-4 py-3">
+          {/* Row 1: P&L metrics */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Wealth built</p>
-              <p className="text-lg font-bold text-success">{formatCurrency(pl.wealthBuilt)}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth built</p>
+              <p className="text-[13px] font-semibold text-success">{formatCurrency(pl.wealthBuilt)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Sunk cost</p>
-              <p className="text-lg font-bold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Sunk cost</p>
+              <p className="text-[13px] font-semibold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">vs renting</p>
-              <p className={`text-lg font-bold ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>{pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">vs rent+invest (10%, after-tax)</p>
+              <p className={`text-[13px] font-semibold ${owningWins ? 'text-success' : 'text-warning'}`}>
+                {owningWins ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
+              </p>
             </div>
           </div>
-          <div className="flex flex-col gap-1 mt-2">
-            <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">View full P&L →</Link>
-            <Link to="/home-pl" className={`text-xs hover:underline ${taxAdj10.afterTaxMargin >= 0 ? 'text-success' : 'text-warning'}`}>
-              vs. rent + invest (10%, after-tax): {taxAdj10.afterTaxMargin >= 0 ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
-            </Link>
-            <Link to="/home-pl" className="text-xs text-muted-foreground hover:underline">
-              {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
-                ? `Past breakeven — owning advantage growing`
-                : breakeven10.crossoverYear
-                  ? `Breakeven: Year ${breakeven10.crossoverYear}`
-                  : 'Breakeven: 15+ years'}
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Renovation Spending by Year</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {yearData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearData}>
-                  <XAxis dataKey="year" />
-                  <YAxis tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                  <Bar dataKey="amount" fill="hsl(217, 91%, 50%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-muted-foreground text-sm text-center pt-12">No data yet.</p>}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Spending by Category</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {catData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={catData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={45} paddingAngle={2}>
-                    {catData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : <p className="text-muted-foreground text-sm text-center pt-12">No completed projects yet.</p>}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Renovation Pipeline */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Renovation Pipeline</CardTitle></CardHeader>
-        <CardContent>
-          {(() => {
-            const wishlist = projects.filter(p => p.status === 'Wishlist');
-            const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
-            const wishlistVal = wishlist.reduce((s, p) => s + getEstimateMidpoint(p), 0);
-            const plannedVal = planned.reduce((s, p) => s + getEstimateMidpoint(p), 0);
-            return (
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <div className="text-center bg-muted rounded-lg px-4 py-3 min-w-[120px]">
-                  <p className="text-2xl font-bold">{wishlist.length}</p>
-                  <p className="text-xs text-muted-foreground">Wishlist</p>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(wishlistVal)}</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                <div className="text-center bg-primary/10 rounded-lg px-4 py-3 min-w-[120px]">
-                  <p className="text-2xl font-bold text-primary">{planned.length}</p>
-                  <p className="text-xs text-muted-foreground">Planned</p>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(plannedVal)}</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                <div className="text-center bg-success/10 rounded-lg px-4 py-3 min-w-[120px]">
-                  <p className="text-2xl font-bold text-success">{completeProjects.length}</p>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(totalSpent)}</p>
-                </div>
+          {/* Row 2: Unrealized + breakeven */}
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+            <div className="flex gap-6">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Unrealized gain</p>
+                <p className={`text-[13px] font-semibold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {unrealizedGainLoss >= 0 ? '+' : ''}{formatCurrency(unrealizedGainLoss)}
+                </p>
               </div>
-            );
-          })()}
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Breakeven</p>
+                <p className="text-[13px] font-semibold">
+                  {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
+                    ? `Year ${breakeven10.crossoverYear} — past breakeven ✓`
+                    : breakeven10.crossoverYear
+                      ? `Year ${breakeven10.crossoverYear}`
+                      : '15+ years'}
+                </p>
+              </div>
+            </div>
+            <Link to="/home-pl" className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
+              View full P&L <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Value Waterfall */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Value Waterfall</CardTitle></CardHeader>
-        <CardContent className="h-64">
-          {homeValue > 0 && property.purchasePrice > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={waterfallData} layout="vertical">
-                <XAxis type="number" tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="name" width={140} />
-                <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {waterfallData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <p className="text-muted-foreground text-sm text-center pt-12">Set purchase price and home value to see the waterfall.</p>}
+      {/* SECTION 5 — Renovation Snapshot */}
+      <Card className="rounded-xl">
+        <CardContent className="px-4 py-3">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Left: pipeline */}
+            <div className="flex-[3] flex items-center justify-center gap-2">
+              <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold">{wishlist.length}</p>
+                <p className="text-[10px] text-muted-foreground">Wishlist</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(wishlistVal)}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="text-center bg-primary/10 rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold text-primary">{planned.length}</p>
+                <p className="text-[10px] text-muted-foreground">Planned</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(plannedVal)}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="text-center bg-success/10 rounded-full px-4 py-2 min-w-[80px]">
+                <p className="text-lg font-bold text-success">{completedProjects.length}</p>
+                <p className="text-[10px] text-muted-foreground">Completed</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(totalSpent)}</p>
+              </div>
+            </div>
+            {/* Right: stats */}
+            <div className="flex-[2] flex flex-col justify-center gap-0.5">
+              <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
+              <p className="text-[13px] text-success">Value recovered: {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)</p>
+              <p className="text-[13px] text-destructive/70">Net reno cost: {formatCurrency(totalSpent - totalValueAdded)}</p>
+              <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
+                Manage projects <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* SECTION 6 — Attention Items */}
+      {attentionItems.length > 0 && (
+        <Card className="rounded-xl bg-muted/50 border-muted">
+          <CardContent className="px-4 py-2.5 space-y-1">
+            {attentionItems.map((item, i) => (
+              <Link key={i} to={item.link} className="flex items-center gap-2 text-xs hover:underline">
+                <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${item.amber ? 'bg-warning' : 'bg-muted-foreground'}`} />
+                <span className={item.amber ? 'text-warning' : 'text-muted-foreground'}>{item.text}</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
