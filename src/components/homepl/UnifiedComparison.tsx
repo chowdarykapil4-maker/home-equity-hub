@@ -43,7 +43,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
   );
 
   const baseResult = useMemo(() =>
-    scenarioActive ? calculateRentInvest(activeRate, b.monthsOwned, b.downPayment, mortgage, homePLConfig, completedProjects, b.wealthBuilt, b.sunkCost, b.purchaseDate) : result,
+    scenarioActive ? calculateRentInvest(activeRate, b.monthsOwned, b.downPayment, mortgage, homePLConfig, completedProjects, b.wealthBuilt, b.sunkCost, b.purchaseDate, b.resolvedRent) : result,
     [activeRate, b, scenarioActive, mortgage, homePLConfig, completedProjects, result]
   );
 
