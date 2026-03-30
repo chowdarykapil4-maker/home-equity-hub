@@ -53,7 +53,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
     [b, baseResult, scenarioActive, tax, taxAdj]
   );
 
-  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate);
+  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent);
   const sensitivity = useMemo(() =>
     calculateTaxAdjustedSensitivity(SENSITIVITY_RATES, d, makeRI, tax),
     [d, mortgage, homePLConfig, completedProjects, tax]
