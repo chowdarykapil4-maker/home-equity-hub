@@ -302,7 +302,7 @@ export default function Dashboard() {
       <EquityMilestoneTracker />
 
       {/* Local Market Widget */}
-      <LocalMarketWidget data={rentCastData} loading={rentCastLoading} onRefresh={() => refreshRentCast(true)} />
+      <LocalMarketWidget data={rentCastData} loading={rentCastLoading} onRefresh={() => refreshRentCast(true)} hasApiKey={hasApiKey} />
 
       {/* SECTION 5 — Renovation Snapshot */}
       <Card className="rounded-xl">
