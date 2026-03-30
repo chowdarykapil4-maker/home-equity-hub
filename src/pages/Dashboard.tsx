@@ -78,15 +78,15 @@ export default function Dashboard() {
   if (plannedNoCost.length > 0) attentionItems.push({ text: `${plannedNoCost.length} planned project${plannedNoCost.length > 1 ? 's' : ''} need cost estimates`, link: '/renovations', amber: false });
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto">
+    <div className="max-w-5xl mx-auto min-h-[calc(100vh-80px)] flex flex-col gap-3">
       {/* SECTION 1 — Title */}
       <h2 className="text-xl font-medium text-foreground leading-none">Dashboard</h2>
 
       {/* SECTION 2 — Three Hero Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
         {/* Home Value */}
         <Card className="border-l-[3px] border-l-primary rounded-xl">
-          <CardContent className="px-4 py-3">
+          <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Home value</p>
             <p className="text-[28px] font-semibold leading-tight">{formatCurrency(homeValue)}</p>
             {valueTrend.length > 1 && (
@@ -106,7 +106,7 @@ export default function Dashboard() {
 
         {/* Equity */}
         <Card className="border-l-[3px] border-l-success rounded-xl">
-          <CardContent className="px-4 py-3">
+          <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Equity</p>
             <p className={`text-[28px] font-semibold leading-tight ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</p>
             <p className="text-[11px] text-muted-foreground mt-1">on {formatCurrency(homeValue)} home · {formatPercent(ltv)} LTV</p>
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
         {/* Ownership Advantage */}
         <Card className="border-l-[3px] border-l-success rounded-xl">
-          <CardContent className="px-4 py-3">
+          <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Ownership advantage</p>
             <p className={`text-[28px] font-semibold leading-tight ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>
               {pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}
@@ -151,7 +151,6 @@ export default function Dashboard() {
       {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
-          {/* Row 1: P&L metrics */}
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth built</p>
@@ -168,7 +167,6 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
-          {/* Row 2: Unrealized + breakeven */}
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
             <div className="flex gap-6">
               <div>
@@ -195,39 +193,35 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* SECTION 5 — Renovation Snapshot */}
-      <Card className="rounded-xl">
-        <CardContent className="px-4 py-3">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Left: pipeline */}
-            <div className="flex-[3] flex items-center justify-center gap-2">
-              <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
-                <p className="text-lg font-bold">{wishlist.length}</p>
-                <p className="text-[10px] text-muted-foreground">Wishlist</p>
-                <p className="text-[10px] text-muted-foreground">{formatCurrency(wishlistVal)}</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="text-center bg-primary/10 rounded-full px-4 py-2 min-w-[80px]">
-                <p className="text-lg font-bold text-primary">{planned.length}</p>
-                <p className="text-[10px] text-muted-foreground">Planned</p>
-                <p className="text-[10px] text-muted-foreground">{formatCurrency(plannedVal)}</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="text-center bg-success/10 rounded-full px-4 py-2 min-w-[80px]">
-                <p className="text-lg font-bold text-success">{completedProjects.length}</p>
-                <p className="text-[10px] text-muted-foreground">Completed</p>
-                <p className="text-[10px] text-muted-foreground">{formatCurrency(totalSpent)}</p>
-              </div>
+      {/* SECTION 5 — Renovation Snapshot (flex-grow to fill remaining space) */}
+      <Card className="rounded-xl flex-grow min-h-[120px]">
+        <CardContent className="px-4 py-3 h-full flex items-center justify-between">
+          <div className="flex-[3] flex items-center justify-center gap-2">
+            <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
+              <p className="text-lg font-bold">{wishlist.length}</p>
+              <p className="text-[10px] text-muted-foreground">Wishlist</p>
+              <p className="text-[10px] text-muted-foreground">{formatCurrency(wishlistVal)}</p>
             </div>
-            {/* Right: stats */}
-            <div className="flex-[2] flex flex-col justify-center gap-0.5">
-              <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
-              <p className="text-[13px] text-success">Value recovered: {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)</p>
-              <p className="text-[13px] text-destructive/70">Net reno cost: {formatCurrency(totalSpent - totalValueAdded)}</p>
-              <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
-                Manage projects <ArrowRight className="h-3 w-3" />
-              </Link>
+            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="text-center bg-primary/10 rounded-full px-4 py-2 min-w-[80px]">
+              <p className="text-lg font-bold text-primary">{planned.length}</p>
+              <p className="text-[10px] text-muted-foreground">Planned</p>
+              <p className="text-[10px] text-muted-foreground">{formatCurrency(plannedVal)}</p>
             </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="text-center bg-success/10 rounded-full px-4 py-2 min-w-[80px]">
+              <p className="text-lg font-bold text-success">{completedProjects.length}</p>
+              <p className="text-[10px] text-muted-foreground">Completed</p>
+              <p className="text-[10px] text-muted-foreground">{formatCurrency(totalSpent)}</p>
+            </div>
+          </div>
+          <div className="flex-[2] flex flex-col justify-center gap-0.5">
+            <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
+            <p className="text-[13px] text-success">Value recovered: {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)</p>
+            <p className="text-[13px] text-destructive/70">Net reno cost: {formatCurrency(totalSpent - totalValueAdded)}</p>
+            <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
+              Manage projects <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
         </CardContent>
       </Card>
