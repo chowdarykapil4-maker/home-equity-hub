@@ -3,13 +3,14 @@ import { useAppContext } from '@/context/AppContext';
 import { getEstimatedValueAdded, getEstimateMidpoint } from '@/types';
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ResponsiveContainer, LineChart as ReLineChart, Line } from 'recharts';
 import { useHomePL } from '@/hooks/useHomePL';
 import { calculateRentInvest } from '@/lib/rentInvest';
 import { calculateTaxAdjusted } from '@/lib/taxCalcs';
 import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
+import { HelpTip } from '@/components/homepl/HelpTip';
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
@@ -56,21 +57,17 @@ export default function Dashboard() {
   const latestValueEntry = valueEntries.length > 0 ? [...valueEntries].sort((a, b) => b.date.localeCompare(a.date))[0] : null;
   const daysSinceUpdate = latestValueEntry ? Math.floor((now.getTime() - new Date(latestValueEntry.date).getTime()) / 86400000) : Infinity;
 
-  // Unique value sources
   const valueSources = new Set(valueEntries.map(e => e.source)).size;
 
-  // Renovation pipeline
   const wishlist = projects.filter(p => p.status === 'Wishlist');
   const planned = projects.filter(p => p.status === 'Planned 2026' || p.status === 'Planned 2027' || p.status === 'In Progress');
   const wishlistVal = wishlist.reduce((s, p) => s + getEstimateMidpoint(p), 0);
   const plannedVal = planned.reduce((s, p) => s + getEstimateMidpoint(p), 0);
 
-  // Planned projects missing cost estimates
   const plannedNoCost = planned.filter(p => p.estimateLow === 0 && p.estimateHigh === 0);
 
   const owningWins = taxAdj10.afterTaxMargin >= 0;
 
-  // Attention items
   const attentionItems: { text: string; link: string; amber: boolean }[] = [];
   if (valueEntries.length === 0) attentionItems.push({ text: 'Add your home value sources for accurate tracking', link: '/property#value-history', amber: true });
   else if (daysSinceUpdate > 60) attentionItems.push({ text: `Home value last updated ${daysSinceUpdate} days ago`, link: '/property#value-history', amber: true });
@@ -79,7 +76,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-3 max-w-5xl mx-auto">
-      {/* SECTION 1 — Title */}
       <h2 className="text-xl font-medium text-foreground leading-none">Dashboard</h2>
 
       {/* SECTION 2 — Three Hero Cards */}
@@ -88,7 +84,14 @@ export default function Dashboard() {
         <Card className="border-l-[3px] border-l-primary rounded-xl">
           <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Home value</p>
-            <p className="text-[28px] font-semibold leading-tight">{formatCurrency(homeValue)}</p>
+            <p className="text-[28px] font-semibold leading-tight">
+              <HelpTip
+                plain="Your home's current estimated value. This drives all equity and P&L calculations."
+                math={`Source: ${valueEntries.length > 0 ? `blended from ${valueSources} value history source${valueSources !== 1 ? 's' : ''}` : 'manual estimate — add sources in My Property for accuracy'}`}
+              >
+                {formatCurrency(homeValue)}
+              </HelpTip>
+            </p>
             {valueTrend.length > 1 && (
               <div className="h-6 mt-1">
                 <ResponsiveContainer width="100%" height="100%">
@@ -108,8 +111,23 @@ export default function Dashboard() {
         <Card className="border-l-[3px] border-l-success rounded-xl">
           <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Equity</p>
-            <p className={`text-[28px] font-semibold leading-tight ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">on {formatCurrency(homeValue)} home · {formatPercent(ltv)} LTV</p>
+            <p className={`text-[28px] font-semibold leading-tight ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <HelpTip
+                plain="If you sold today and paid off the mortgage, this is roughly what you'd keep before selling costs."
+                math={`Home value (${formatCurrency(homeValue)}) − mortgage balance (${formatCurrency(mortgageBalance)}) = ${formatCurrency(netEquity)}`}
+              >
+                {formatCurrency(netEquity)}
+              </HelpTip>
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              on {formatCurrency(homeValue)} home ·{' '}
+              <HelpTip
+                plain="Loan-to-value ratio — what percentage of your home's value you still owe. Below 80% means no PMI required. Lower is better."
+                math={`Mortgage (${formatCurrency(mortgageBalance)}) ÷ home value (${formatCurrency(homeValue)}) = ${formatPercent(ltv)}`}
+              >
+                {formatPercent(ltv)} LTV
+              </HelpTip>
+            </p>
           </CardContent>
         </Card>
 
@@ -118,7 +136,12 @@ export default function Dashboard() {
           <CardContent className="px-4 py-3 flex flex-col justify-between h-full">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Ownership advantage</p>
             <p className={`text-[28px] font-semibold leading-tight ${pl.ownershipAdvantage >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}
+              <HelpTip
+                plain={`How much better off you are owning vs renting over ${pl.monthsOwned} months. Accounts for all costs and equity built.`}
+                math={`Your equity (${formatCurrency(pl.wealthBuilt)}) − extra sunk cost vs renter (${formatCurrency(pl.sunkCostDiff)}) = ${formatCurrency(pl.ownershipAdvantage)}`}
+              >
+                {pl.ownershipAdvantage >= 0 ? '+' : ''}{formatCurrency(pl.ownershipAdvantage)}
+              </HelpTip>
             </p>
             <p className="text-[11px] text-muted-foreground mt-1">vs renting over {pl.monthsOwned} months</p>
             <Link to="/home-pl" className="text-[11px] text-primary hover:underline mt-0.5 inline-block">Full P&L →</Link>
@@ -130,40 +153,102 @@ export default function Dashboard() {
       <Card className="rounded-xl">
         <CardContent className="p-0">
           <div className="grid grid-cols-3 md:grid-cols-6">
-            {[
-              { label: 'Mortgage', value: formatCurrency(mortgageBalance), sub: paidThisMonth ? '✓ Paid this month' : 'Payment due', subClass: paidThisMonth ? 'text-success' : 'text-warning' },
-              { label: 'Monthly cost', value: formatCurrency(pl.monthlyCostOfOwnership), sub: 'sunk cost/mo', subClass: 'text-muted-foreground' },
-              { label: 'Wealth/mo', value: formatCurrency(pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation), sub: 'equity growth rate', subClass: 'text-muted-foreground', valueClass: 'text-success' },
-              { label: 'Principal YTD', value: formatCurrency(principalThisYear), sub: currentYear, subClass: 'text-muted-foreground', valueClass: 'text-success' },
-              { label: 'Monthly obligations', value: formatCurrency(totalMonthlyObligations), sub: 'Mortgage + financing', subClass: 'text-muted-foreground' },
-              { label: 'HELOC available', value: formatCurrency(availableHeloc80), sub: 'at 80% CLTV', subClass: 'text-muted-foreground' },
-            ].map((m, i) => (
-              <div key={i} className={`text-center py-3 px-2 ${i < 5 ? 'border-r border-border/30' : ''}`}>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{m.label}</p>
-                <p className={`text-sm font-semibold leading-tight ${m.valueClass || ''}`}>{m.value}</p>
-                <p className={`text-[10px] ${m.subClass}`}>{m.sub}</p>
-              </div>
-            ))}
+            <div className="text-center py-3 px-2 border-r border-border/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Mortgage</p>
+              <p className="text-sm font-semibold leading-tight">
+                <HelpTip plain="Your remaining mortgage balance. This decreases with each monthly payment as principal is paid down.">
+                  {formatCurrency(mortgageBalance)}
+                </HelpTip>
+              </p>
+              <p className={`text-[10px] ${paidThisMonth ? 'text-success' : 'text-warning'}`}>{paidThisMonth ? '✓ Paid this month' : 'Payment due'}</p>
+            </div>
+            <div className="text-center py-3 px-2 border-r border-border/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Monthly cost</p>
+              <p className="text-sm font-semibold leading-tight">
+                <HelpTip
+                  plain="Your true monthly housing cost — only money gone forever (interest, tax, insurance, maintenance). Does NOT include principal since that builds equity."
+                  math={`Total sunk cost (${formatCurrency(pl.sunkCost)}) ÷ months owned (${pl.monthsOwned})`}
+                >
+                  {formatCurrency(pl.monthlyCostOfOwnership)}
+                </HelpTip>
+              </p>
+              <p className="text-[10px] text-muted-foreground">sunk cost/mo</p>
+            </div>
+            <div className="text-center py-3 px-2 border-r border-border/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth/mo</p>
+              <p className="text-sm font-semibold leading-tight text-success">
+                <HelpTip plain="Actual new wealth generated each month on average — principal paydown + appreciation + renovation value. Excludes down payment which was a transfer, not new wealth.">
+                  {formatCurrency(pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation)}
+                </HelpTip>
+              </p>
+              <p className="text-[10px] text-muted-foreground">equity growth rate</p>
+            </div>
+            <div className="text-center py-3 px-2 border-r border-border/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Principal YTD</p>
+              <p className="text-sm font-semibold leading-tight text-success">
+                <HelpTip plain="How much of your mortgage balance you've paid down so far this year. Every dollar of principal is equity you keep.">
+                  {formatCurrency(principalThisYear)}
+                </HelpTip>
+              </p>
+              <p className="text-[10px] text-muted-foreground">{currentYear}</p>
+            </div>
+            <div className="text-center py-3 px-2 border-r border-border/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Monthly obligations</p>
+              <p className="text-sm font-semibold leading-tight">
+                <HelpTip
+                  plain="Total monthly payments across all debt — mortgage P&I plus any renovation financing (0% promos, HELOC payments)."
+                  math={`Mortgage (${formatCurrency(mortgage.monthlyPayment)}) + financing (${formatCurrency(totalFinancingMonthly)})`}
+                >
+                  {formatCurrency(totalMonthlyObligations)}
+                </HelpTip>
+              </p>
+              <p className="text-[10px] text-muted-foreground">Mortgage + financing</p>
+            </div>
+            <div className="text-center py-3 px-2">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">HELOC available</p>
+              <p className="text-sm font-semibold leading-tight">
+                <HelpTip
+                  plain="How much you could borrow against your home equity via a HELOC, based on 80% combined loan-to-value ratio."
+                  math="Home value × 80% − mortgage − existing HELOC draws = available credit"
+                >
+                  {formatCurrency(availableHeloc80)}
+                </HelpTip>
+              </p>
+              <p className="text-[10px] text-muted-foreground">at 80% CLTV</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
+      {/* SECTION 4 — Home P&L Summary */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
           <div className="grid grid-cols-3 text-center">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Wealth built</p>
-              <p className="text-lg font-bold text-success">{formatCurrency(pl.wealthBuilt)}</p>
+              <p className="text-lg font-bold text-success">
+                <HelpTip plain="Total equity in your home — down payment + principal paid + market appreciation + renovation value added.">
+                  {formatCurrency(pl.wealthBuilt)}
+                </HelpTip>
+              </p>
             </div>
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Sunk cost</p>
-              <p className="text-lg font-bold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
+              <p className="text-lg font-bold text-destructive/70">
+                <HelpTip plain="Money spent on the house that you can never recover — interest, property tax, insurance, maintenance, and the portion of renovations that didn't add value.">
+                  {formatCurrency(pl.sunkCost)}
+                </HelpTip>
+              </p>
             </div>
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">vs rent+invest (10%, after-tax)</p>
               <p className={`text-lg font-bold ${owningWins ? 'text-success' : 'text-warning'}`}>
-                {owningWins ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
+                <HelpTip
+                  plain={`After accounting for taxes on investment gains, ${owningWins ? 'owning' : 'renting and investing'} comes out ahead by this amount over ${pl.monthsOwned} months.`}
+                  math={`After-tax ownership wealth − after-tax renter wealth = ${formatCurrency(Math.abs(taxAdj10.afterTaxMargin))} advantage`}
+                >
+                  {owningWins ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
+                </HelpTip>
               </p>
             </div>
           </div>
@@ -171,17 +256,24 @@ export default function Dashboard() {
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Unrealized gain</p>
               <p className={`text-sm font-semibold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {unrealizedGainLoss >= 0 ? '+' : ''}{formatCurrency(unrealizedGainLoss)}
+                <HelpTip
+                  plain="How much your home has appreciated minus all costs you've put into it. This is 'unrealized' because you'd need to sell to capture it."
+                  math={`Home value (${formatCurrency(homeValue)}) − purchase price (${formatCurrency(property.purchasePrice)}) − closing costs (${formatCurrency(property.closingCosts)}) − reno spend (${formatCurrency(totalSpent)})`}
+                >
+                  {unrealizedGainLoss >= 0 ? '+' : ''}{formatCurrency(unrealizedGainLoss)}
+                </HelpTip>
               </p>
             </div>
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Breakeven</p>
               <p className="text-sm font-semibold">
-                {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
-                  ? `Year ${breakeven10.crossoverYear} — past breakeven ✓`
-                  : breakeven10.crossoverYear
-                    ? `Year ${breakeven10.crossoverYear}`
-                    : '15+ years'}
+                <HelpTip plain="The year when owning becomes cheaper than renting and investing the difference at 10% annual return, after accounting for taxes.">
+                  {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
+                    ? `Year ${breakeven10.crossoverYear} — past breakeven ✓`
+                    : breakeven10.crossoverYear
+                      ? `Year ${breakeven10.crossoverYear}`
+                      : '15+ years'}
+                </HelpTip>
               </p>
             </div>
             <div className="flex items-center justify-center">
@@ -217,8 +309,18 @@ export default function Dashboard() {
           </div>
           <div className="flex-[2] flex flex-col justify-center gap-0.5">
             <p className="text-sm font-semibold">Total invested: {formatCurrency(totalSpent)}</p>
-            <p className="text-[13px] text-success">Value recovered: {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)</p>
-            <p className="text-[13px] text-destructive/70">Net reno cost: {formatCurrency(totalSpent - totalValueAdded)}</p>
+            <p className="text-[13px] text-success">
+              Value recovered:{' '}
+              <HelpTip plain="The estimated market value added by completed renovations. A 55% recovery means for every $1 spent, $0.55 shows up in home value.">
+                {formatCurrency(totalValueAdded)} ({totalSpent > 0 ? Math.round(totalValueAdded / totalSpent * 100) : 0}%)
+              </HelpTip>
+            </p>
+            <p className="text-[13px] text-destructive/70">
+              Net reno cost:{' '}
+              <HelpTip plain="The portion of renovation spending that didn't translate into home value — this is the true sunk cost of renovations.">
+                {formatCurrency(totalSpent - totalValueAdded)}
+              </HelpTip>
+            </p>
             <Link to="/renovations" className="text-[11px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
               Manage projects <ArrowRight className="h-3 w-3" />
             </Link>
