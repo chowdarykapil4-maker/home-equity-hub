@@ -58,8 +58,9 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/avm/value?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const avmData = await avmRes.json();
+      console.log('AVM response:', avmRes.status, JSON.stringify(avmData));
       if (avmRes.ok) {
-        const avmData = await avmRes.json();
         avmValue = avmData.price || avmData.priceRangeLow || null;
       }
       apiCallCount++;
@@ -74,8 +75,9 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/avm/rent/long-term?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const rentData = await rentRes.json();
+      console.log('Rent response:', rentRes.status, JSON.stringify(rentData));
       if (rentRes.ok) {
-        const rentData = await rentRes.json();
         rentEstimate = rentData.rent || rentData.rentRangeLow || null;
       }
       apiCallCount++;
@@ -90,8 +92,10 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/market?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const mktData = await marketRes.json();
+      console.log('Market response:', marketRes.status, JSON.stringify(mktData));
       if (marketRes.ok) {
-        marketData = await marketRes.json();
+        marketData = mktData;
       }
       apiCallCount++;
     } catch (e) {
