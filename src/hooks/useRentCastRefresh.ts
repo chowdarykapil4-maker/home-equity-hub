@@ -18,6 +18,7 @@ export function useRentCastRefresh() {
     }
   });
   const [loading, setLoading] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   const refresh = useCallback(
     async (force = false) => {
@@ -28,6 +29,7 @@ export function useRentCastRefresh() {
           .eq('id', 'default')
           .maybeSingle();
 
+        if (settings?.rentcast_api_key) setHasApiKey(true);
         if (!settings?.rentcast_api_key) return;
 
         const intervalDays = settings.refresh_interval_days || 30;
