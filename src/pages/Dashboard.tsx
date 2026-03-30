@@ -295,6 +295,9 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Equity Milestone Tracker */}
+      <EquityMilestoneTracker />
+
       {/* SECTION 5 — Renovation Snapshot */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-4 flex items-center justify-center gap-12">
