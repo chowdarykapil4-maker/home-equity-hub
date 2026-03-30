@@ -54,7 +54,6 @@ export default function Dashboard() {
   const totalFinancingMonthly = financingEntries.reduce((s, f) => s + f.monthlyPayment, 0);
   const totalMonthlyObligations = mortgage.monthlyPayment + totalFinancingMonthly;
 
-  // Equity
   const netEquity = homeValue - mortgageBalance - totalHelocDrawn;
   const ltv = homeValue > 0 ? (mortgageBalance / homeValue) * 100 : 0;
   const cltv = homeValue > 0 ? ((mortgageBalance + totalHelocDrawn) / homeValue) * 100 : 0;
