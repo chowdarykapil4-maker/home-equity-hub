@@ -58,8 +58,9 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/avm/value?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const avmData = await avmRes.json();
+      console.log('AVM response:', avmRes.status, JSON.stringify(avmData));
       if (avmRes.ok) {
-        const avmData = await avmRes.json();
         avmValue = avmData.price || avmData.priceRangeLow || null;
       }
       apiCallCount++;
