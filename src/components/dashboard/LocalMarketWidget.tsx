@@ -28,20 +28,10 @@ export function LocalMarketWidget({ data, loading, onRefresh, hasApiKey }: Props
     return (
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3 text-center">
-          {hasApiKey ? (
-            <div className="flex items-center justify-center gap-3">
-              <p className="text-xs text-muted-foreground">RentCast API connected.</p>
-              <button
-                onClick={onRefresh}
-                disabled={loading}
-                className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
-              >
-                {loading ? (
-                  <><RefreshCw className="h-3 w-3 animate-spin" /> Fetching...</>
-                ) : (
-                  'Fetch market data now'
-                )}
-              </button>
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">Fetching market data…</p>
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
