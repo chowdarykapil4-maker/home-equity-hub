@@ -11,6 +11,10 @@ import { calculateTaxAdjusted } from '@/lib/taxCalcs';
 import { calculateBreakevenTimeline } from '@/lib/breakeven';
 import { Link } from 'react-router-dom';
 import { HelpTip } from '@/components/homepl/HelpTip';
+import { MonthOverMonthDelta } from '@/components/dashboard/MonthOverMonthDelta';
+import { EquityMilestoneTracker } from '@/components/dashboard/EquityMilestoneTracker';
+import { MortgagePayoffCountdown } from '@/components/dashboard/MortgagePayoffCountdown';
+import { NextRenovationUp } from '@/components/dashboard/NextRenovationUp';
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
