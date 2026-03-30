@@ -2,9 +2,10 @@ import { useHomePL } from '@/hooks/useHomePL';
 import { formatCurrency } from '@/lib/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { HelpTip } from '@/components/homepl/HelpTip';
+import { Progress } from '@/components/ui/progress';
 
 function formatShort(val: number) {
-  return val >= 1000000 ? `$${val / 1000000}M` : `$${val / 1000}K`;
+  return val >= 1000000 ? `$${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M` : `$${val / 1000}K`;
 }
 
 function estDate(currentEquity: number, milestone: number, monthlyGrowth: number): string {
@@ -16,7 +17,11 @@ function estDate(currentEquity: number, milestone: number, monthlyGrowth: number
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-export function EquityMilestoneTracker() {
+interface Props {
+  compact?: boolean;
+}
+
+export function EquityMilestoneTracker({ compact = false }: Props) {
   const pl = useHomePL();
   const currentEquity = pl.wealthBuilt;
   const monthlyGrowth = pl.trueMonthlyWealthCreation || pl.monthlyWealthCreation;
@@ -27,7 +32,6 @@ export function EquityMilestoneTracker() {
   for (let m = Math.max(startMilestone, 100000); m <= 1000000; m += 100000) {
     milestones.push(m);
   }
-  // If already past $1M, extend
   if (startMilestone > 1000000) {
     for (let m = startMilestone; m <= startMilestone + 400000; m += 100000) {
       milestones.push(m);
@@ -47,6 +51,44 @@ export function EquityMilestoneTracker() {
   const nextMilestone = milestones[0];
   const lastMilestone = milestones[milestones.length - 1];
   const monthsToNext = monthlyGrowth > 0 ? Math.ceil((nextMilestone - currentEquity) / monthlyGrowth) : null;
+
+  // Progress from previous milestone (or 0) to next milestone
+  const prevMilestone = nextMilestone - 100000;
+  const progressPct = nextMilestone > prevMilestone
+    ? Math.min(100, Math.max(0, ((currentEquity - prevMilestone) / (nextMilestone - prevMilestone)) * 100))
+    : 0;
+
+  if (compact) {
+    return (
+      <Card className="rounded-xl">
+        <CardContent className="px-4 py-3">
+          <p className="text-[13px] font-medium mb-2">
+            <HelpTip plain="Track your equity growth through upcoming $100K milestones. Dates are estimated based on your current monthly wealth creation rate and may vary with market conditions.">
+              Equity milestones
+            </HelpTip>
+          </p>
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-success font-semibold whitespace-nowrap">
+              Next: {formatShort(nextMilestone)}
+            </span>
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              est. {estDate(currentEquity, nextMilestone, monthlyGrowth)}
+            </span>
+            <div className="flex-1">
+              <Progress value={progressPct} className="h-1.5" />
+            </div>
+            <span className="text-muted-foreground whitespace-nowrap">
+              {formatShort(lastMilestone)} by est. {estDate(currentEquity, lastMilestone, monthlyGrowth)}
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground text-center mt-1.5">
+            {formatCurrency(currentEquity)} current
+            {monthsToNext ? ` · next ${formatShort(nextMilestone)} in ~${monthsToNext} mo` : ''}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="rounded-xl">

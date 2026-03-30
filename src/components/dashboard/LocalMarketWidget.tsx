@@ -103,7 +103,7 @@ export function LocalMarketWidget({ data, loading, onRefresh, hasApiKey }: Props
         </div>
 
         {/* ROW 1 — Your Home vs Market */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 text-center">
+        <div className="grid grid-cols-2 text-center">
           <div className="border-r border-border/20 py-1">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
               <HelpTip plain="Your home's current estimated value from your blended sources">
