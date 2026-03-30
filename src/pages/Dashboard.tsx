@@ -78,7 +78,7 @@ export default function Dashboard() {
   if (plannedNoCost.length > 0) attentionItems.push({ text: `${plannedNoCost.length} planned project${plannedNoCost.length > 1 ? 's' : ''} need cost estimates`, link: '/renovations', amber: false });
 
   return (
-    <div className="max-w-5xl mx-auto min-h-[calc(100vh-80px)] flex flex-col gap-3">
+    <div className="space-y-3 max-w-5xl mx-auto">
       {/* SECTION 1 — Title */}
       <h2 className="text-xl font-medium text-foreground leading-none">Dashboard</h2>
 
@@ -151,7 +151,7 @@ export default function Dashboard() {
       {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth built</p>
               <p className="text-[13px] font-semibold text-success">{formatCurrency(pl.wealthBuilt)}</p>
@@ -193,9 +193,9 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* SECTION 5 — Renovation Snapshot (flex-grow to fill remaining space) */}
-      <Card className="rounded-xl flex-grow min-h-[120px]">
-        <CardContent className="px-4 py-3 h-full flex items-center justify-between">
+      {/* SECTION 5 — Renovation Snapshot */}
+      <Card className="rounded-xl">
+        <CardContent className="px-4 py-4 flex items-center justify-center gap-12">
           <div className="flex-[3] flex items-center justify-center gap-2">
             <div className="text-center bg-muted rounded-full px-4 py-2 min-w-[80px]">
               <p className="text-lg font-bold">{wishlist.length}</p>
