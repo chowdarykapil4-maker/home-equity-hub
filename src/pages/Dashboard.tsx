@@ -15,10 +15,13 @@ import { MonthOverMonthDelta } from '@/components/dashboard/MonthOverMonthDelta'
 import { EquityMilestoneTracker } from '@/components/dashboard/EquityMilestoneTracker';
 import { MortgagePayoffCountdown } from '@/components/dashboard/MortgagePayoffCountdown';
 import { NextRenovationUp } from '@/components/dashboard/NextRenovationUp';
+import { LocalMarketWidget } from '@/components/dashboard/LocalMarketWidget';
+import { useRentCastRefresh } from '@/hooks/useRentCastRefresh';
 
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
   const pl = useHomePL();
+  const { data: rentCastData, loading: rentCastLoading, refresh: refreshRentCast } = useRentCastRefresh();
 
   const completedProjects = projects.filter(p => p.status === 'Complete');
   const tax = homePLConfig.tax;
@@ -297,6 +300,9 @@ export default function Dashboard() {
 
       {/* Equity Milestone Tracker */}
       <EquityMilestoneTracker />
+
+      {/* Local Market Widget */}
+      <LocalMarketWidget data={rentCastData} loading={rentCastLoading} onRefresh={() => refreshRentCast(true)} />
 
       {/* SECTION 5 — Renovation Snapshot */}
       <Card className="rounded-xl">
