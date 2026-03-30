@@ -55,7 +55,11 @@ export function useRentCastRefresh() {
         );
 
         if (result.error) {
-          console.error('RentCast refresh failed:', result.error);
+          if (result.error.includes('Failed to fetch') || result.error.includes('CORS') || result.error.includes('NetworkError')) {
+            toast.error('RentCast API cannot be called directly from the browser. Use the edge function refresh or enter values manually.');
+          } else {
+            console.error('RentCast refresh failed:', result.error);
+          }
           setLoading(false);
           return;
         }
