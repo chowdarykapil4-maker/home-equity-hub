@@ -12,9 +12,10 @@ interface Props {
   data: RentCastData | null;
   loading: boolean;
   onRefresh: () => void;
+  hasApiKey: boolean;
 }
 
-export function LocalMarketWidget({ data, loading, onRefresh }: Props) {
+export function LocalMarketWidget({ data, loading, onRefresh, hasApiKey }: Props) {
   const pl = useHomePL();
   const { homePLConfig, property } = useAppContext();
   const [showComps, setShowComps] = useState(false);
@@ -27,13 +28,30 @@ export function LocalMarketWidget({ data, loading, onRefresh }: Props) {
     return (
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3 text-center">
-          <p className="text-xs text-muted-foreground">
-            Connect RentCast API in{' '}
-            <Link to="/property#settings" className="text-primary hover:underline">
-              My Property → Settings
-            </Link>{' '}
-            to see local market data
-          </p>
+          {hasApiKey ? (
+            <div className="flex items-center justify-center gap-3">
+              <p className="text-xs text-muted-foreground">RentCast API connected.</p>
+              <button
+                onClick={onRefresh}
+                disabled={loading}
+                className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
+              >
+                {loading ? (
+                  <><RefreshCw className="h-3 w-3 animate-spin" /> Fetching...</>
+                ) : (
+                  'Fetch market data now'
+                )}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Connect RentCast API in{' '}
+              <Link to="/property#settings" className="text-primary hover:underline">
+                My Property → Settings
+              </Link>{' '}
+              to see local market data
+            </p>
+          )}
         </CardContent>
       </Card>
     );

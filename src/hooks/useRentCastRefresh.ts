@@ -18,6 +18,7 @@ export function useRentCastRefresh() {
     }
   });
   const [loading, setLoading] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   const refresh = useCallback(
     async (force = false) => {
@@ -28,6 +29,7 @@ export function useRentCastRefresh() {
           .eq('id', 'default')
           .maybeSingle();
 
+        if (settings?.rentcast_api_key) setHasApiKey(true);
         if (!settings?.rentcast_api_key) return;
 
         const intervalDays = settings.refresh_interval_days || 30;
@@ -53,7 +55,11 @@ export function useRentCastRefresh() {
         );
 
         if (result.error) {
-          console.error('RentCast refresh failed:', result.error);
+          if (result.error.includes('Failed to fetch') || result.error.includes('CORS') || result.error.includes('NetworkError')) {
+            toast.error('RentCast API cannot be called directly from the browser. Use the edge function refresh or enter values manually.');
+          } else {
+            console.error('RentCast refresh failed:', result.error);
+          }
           setLoading(false);
           return;
         }
@@ -124,5 +130,5 @@ export function useRentCastRefresh() {
     refresh();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { data, loading, refresh };
+  return { data, loading, refresh, hasApiKey };
 }

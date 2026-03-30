@@ -21,7 +21,7 @@ import { useRentCastRefresh } from '@/hooks/useRentCastRefresh';
 export default function Dashboard() {
   const { property, projects, mortgage, mortgagePayments, valueEntries, financingEntries, homePLConfig } = useAppContext();
   const pl = useHomePL();
-  const { data: rentCastData, loading: rentCastLoading, refresh: refreshRentCast } = useRentCastRefresh();
+  const { data: rentCastData, loading: rentCastLoading, refresh: refreshRentCast, hasApiKey } = useRentCastRefresh();
 
   const completedProjects = projects.filter(p => p.status === 'Complete');
   const tax = homePLConfig.tax;
@@ -302,7 +302,7 @@ export default function Dashboard() {
       <EquityMilestoneTracker />
 
       {/* Local Market Widget */}
-      <LocalMarketWidget data={rentCastData} loading={rentCastLoading} onRefresh={() => refreshRentCast(true)} />
+      <LocalMarketWidget data={rentCastData} loading={rentCastLoading} onRefresh={() => refreshRentCast(true)} hasApiKey={hasApiKey} />
 
       {/* SECTION 5 — Renovation Snapshot */}
       <Card className="rounded-xl">
