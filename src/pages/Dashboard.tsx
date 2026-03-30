@@ -151,44 +151,44 @@ export default function Dashboard() {
       {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 text-center">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth built</p>
-              <p className="text-[13px] font-semibold text-success">{formatCurrency(pl.wealthBuilt)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Wealth built</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(pl.wealthBuilt)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Sunk cost</p>
-              <p className="text-[13px] font-semibold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Sunk cost</p>
+              <p className="text-lg font-bold text-destructive/70">{formatCurrency(pl.sunkCost)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">vs rent+invest (10%, after-tax)</p>
-              <p className={`text-[13px] font-semibold ${owningWins ? 'text-success' : 'text-warning'}`}>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">vs rent+invest (10%, after-tax)</p>
+              <p className={`text-lg font-bold ${owningWins ? 'text-success' : 'text-warning'}`}>
                 {owningWins ? 'Own wins' : 'Rent wins'} +{formatCurrency(Math.abs(taxAdj10.afterTaxMargin))}
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
-            <div className="flex gap-6">
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Unrealized gain</p>
-                <p className={`text-[13px] font-semibold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {unrealizedGainLoss >= 0 ? '+' : ''}{formatCurrency(unrealizedGainLoss)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Breakeven</p>
-                <p className="text-[13px] font-semibold">
-                  {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
-                    ? `Year ${breakeven10.crossoverYear} — past breakeven ✓`
-                    : breakeven10.crossoverYear
-                      ? `Year ${breakeven10.crossoverYear}`
-                      : '15+ years'}
-                </p>
-              </div>
+          <div className="grid grid-cols-3 text-center mt-2 pt-2 border-t border-border/30">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Unrealized gain</p>
+              <p className={`text-sm font-semibold ${unrealizedGainLoss >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {unrealizedGainLoss >= 0 ? '+' : ''}{formatCurrency(unrealizedGainLoss)}
+              </p>
             </div>
-            <Link to="/home-pl" className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
-              View full P&L <ArrowRight className="h-3 w-3" />
-            </Link>
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Breakeven</p>
+              <p className="text-sm font-semibold">
+                {breakeven10.crossoverYear && breakeven10.crossoverYear <= Math.ceil(pl.yearsOwned)
+                  ? `Year ${breakeven10.crossoverYear} — past breakeven ✓`
+                  : breakeven10.crossoverYear
+                    ? `Year ${breakeven10.crossoverYear}`
+                    : '15+ years'}
+              </p>
+            </div>
+            <div className="flex items-center justify-center">
+              <Link to="/home-pl" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                View full P&L <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
