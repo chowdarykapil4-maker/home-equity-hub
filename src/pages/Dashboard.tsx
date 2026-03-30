@@ -37,9 +37,8 @@ export default function Dashboard() {
   const totalSpent = completeProjects.reduce((s, p) => s + p.actualCost, 0);
   const totalValueAdded = completeProjects.reduce((s, p) => s + getEstimatedValueAdded(p), 0);
 
-  // Blended value
-  const { value: blendedValue, sourceCount } = calculateBlendedValue(valueEntries);
-  const homeValue = blendedValue > 0 ? blendedValue : property.currentEstimatedValue;
+  const homeValue = pl.currentHomeValue;
+  const mortgageBalance = pl.currentBalance;
 
   // Live mortgage balance
   const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
