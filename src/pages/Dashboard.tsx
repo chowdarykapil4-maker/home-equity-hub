@@ -151,7 +151,7 @@ export default function Dashboard() {
       {/* SECTION 4 — Home P&L Summary + Unrealized Gain */}
       <Card className="rounded-xl">
         <CardContent className="px-4 py-3">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Wealth built</p>
               <p className="text-[13px] font-semibold text-success">{formatCurrency(pl.wealthBuilt)}</p>
