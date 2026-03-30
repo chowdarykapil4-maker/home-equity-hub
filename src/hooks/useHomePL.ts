@@ -63,6 +63,7 @@ export interface HomePLData {
   downPaymentMonthlyEquivalent: number;
 
   // Chart data
+  resolvedRent: number;
   chartData: { month: string; sunkCost: number; equity: number; rent: number }[];
   crossoverMonth: string | null;
 }
