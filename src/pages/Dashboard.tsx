@@ -169,39 +169,18 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Equity Position Summary */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Equity Position Summary</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-muted-foreground">Blended Home Value</span>
-              <span className="text-lg font-semibold">{formatCurrency(homeValue)}</span>
+      {/* Link to Home P&L */}
+      <Link to="/home-pl">
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors">
+          <CardContent className="pt-6 flex items-center justify-between">
+            <div>
+              <p className="text-base font-medium">See full equity analysis</p>
+              <p className="text-sm text-muted-foreground">Detailed P&L, rent comparison, and scenarios</p>
             </div>
-            <div className="flex justify-between items-center py-2 border-t">
-              <span className="text-sm text-muted-foreground">Minus: Mortgage Balance</span>
-              <span className="text-lg font-semibold text-destructive">−{formatCurrency(mortgageBalance)}</span>
-            </div>
-            {totalHelocDrawn > 0 && (
-              <div className="flex justify-between items-center py-2 border-t">
-                <span className="text-sm text-muted-foreground">Minus: HELOC Drawn</span>
-                <span className="text-lg font-semibold text-destructive">−{formatCurrency(totalHelocDrawn)}</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center py-3 border-t-2 border-foreground/20">
-              <span className="text-base font-bold">NET EQUITY</span>
-              <span className={`text-2xl font-bold ${netEquity >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(netEquity)}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-4 border-t">
-            <div><p className="text-xs text-muted-foreground">LTV Ratio</p><p className="text-lg font-bold">{formatPercent(ltv)}</p></div>
-            <div><p className="text-xs text-muted-foreground">CLTV Ratio</p><p className="text-lg font-bold">{formatPercent(cltv)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 80% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc80)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Avail HELOC @ 90% CLTV</p><p className="text-lg font-bold text-success">{formatCurrency(availableHeloc90)}</p></div>
-          </div>
-        </CardContent>
-      </Card>
+            <ArrowRight className="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* Unrealized Gain/Loss */}
       <Card>

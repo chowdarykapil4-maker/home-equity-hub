@@ -83,8 +83,7 @@ export function useHomePL(): HomePLData {
     const yearsOwned = monthsOwned / 12;
 
     // Home value
-    const { value: blendedValue } = calculateBlendedValue(valueEntries);
-    const currentHomeValue = blendedValue > 0 ? blendedValue : property.currentEstimatedValue;
+    const currentHomeValue = resolveHomeValue(valueEntries, property);
 
     // Mortgage
     const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));

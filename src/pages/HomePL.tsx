@@ -80,7 +80,9 @@ export default function HomePL() {
               {baseD.monthsOwned} months of ownership · {baseD.purchaseDate.substring(0, 7)} — present
             </p>
           </div>
-          <AssumptionsEditor />
+          <Link to="/property#settings" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Settings2 className="h-3 w-3" /> Edit assumptions
+          </Link>
         </div>
 
         <div className="mb-2">
