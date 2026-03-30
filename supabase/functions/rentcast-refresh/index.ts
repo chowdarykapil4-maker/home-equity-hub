@@ -75,8 +75,9 @@ Deno.serve(async (req) => {
         `https://api.rentcast.io/v1/avm/rent/long-term?address=${encodedAddress}`,
         { headers: { 'X-Api-Key': apiKey, Accept: 'application/json' } }
       );
+      const rentData = await rentRes.json();
+      console.log('Rent response:', rentRes.status, JSON.stringify(rentData));
       if (rentRes.ok) {
-        const rentData = await rentRes.json();
         rentEstimate = rentData.rent || rentData.rentRangeLow || null;
       }
       apiCallCount++;
