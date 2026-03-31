@@ -87,6 +87,15 @@ export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number
     extraPrincipalYearsSaved = Math.round((baseMonths - extraMonths) / 12 * 10) / 10;
   }
 
+  const baseMonthlyInterest = extraPrincipal > 0 && d.interestRate > 0 ? (function() {
+    const rate = d.interestRate / 100 / 12;
+    let bal = d.currentBalance; let months = 0; let totalInt = 0;
+    while (bal > 0 && months < 360) { const i = bal * rate; const p = Math.min(d.monthlyPayment - i, bal); bal = Math.max(0, bal - p); totalInt += i; months++; }
+    return months > 0 ? totalInt / months : 0;
+  })() : 0;
+  const extraMonthlyInterest = adjustedPayoffMonths > 0 ? adjustedTotalInterest / adjustedPayoffMonths : 0;
+  const interestSavedPerMonth = baseMonthlyInterest - extraMonthlyInterest;
+
   const adjustedSustainableRate = sustainableMonthlyRate;
 
   const isScenario = pct !== 0 || extraPrincipal > 0;
