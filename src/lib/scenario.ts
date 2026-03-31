@@ -124,6 +124,7 @@ export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number
     extraMonthlyPrincipal: extraPrincipal,
     extraPrincipalInterestSaved,
     extraPrincipalYearsSaved,
+    interestSavedPerMonth,
     adjustedPayoffMonths,
     adjustedTotalInterest,
     adjustedSustainableRate,
