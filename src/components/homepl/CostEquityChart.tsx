@@ -99,7 +99,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       lastMonth: projectionData.length > 0 ? projectionData[projectionData.length - 1].month : null,
       projected10yrEquity: projectionData.length > 0 ? projectionData[projectionData.length - 1].equity : 0,
     };
-  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease]);
+  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease, extraPrincipal]);
 
   const tickInterval = Math.max(1, Math.floor(fullChartData.length / 8));
 
