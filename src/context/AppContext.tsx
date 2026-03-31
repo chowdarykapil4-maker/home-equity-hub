@@ -270,6 +270,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!loaded.tax) {
       return { ...loaded, tax: defaultHomePLConfig.tax };
     }
+    // Migrate appreciation from 3% to 2% (conservative default)
+    if (loaded.tax.annualAppreciation === 3) {
+      return { ...loaded, tax: { ...loaded.tax, annualAppreciation: 2 } };
+    }
     return loaded;
   });
 

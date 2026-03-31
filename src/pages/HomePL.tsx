@@ -89,15 +89,12 @@ export default function HomePL() {
           <ScenarioBanner scenarioPercent={scenarioPercent} onReset={() => setScenarioPercent(0)} />
         </div>
 
-        <div className="space-y-2">
-          <VerdictHero d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-          <ValueSensitivitySlider
-            scenarioPercent={scenarioPercent}
-            onChange={setScenarioPercent}
-            modeledValue={scenario.currentHomeValue}
-            baseValue={baseD.currentHomeValue}
-          />
-        </div>
+        <ValueSensitivitySlider
+          scenarioPercent={scenarioPercent}
+          onChange={setScenarioPercent}
+          modeledValue={scenario.currentHomeValue}
+          baseValue={baseD.currentHomeValue}
+        />
 
         {/* Tab bar */}
         <div
