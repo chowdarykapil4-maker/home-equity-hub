@@ -142,9 +142,8 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
           </div>
 
           {/* How you're building wealth — decomposition */}
-          <div className="mt-3 pt-3 border-t border-success/20">
-            {/* Row 1: Sustainable rate headline */}
-            <p className="text-sm text-foreground">
+          <div className="mt-2 pt-2 border-t border-success/20 text-center">
+            <p className="text-sm text-foreground leading-tight">
               <HelpTip
                 plain={`Monthly wealth you can count on — and it grows every month. As your mortgage amortizes, more of each payment goes to principal and less to interest.${armNote}`}
                 math={`Today: ${formatCurrency(d.sustainableMonthlyRate)}/mo (${formatCurrency(currentMonthlyPrincipal)} principal + ${formatCurrency(sustainableMonthlyAppreciation)} appreciation)\nIn 1 year: ~${formatCurrency(sustainableIn1yr)}/mo\nIn 3 years: ~${formatCurrency(sustainableIn3yr)}/mo\nIn 5 years: ~${formatCurrency(sustainableIn5yr)}/mo`}
@@ -156,38 +155,29 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
               <span className="text-[11px] text-success ml-1">↑ growing</span>
               <ScenarioDelta scenarioVal={d.sustainableMonthlyRate} baseVal={b.sustainableMonthlyRate} active={scenarioActive} />
             </p>
-
-            <div className="text-center mt-2 space-y-1">
-              <div className="flex items-start justify-center gap-8">
-                <div className="text-center">
-                  <HelpTip
-                    plain={`Your principal payment grows every month due to amortization. Started at ~${formatCurrency(projections.firstPrincipal)}/mo, now ${formatCurrency(currentMonthlyPrincipal)}/mo. In 1 year: ~${formatCurrency(projections.principalIn1yr)}/mo, in 3 years: ~${formatCurrency(projections.principalIn3yr)}/mo.${armNote}`}
-                  >
-                    <p className="text-[13px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</p>
-                  </HelpTip>
-                  <p className="text-[10px] text-muted-foreground">principal paydown ↑</p>
-                </div>
-                <div className="text-center">
-                  <HelpTip
-                    plain={`Average monthly home value increase based on actual appreciation since purchase. Past performance — forward projections use a conservative ${assumedAppreciation}%/yr.`}
-                  >
-                    <p className="text-[13px] font-semibold text-amber-500 tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</p>
-                  </HelpTip>
-                  <p className="text-[10px] text-muted-foreground">appreciation (historical)</p>
-                </div>
-                <div className="text-center">
-                  <HelpTip
-                    plain="Value recovered from completed renovation projects, averaged over months owned. Only counts finished projects with actual costs — no projections from planned work."
-                  >
-                    <p className="text-[13px] font-semibold text-teal-500 tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</p>
-                  </HelpTip>
-                  <p className="text-[10px] text-muted-foreground">reno value (to date)</p>
-                </div>
+            <div className="inline-flex items-baseline gap-6 mt-1">
+              <div>
+                <HelpTip plain={`Your principal payment grows every month due to amortization. Started at ~${formatCurrency(projections.firstPrincipal)}/mo, now ${formatCurrency(currentMonthlyPrincipal)}/mo. In 1 year: ~${formatCurrency(projections.principalIn1yr)}/mo, in 3 years: ~${formatCurrency(projections.principalIn3yr)}/mo.${armNote}`}>
+                  <span className="text-[12px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</span>
+                </HelpTip>
+                <span className="text-[9px] text-muted-foreground ml-0.5">principal ↑</span>
               </div>
-              <p className="text-[10px] text-muted-foreground">
-                Historical avg: {formatCurrency(d.trueMonthlyWealthCreation)}/mo · includes {formatCurrency(d.monthlyAppreciation)}/mo market tailwind + {formatCurrency(d.monthlyRenoValue)}/mo renovation value
-              </p>
+              <div>
+                <HelpTip plain={`Average monthly home value increase based on actual appreciation since purchase. Past performance — forward projections use a conservative ${assumedAppreciation}%/yr.`}>
+                  <span className="text-[12px] font-semibold text-amber-500 tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</span>
+                </HelpTip>
+                <span className="text-[9px] text-muted-foreground ml-0.5">appreciation</span>
+              </div>
+              <div>
+                <HelpTip plain="Value recovered from completed renovation projects, averaged over months owned. Only counts finished projects with actual costs.">
+                  <span className="text-[12px] font-semibold text-teal-500 tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</span>
+                </HelpTip>
+                <span className="text-[9px] text-muted-foreground ml-0.5">reno value</span>
+              </div>
             </div>
+            <p className="text-[9px] text-muted-foreground mt-0.5">
+              Historical avg: {formatCurrency(d.trueMonthlyWealthCreation)}/mo · includes market tailwind + renovation value
+            </p>
           </div>
         </div>
       </div>
