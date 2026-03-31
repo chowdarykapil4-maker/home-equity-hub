@@ -32,7 +32,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       </HelpTip>
 
       {/* Inline legend */}
-      <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <span className="w-3 h-[2px] rounded-full" style={{ backgroundColor: 'hsl(142, 71%, 45%)' }} />
           Equity built
