@@ -17,9 +17,10 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   const b = baseD || d;
   const { mortgage, mortgagePayments, homePLConfig } = useAppContext();
 
-  const equityGrowthRate = d.trueMonthlyWealthCreation;
+  const historicalGrowthRate = d.trueMonthlyWealthCreation;
   const sunkGrowthRate = d.monthsOwned > 0 ? d.sunkCost / d.monthsOwned : 0;
-  const ratio = sunkGrowthRate > 0 ? (equityGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
+  const historicalRatio = sunkGrowthRate > 0 ? (historicalGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
+  const forwardRatio = sunkGrowthRate > 0 ? (d.sustainableMonthlyRate / sunkGrowthRate).toFixed(1) : '∞';
 
   const baseRatio = (() => {
     const bEq = b.trueMonthlyWealthCreation;
