@@ -107,6 +107,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                 viewMode === tab.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}>{tab.label}</button>
           ))}
+          <HelpTip plain="Simple: equity vs rent. With investing: what if the renter invested savings? After tax: full comparison including all tax effects on both sides. After tax is the most accurate view.">
+            <span className="text-[10px] text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40">(i)</span>
+          </HelpTip>
         </div>
       </div>
 
@@ -114,7 +117,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
       <div className="grid grid-cols-1 sm:grid-cols-[60%_40%] gap-2">
         {/* Owner bar */}
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">You (owner)</p>
+          <HelpTip plain="Your actual financial position as a homeowner — total cash spent, split between equity built (recoverable) and sunk costs (gone forever).">
+            <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40 inline">You (owner)</p>
+          </HelpTip>
           <div className="h-7 rounded-lg overflow-hidden flex">
             <div className="bg-success/70 flex items-center justify-center" style={{ width: `${Math.min(ownerEquityPct, 100)}%`, minWidth: 0 }}>
               {ownerEquityPct > 15 && <span className="text-[10px] font-semibold text-success-foreground whitespace-nowrap px-1">{formatCurrency(d.wealthBuilt)}</span>}
@@ -123,18 +128,24 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
               {ownerSunkPct > 15 && <span className="text-[10px] font-semibold text-destructive-foreground whitespace-nowrap px-1">{formatCurrency(d.sunkCost)}</span>}
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">{formatCurrency(d.totalCashOut)} spent → {formatCurrency(d.wealthBuilt)} equity</p>
+          <HelpTip plain={`Of everything you've paid toward this house, ${formatCurrency(d.wealthBuilt)} turned into equity you can recover. The rest (${formatCurrency(d.sunkCost)}) is the cost of living here.`} math={`Equity ratio: ${Math.round(d.wealthBuilt / d.totalCashOut * 100)}% of cash spent became equity`}>
+            <p className="text-[11px] text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40 inline">{formatCurrency(d.totalCashOut)} spent → {formatCurrency(d.wealthBuilt)} equity</p>
+          </HelpTip>
         </div>
 
         {/* Renter bar */}
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">If you rented</p>
+          <HelpTip plain="The alternative scenario: instead of buying, you rented an equivalent home and invested the savings. All rent is sunk cost — a renter builds zero equity.">
+            <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40 inline">If you rented</p>
+          </HelpTip>
           <div className="h-7 rounded-lg overflow-hidden bg-muted/30">
             <div className="bg-destructive/50 flex items-center justify-center h-full" style={{ width: `${Math.min(renterFillPct, 100)}%` }}>
               {renterFillPct > 15 && <span className="text-[10px] font-semibold text-destructive-foreground whitespace-nowrap px-1">{formatCurrency(result.totalRentPaid)}</span>}
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">{formatCurrency(result.totalRentPaid)} rent paid → $0 equity</p>
+          <HelpTip plain={`A renter's total housing cost over ${d.monthsOwned} months. Unlike your mortgage payments, none of this builds any wealth — it all goes to the landlord.`}>
+            <p className="text-[11px] text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40 inline">{formatCurrency(result.totalRentPaid)} rent paid → $0 equity</p>
+          </HelpTip>
         </div>
       </div>
 
@@ -143,7 +154,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
         <p className="text-[13px] text-center text-muted-foreground py-1">
           You spent {formatCurrency(Math.abs(d.totalCashOut - result.totalRentPaid))} more but built {formatCurrency(Math.max(0, d.wealthBuilt))} in equity →{' '}
           <span className={`font-bold ${simpleMargin >= 0 ? 'text-success' : 'text-destructive'}`}>
-            Net: {simpleMargin >= 0 ? '+' : ''}{formatCurrency(simpleMargin)}
+            <HelpTip plain="The simple math: you spent more than a renter would have, but you built equity. The net difference is your ownership advantage." math={`Equity built (${formatCurrency(d.wealthBuilt)}) − extra cost vs renting (${formatCurrency(Math.abs(d.totalCashOut - result.totalRentPaid))}) = ${formatCurrency(simpleMargin)}`}>
+              <span className="cursor-help border-b border-dotted border-current">Net: {simpleMargin >= 0 ? '+' : ''}{formatCurrency(simpleMargin)}</span>
+            </HelpTip>
             <ScenarioDelta scenarioVal={d.ownershipAdvantage} baseVal={b.ownershipAdvantage} active={scenarioActive} />
           </span>
         </p>
@@ -154,7 +167,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
         <div className="space-y-2.5">
           {/* Rate selector */}
           <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-border/50">
-            <span className="text-[12px] text-muted-foreground">Market return:</span>
+            <HelpTip plain="The annual stock market return the hypothetical renter-investor achieves. S&P 500 has historically returned ~10% nominal / ~7% real (inflation-adjusted). Pick the rate that matches your investment skill assumption.">
+              <span className="text-[12px] text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40">Market return:</span>
+            </HelpTip>
             <div className="flex gap-1.5">
               {PRESET_RATES.map(r => (
                 <button key={r} onClick={() => handlePillClick(r)}
@@ -271,7 +286,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground leading-none mb-0">After-tax portfolio</p>
-                    <span className="text-[18px] font-medium text-primary leading-tight">{formatCurrency(taxAdj.renter.afterTaxPortfolio)}</span>
+                    <HelpTip plain="The renter-investor's stock portfolio after paying capital gains tax and dividend tax drag. This is what they'd actually walk away with if they sold everything." math={`Pre-tax portfolio (${formatCurrency(result.portfolioValue)}) − cap gains tax (${formatCurrency(taxAdj.renter.capitalGainsTax)}) − dividend drag (${formatCurrency(taxAdj.renter.dividendTaxDrag)}) = ${formatCurrency(taxAdj.renter.afterTaxPortfolio)}`}>
+                      <span className="text-[18px] font-medium text-primary leading-tight">{formatCurrency(taxAdj.renter.afterTaxPortfolio)}</span>
+                    </HelpTip>
                   </div>
                 </>
               )}
@@ -323,11 +340,13 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                 {scenarioActive && <ScenarioDelta scenarioVal={currentMargin} baseVal={afterTax ? baseTaxAdj.afterTaxMargin : baseResult.ownershipMargin} active={scenarioActive} />}
               </p>
             </HelpPopover>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {owningWins
-                ? (afterTax ? 'Tax advantages make homeownership significantly more competitive' : 'Your home equity exceeds what a disciplined renter-investor would have built')
-                : 'However, home equity is tax-advantaged and builds forced savings discipline'}
-            </p>
+            <HelpTip plain="Three tax advantages compound in your favor: (1) mortgage interest is tax-deductible, (2) property tax is deductible up to the SALT cap, (3) up to $500K in home sale profit is tax-free. A stock investor gets none of these.">
+              <p className="text-[11px] text-muted-foreground mt-0.5 cursor-help border-b border-dotted border-muted-foreground/40 inline">
+                {owningWins
+                  ? (afterTax ? 'Tax advantages make homeownership significantly more competitive' : 'Your home equity exceeds what a disciplined renter-investor would have built')
+                  : 'However, home equity is tax-advantaged and builds forced savings discipline'}
+              </p>
+            </HelpTip>
           </div>
 
           {/* Sensitivity table */}
@@ -335,16 +354,36 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
             <table className="w-full text-[12px]">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="text-left py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Return</th>
-                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Renter{afterTax ? ' (pre)' : ''}</th>
-                  {afterTax && <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Renter (after)</th>}
-                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
-                    <HelpTip plain="Your home equity is the same regardless of stock market returns — it depends on your home's value and mortgage balance, not investment performance. The renter's wealth changes with each return rate, but yours stays fixed.">
-                      Your equity{afterTax ? ' (after)' : ''}
+                  <th className="text-left py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Annual stock market return rate assumed for the renter-investor. Higher rates favor the renter; lower rates favor you.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Return</span>
                     </HelpTip>
                   </th>
-                  <th className="text-center py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Winner</th>
-                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Margin</th>
+                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Renter-investor's portfolio value before taxes. They'd owe capital gains tax if they sold.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Renter{afterTax ? ' (pre)' : ''}</span>
+                    </HelpTip>
+                  </th>
+                  {afterTax && <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Renter's portfolio after subtracting estimated capital gains tax and dividend tax drag.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Renter (after)</span>
+                    </HelpTip>
+                  </th>}
+                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Your home equity is the same regardless of stock market returns — it depends on your home's value and mortgage balance, not investment performance. The renter's wealth changes with each return rate, but yours stays fixed.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Your equity{afterTax ? ' (after)' : ''}</span>
+                    </HelpTip>
+                  </th>
+                  <th className="text-center py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Who has more total wealth at this return rate. 'Own' means your after-tax home equity exceeds the renter's after-tax portfolio.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Winner</span>
+                    </HelpTip>
+                  </th>
+                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="The dollar difference between winner and loser. Green = owning ahead. Look for the return rate where the winner flips — that's your breakeven market return.">
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/40">Margin</span>
+                    </HelpTip>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -383,8 +422,10 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
 
           {/* Breakeven Timeline */}
           <div className="border-t border-border/50 pt-2.5">
-            <p className="text-[13px] font-medium text-foreground mb-2">Ownership breakeven timeline</p>
-            <div className="h-[250px]">
+            <HelpTip plain={`Projects both scenarios forward 15 years. The green line is your growing home equity (with ${tax.annualAppreciation || 2}% annual appreciation). The blue line is the renter-investor's portfolio (at ${activeRate}% return). Where green crosses above blue, owning permanently wins.`}>
+              <p className="text-[13px] font-medium text-foreground mb-2 cursor-help border-b border-dotted border-muted-foreground/40 inline">Ownership breakeven timeline</p>
+            </HelpTip>
+            <div className="h-[250px] mt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={breakeven.chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
@@ -426,7 +467,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
           <Collapsible open={showYearlyTable} onOpenChange={setShowYearlyTable}>
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                Show year-by-year projection
+                <HelpTip plain="Detailed annual breakdown showing both scenarios side by side for 15 years. Shows how the mortgage interest deduction shrinks over time while principal paydown grows.">
+                  <span className="cursor-help border-b border-dotted border-muted-foreground/40">Show year-by-year projection</span>
+                </HelpTip>
                 {showYearlyTable ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
             </CollapsibleTrigger>
@@ -436,12 +479,36 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                   <thead className="sticky top-0 bg-card">
                     <tr className="border-b border-border/50">
                       <th className="text-left py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Yr</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Owner equity</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Tax savings</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Owner wealth</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Renter portfolio</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Tax drag</th>
-                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Renter wealth</th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Home value minus mortgage balance at the end of each year.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Owner equity</span>
+                        </HelpTip>
+                      </th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Cumulative tax savings from mortgage interest and property tax deductions.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Tax savings</span>
+                        </HelpTip>
+                      </th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Home equity plus cumulative tax savings — your total financial benefit from owning.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Owner wealth</span>
+                        </HelpTip>
+                      </th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Stock portfolio value at the end of each year, before taxes.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Renter portfolio</span>
+                        </HelpTip>
+                      </th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Estimated capital gains tax plus dividend tax the renter would owe if they liquidated.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Tax drag</span>
+                        </HelpTip>
+                      </th>
+                      <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">
+                        <HelpTip plain="Portfolio value minus tax drag — what the renter actually keeps.">
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Renter wealth</span>
+                        </HelpTip>
+                      </th>
                       <th className="text-center py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Winner</th>
                       <th className="text-right py-1 px-1 text-[10px] font-medium uppercase text-muted-foreground">Margin</th>
                     </tr>
@@ -481,7 +548,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
           <Collapsible open={showCaveats} onOpenChange={setShowCaveats}>
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                Important caveats
+                <HelpTip plain="Key assumptions and limitations of this model. No financial model is perfect — these caveats help you understand where the numbers might over- or under-estimate.">
+                  <span className="cursor-help border-b border-dotted border-muted-foreground/40">Important caveats</span>
+                </HelpTip>
                 {showCaveats ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
             </CollapsibleTrigger>
