@@ -229,6 +229,8 @@ export function useHomePL(): HomePLData {
       monthlyWealthCreation, sunkCostDiff,
       monthlyPrincipalPaydown, monthlyAppreciation, monthlyRenoValue,
       trueMonthlyWealthCreation, sustainableMonthlyRate, downPaymentMonthlyEquivalent,
+      interestRate: mortgage.interestRate,
+      monthlyPayment: mortgage.monthlyPayment,
       resolvedRent: resolvedRentValue,
       chartData, crossoverMonth,
     };
