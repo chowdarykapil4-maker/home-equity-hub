@@ -88,7 +88,7 @@ export default function HomePL() {
         </div>
 
         <div className="mb-2">
-          <ScenarioBanner scenarioPercent={scenarioPercent} onReset={() => setScenarioPercent(0)} />
+          <ScenarioBanner scenarioPercent={scenarioPercent} extraPrincipal={extraPrincipal} onReset={() => { setScenarioPercent(0); setExtraPrincipal(0); }} />
         </div>
 
         <ValueSensitivitySlider
