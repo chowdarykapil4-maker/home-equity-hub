@@ -63,8 +63,10 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       };
     }
 
-    let projHomeValue = d.currentHomeValue;
+    // Seed projection from last historical equity to ensure smooth transition
     let projBalance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : mortgage.originalLoanAmount;
+    // Back-calculate homeValue to match historical equity: equity = homeValue - balance
+    let projHomeValue = last.equity + projBalance;
     let projSunk = last.sunkCost;
     let projRent = last.rent;
     let cumInterest = 0;
@@ -85,7 +87,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       projBalance = Math.max(0, projBalance - monthPrincipal);
       cumInterest += monthInterest;
 
-      const projEquity = projHomeValue - projBalance + d.totalRenoValueAdded;
+      const projEquity = projHomeValue - projBalance;
 
       const monthlyTax = homePLConfig.annualPropertyTax / 12;
       const monthlyMaint = homePLConfig.annualMaintenance / 12;
@@ -104,8 +106,17 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       });
     }
 
+    // Deduplicate any overlapping month at the boundary
+    const combined = [...historical, ...projectionData];
+    const seen = new Set<string>();
+    const deduped = combined.filter(pt => {
+      if (seen.has(pt.month)) return false;
+      seen.add(pt.month);
+      return true;
+    });
+
     return {
-      fullChartData: [...historical, ...projectionData],
+      fullChartData: deduped,
       todayMonth: todayM,
       lastMonth: projectionData.length > 0 ? projectionData[projectionData.length - 1].month : null,
       projected10yrEquity: projectionData.length > 0 ? projectionData[projectionData.length - 1].equity : 0,
