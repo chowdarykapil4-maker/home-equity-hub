@@ -45,21 +45,25 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
   const marketPct = 100 - guaranteedPct;
 
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-1.5 border-t border-border/30 px-4 py-3">
       {/* Header */}
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between">
         <HelpTip
           plain="Every dollar that has left your pocket related to this house since purchase. Down payment + all mortgage payments + renovations + taxes + insurance + maintenance."
         >
           <p className="text-[13px] font-medium text-foreground">Where {formatCurrency(d.totalCashOut)} went</p>
         </HelpTip>
-        <p className="text-[13px] font-bold text-success tabular-nums">
-          {formatCurrency(total)} equity
-          <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
-        </p>
+        <HelpTip
+          plain={`Of the ${formatCurrency(d.totalCashOut)} total cash spent, ${formatCurrency(total)} turned into equity you'll recover, and ${formatCurrency(d.sunkCost)} was the cost of living in and maintaining the home.`}
+        >
+          <p className="text-[13px] font-bold text-success tabular-nums">
+            → {formatCurrency(total)} equity
+            <ScenarioDelta scenarioVal={d.wealthBuilt} baseVal={b.wealthBuilt} active={scenarioActive} />
+          </p>
+        </HelpTip>
       </div>
 
-      {/* Outflow bar — use Tooltip directly so divs can be flex children */}
+      {/* Outflow bar */}
       <div className="w-full h-6 rounded-lg overflow-hidden flex" style={{ gap: '1px' }}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -106,7 +110,7 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
         </div>
       ) : (
         <>
-          <p className="text-[11px] text-muted-foreground px-1">Equity is built from:</p>
+          <p className="text-[11px] text-muted-foreground">Equity is built from:</p>
           <div className="w-full h-5 rounded-lg overflow-hidden flex">
             {segments.map(seg => {
               const pct = total > 0 ? (seg.value / total) * 100 : 0;
@@ -117,11 +121,15 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
                       className="flex items-center justify-center transition-all h-5 cursor-help"
                       style={{ width: `${pct}%`, backgroundColor: seg.color, minWidth: 0 }}
                     >
-                      {pct > 15 && (
+                      {pct > 8 ? (
                         <span className="text-[10px] font-semibold text-white whitespace-nowrap px-1">
                           {formatCurrency(seg.value)}
                         </span>
-                      )}
+                      ) : pct > 3 ? (
+                        <span className="text-[9px] font-semibold text-white whitespace-nowrap px-0.5">
+                          {(seg.value / 1000).toFixed(0)}K
+                        </span>
+                      ) : null}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[320px] text-xs p-2.5">
@@ -133,7 +141,7 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
             {segments.map(seg => (
               <div key={seg.label} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: seg.color }} />
@@ -143,7 +151,7 @@ export default function FinancialFlow({ d, baseD, scenarioActive = false }: Prop
           </div>
 
           {/* Guaranteed vs market */}
-          <div className="flex justify-between text-xs px-1">
+          <div className="flex justify-between text-xs">
             <HelpTip plain="Money you get back even if the housing market crashes to your purchase price. Down payment + principal paid.">
               <span className="text-muted-foreground">
                 Guaranteed: <span className="font-semibold text-foreground">{formatCurrency(d.guaranteedEquity)} ({guaranteedPct}%)</span>

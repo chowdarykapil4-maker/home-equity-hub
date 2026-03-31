@@ -54,7 +54,9 @@ export default function DetailedBreakdown({ d }: { d: HomePLData }) {
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="w-full rounded-xl border border-border bg-card px-4 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors h-9">
-        <span className="text-[13px] font-medium text-foreground">Show detailed breakdown</span>
+        <HelpTip plain="Full audit trail of every dollar in and out. Left side shows cash outflows, right side shows the sunk cost composition.">
+          <span className="text-[13px] font-medium text-foreground">Show detailed breakdown</span>
+        </HelpTip>
         <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </CollapsibleTrigger>
 
@@ -62,7 +64,9 @@ export default function DetailedBreakdown({ d }: { d: HomePLData }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Cash outflows */}
           <div>
-            <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">Cash outflows</p>
+            <HelpTip plain="Every dollar that has left your pocket for this house. Some builds equity (green), some is gone forever (red).">
+              <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">Cash outflows</p>
+            </HelpTip>
             <div className="space-y-1">
               {cashFlows.map(row => {
                 const barPct = maxFlow > 0 ? (row.value / maxFlow) * 100 : 0;
@@ -86,9 +90,11 @@ export default function DetailedBreakdown({ d }: { d: HomePLData }) {
 
           {/* Sunk cost composition */}
           <div>
-            <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">
-              Sunk cost breakdown · {formatCurrency(sunkTotal)}
-            </p>
+            <HelpTip plain={`The ${formatCurrency(sunkTotal)} that's gone forever, broken down by category. Interest is typically the largest component.`}>
+              <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">
+                Sunk cost breakdown · {formatCurrency(sunkTotal)}
+              </p>
+            </HelpTip>
             <div className="space-y-1">
               {sunkItems.map(item => {
                 const pct = sunkTotal > 0 ? (item.value / sunkTotal) * 100 : 0;
