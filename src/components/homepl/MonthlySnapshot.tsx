@@ -20,9 +20,26 @@ export default function MonthlySnapshot({ d, baseD, scenarioActive = false }: Pr
   const netMonthly = d.sustainableMonthlyRate - d.monthlyCostOfOwnership;
   const baseNetMonthly = b.sustainableMonthlyRate - b.monthlyCostOfOwnership;
 
+  const { mortgage } = useAppContext();
+
   // Current month's principal from latest payment
   const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
   const currentPrincipal = sorted.length > 0 ? sorted[sorted.length - 1].principalPortion + sorted[sorted.length - 1].extraPrincipal : 0;
+
+  // Forward projection for tooltip
+  const projections = useMemo(() => {
+    const amortRows = generateAmortizationSchedule(mortgage, sorted);
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentIdx = amortRows.findIndex(r => r.date === currentYM);
+    const baseIdx = currentIdx >= 0 ? currentIdx : amortRows.findIndex(r => !r.isPast && !r.isCurrentMonth) - 1;
+    const getPrincipalAt = (monthsAhead: number) => {
+      const idx = baseIdx + monthsAhead;
+      return (idx >= 0 && idx < amortRows.length) ? amortRows[idx].principalPortion : 0;
+    };
+    const firstPrincipal = sorted.length > 0 ? sorted[0].principalPortion + sorted[0].extraPrincipal : (amortRows.length > 0 ? amortRows[0].principalPortion : 0);
+    return { principalIn5yr: getPrincipalAt(60), firstPrincipal };
+  }, [mortgage, sorted]);
 
   // RentCast check
   const hasRentCast = (() => {
