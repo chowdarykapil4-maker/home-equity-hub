@@ -160,16 +160,18 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       </div>
 
       <p className="text-[11px] text-muted-foreground text-center mt-0.5">
-        Your equity is growing{' '}
         <HelpTip
-          plain={`For every $1 you lose to sunk costs, $${ratio} in new wealth is generated (excluding your initial down payment). This ratio improves each year as more of your mortgage goes to principal.`}
-          math={`Monthly true wealth creation (${formatCurrency(equityGrowthRate)}) ÷ monthly sunk cost (${formatCurrency(sunkGrowthRate)}) = ${ratio}×`}
+          plain={`Historical: includes all wealth gains (principal, appreciation, renovations) vs all sunk costs. Sustainable: uses only your conservative forward rate (principal + ${(assumedAppreciation * 100).toFixed(0)}% appreciation) vs sunk costs. When sustainable exceeds 1.0×, your recurring gains alone outpace your housing costs.`}
+          math={`Historical: ${formatCurrency(historicalGrowthRate)}/mo ÷ ${formatCurrency(sunkGrowthRate)}/mo = ${historicalRatio}×\nSustainable: ${formatCurrency(d.sustainableMonthlyRate)}/mo ÷ ${formatCurrency(sunkGrowthRate)}/mo = ${forwardRatio}×`}
         >
-          <span className="font-semibold text-success">{ratio}×</span>
+          <span>
+            Equity growth vs sunk cost: <span className="font-semibold text-success">{historicalRatio}×</span> historical
+            {' · '}
+            <span className={`font-semibold ${parseFloat(forwardRatio) >= 1 ? 'text-success' : 'text-amber-500'}`}>{forwardRatio}×</span> sustainable
+          </span>
         </HelpTip>
-        {' '}faster than your sunk cost
         {scenarioActive && (
-          <ScenarioDelta scenarioVal={parseFloat(ratio as string) || 0} baseVal={baseRatio} active={true} />
+          <ScenarioDelta scenarioVal={parseFloat(forwardRatio) || 0} baseVal={baseForwardRatio} active={true} />
         )}
         {projected10yrEquity > 0 && (
           <>
