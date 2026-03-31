@@ -1,11 +1,15 @@
 import { formatCurrency } from '@/lib/format';
 import { HelpTip } from './HelpTip';
+import { ScenarioResult } from '@/lib/scenario';
 
 interface Props {
   scenarioPercent: number;
   onChange: (pct: number) => void;
   modeledValue: number;
   baseValue: number;
+  extraPrincipal: number;
+  onExtraPrincipalChange: (amount: number) => void;
+  scenario: ScenarioResult;
 }
 
 const PRESETS = [
@@ -15,7 +19,9 @@ const PRESETS = [
   { label: 'Hot +25%', value: 25, bg: 'bg-success/15', activeBg: 'bg-success/35', text: 'text-success', tip: 'Simulates a hot market' },
 ];
 
-export default function ValueSensitivitySlider({ scenarioPercent, onChange, modeledValue, baseValue }: Props) {
+const EXTRA_PRESETS = [0, 250, 500, 1000, 2000];
+
+export default function ValueSensitivitySlider({ scenarioPercent, onChange, modeledValue, baseValue, extraPrincipal, onExtraPrincipalChange, scenario }: Props) {
   const isActive = scenarioPercent !== 0;
   const diff = modeledValue - baseValue;
   const sign = scenarioPercent > 0 ? '+' : '';
@@ -94,6 +100,44 @@ export default function ValueSensitivitySlider({ scenarioPercent, onChange, mode
             </HelpTip>
           );
         })}
+      </div>
+
+      {/* Row 4 — Extra principal */}
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[12px] text-muted-foreground">Extra principal/mo</span>
+          <div className="flex items-center gap-1">
+            {EXTRA_PRESETS.map(amount => (
+              <button
+                key={amount}
+                onClick={() => onExtraPrincipalChange(amount)}
+                className={`px-2 py-0.5 text-[11px] rounded-full border transition-colors ${
+                  extraPrincipal === amount
+                    ? 'bg-primary/10 border-primary text-primary font-medium'
+                    : 'border-border/50 text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                {amount === 0 ? 'None' : `+$${amount.toLocaleString()}`}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground mx-1">or</span>
+          <input
+            type="number"
+            value={extraPrincipal || ''}
+            onChange={e => onExtraPrincipalChange(Math.max(0, +e.target.value))}
+            placeholder="Custom"
+            className="w-20 h-6 text-[11px] px-2 rounded border border-border/50 bg-background"
+          />
+        </div>
+        {extraPrincipal > 0 && (
+          <div className="text-right shrink-0">
+            <p className="text-[12px] font-semibold text-success">
+              Save {formatCurrency(scenario.extraPrincipalInterestSaved)} interest · Pay off {scenario.extraPrincipalYearsSaved} yr early
+            </p>
+            <a href="#scenarios" className="text-[10px] text-primary hover:underline">See detailed analysis →</a>
+          </div>
+        )}
       </div>
     </div>
   );
