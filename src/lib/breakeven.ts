@@ -43,7 +43,7 @@ export function calculateBreakevenTimeline(
   const monthlyMaint = config.annualMaintenance / 12;
   const monthlyHOA = config.monthlyHOA;
   const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaint + monthlyHOA + extraPrincipal;
-  const appreciationRate = (tax.annualAppreciation || 3) / 100;
+  const appreciationRate = (tax.annualAppreciation || 2) / 100;
   const rentIncreaseRate = (tax.annualRentIncrease || 3) / 100;
   const exclusionLimit = tax.filingStatus === 'Single' ? 250000 : 500000;
 
