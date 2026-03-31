@@ -65,6 +65,7 @@ export interface HomePLData {
   // Mortgage details for scenario modeling
   interestRate: number;
   monthlyPayment: number;
+  assumedAppreciation: number;
 
   // Chart data
   resolvedRent: number;
@@ -231,6 +232,7 @@ export function useHomePL(): HomePLData {
       trueMonthlyWealthCreation, sustainableMonthlyRate, downPaymentMonthlyEquivalent,
       interestRate: mortgage.interestRate,
       monthlyPayment: mortgage.monthlyPayment,
+      assumedAppreciation: homePLConfig.tax?.annualAppreciation || 2,
       resolvedRent: resolvedRentValue,
       chartData, crossoverMonth,
     };
