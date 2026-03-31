@@ -1,6 +1,8 @@
 import { formatCurrency } from '@/lib/format';
+import { useMemo } from 'react';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
+import { generateAmortizationSchedule } from '@/lib/amortization';
 import ScenarioDelta from './ScenarioDelta';
 import { HelpTip } from './HelpTip';
 import { Link } from 'react-router-dom';
