@@ -65,6 +65,7 @@ export interface HomePLData {
   // Mortgage details for scenario modeling
   interestRate: number;
   monthlyPayment: number;
+  assumedAppreciation: number;
 
   // Chart data
   resolvedRent: number;
