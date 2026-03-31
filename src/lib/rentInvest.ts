@@ -12,6 +12,7 @@ export interface RentInvestResult {
   ownerEquity: number;
   ownerSunkCost: number;
   ownershipMargin: number; // positive = owning wins
+  startingRent: number;
 }
 
 export function calculateRentInvest(
@@ -25,15 +26,21 @@ export function calculateRentInvest(
   ownerSunkCost: number,
   purchaseDate: string,
   resolvedRent?: number,
+  extraMonthlyPrincipal?: number,
 ): RentInvestResult {
+  const extraPrincipal = extraMonthlyPrincipal || 0;
   const monthlyMortgage = mortgage.monthlyPayment;
   const monthlyTax = homePLConfig.annualPropertyTax / 12;
   const monthlyInsurance = homePLConfig.monthlyInsurance;
   const monthlyMaintenance = homePLConfig.annualMaintenance / 12;
-  const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaintenance + homePLConfig.monthlyHOA;
+  const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaintenance + homePLConfig.monthlyHOA + extraPrincipal;
 
   const monthlyRent = resolvedRent || homePLConfig.estimatedMonthlyRent;
-  const monthlySavings = totalMonthlyOwnerCost - monthlyRent;
+  const rentIncreaseRate = (homePLConfig.tax?.annualRentIncrease || 3) / 100;
+  const yearsOwned = monthsOwned / 12;
+
+  // Back-calculate what rent was at purchase date
+  const startingRent = monthlyRent / Math.pow(1 + rentIncreaseRate, yearsOwned);
 
   const monthlyReturnRate = Math.pow(1 + annualReturnPct / 100, 1 / 12) - 1;
 
@@ -51,17 +58,27 @@ export function calculateRentInvest(
   const startMonth = pMonth - 1; // 0-indexed
 
   let portfolio = downPayment;
+  let totalRentPaid = 0;
+  let currentRent = startingRent;
 
   for (let i = 1; i <= monthsOwned; i++) {
     const y = pYear + Math.floor((startMonth + i) / 12);
     const m = (startMonth + i) % 12;
     const key = `${y}-${String(m + 1).padStart(2, '0')}`;
 
+    // Increase rent at the start of each new year of tenancy
+    if (i > 1 && i % 12 === 1) {
+      currentRent = currentRent * (1 + rentIncreaseRate);
+    }
+
+    totalRentPaid += currentRent;
+
     const renoCost = renoCostByMonth[key] || 0;
-    portfolio = portfolio * (1 + monthlyReturnRate) + monthlySavings + renoCost;
+    const monthlySavingsThisMonth = totalMonthlyOwnerCost - currentRent;
+    portfolio = portfolio * (1 + monthlyReturnRate) + monthlySavingsThisMonth + renoCost;
   }
 
-  const totalRentPaid = monthlyRent * monthsOwned;
+  const monthlySavings = totalMonthlyOwnerCost - monthlyRent; // current month's savings for display
 
   return {
     portfolioValue: Math.round(portfolio),
@@ -73,6 +90,7 @@ export function calculateRentInvest(
     ownerEquity,
     ownerSunkCost: Math.round(ownerSunkCost),
     ownershipMargin: Math.round(ownerEquity - portfolio),
+    startingRent: Math.round(startingRent),
   };
 }
 

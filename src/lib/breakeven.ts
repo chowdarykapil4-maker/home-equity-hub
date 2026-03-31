@@ -31,7 +31,9 @@ export function calculateBreakevenTimeline(
   totalRenoValueAdded: number,
   yearsToProject: number = 15,
   resolvedRent?: number,
+  extraMonthlyPrincipal?: number,
 ): BreakevenResult {
+  const extraPrincipal = extraMonthlyPrincipal || 0;
   const combinedRate = (tax.federalRate + tax.stateRate) / 100;
   const combinedCapGains = (tax.capitalGainsRate + tax.stateCapGainsRate) / 100;
   const monthlyReturnRate = Math.pow(1 + annualReturnPct / 100, 1 / 12) - 1;
@@ -40,8 +42,8 @@ export function calculateBreakevenTimeline(
   const monthlyInsurance = config.monthlyInsurance;
   const monthlyMaint = config.annualMaintenance / 12;
   const monthlyHOA = config.monthlyHOA;
-  const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaint + monthlyHOA;
-  const appreciationRate = (tax.annualAppreciation || 3) / 100;
+  const totalMonthlyOwnerCost = monthlyMortgage + monthlyTax + monthlyInsurance + monthlyMaint + monthlyHOA + extraPrincipal;
+  const appreciationRate = (tax.annualAppreciation || 2) / 100;
   const rentIncreaseRate = (tax.annualRentIncrease || 3) / 100;
   const exclusionLimit = tax.filingStatus === 'Single' ? 250000 : 500000;
 
@@ -66,7 +68,7 @@ export function calculateBreakevenTimeline(
     for (let m = 0; m < 12; m++) {
       // Mortgage amortization
       const monthInterest = calculateMonthlyInterest(mortgageBalance, mortgage.interestRate);
-      const monthPrincipal = monthlyMortgage - monthInterest;
+      const monthPrincipal = monthlyMortgage - monthInterest + extraPrincipal;
       if (mortgageBalance > 0) {
         mortgageBalance = Math.max(0, mortgageBalance - monthPrincipal);
         yearInterest += monthInterest;
