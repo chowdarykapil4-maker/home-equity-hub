@@ -1,4 +1,4 @@
-import { useMemo } from 'react'; // v2
+import { useMemo, useState } from 'react';
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
@@ -16,6 +16,7 @@ interface Props {
 export default function CostEquityChart({ d, baseD, scenarioActive = false }: Props) {
   const b = baseD || d;
   const { mortgage, mortgagePayments, homePLConfig } = useAppContext();
+  const [horizon, setHorizon] = useState<'history' | '10yr' | 'full'>('10yr');
 
   const historicalGrowthRate = d.trueMonthlyWealthCreation;
   const sunkGrowthRate = d.monthsOwned > 0 ? d.sunkCost / d.monthsOwned : 0;
@@ -36,45 +37,53 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   const assumedAppreciation = (homePLConfig.tax?.annualAppreciation || 2) / 100;
   const annualRentIncrease = (homePLConfig.tax?.annualRentIncrease || 3) / 100;
 
-  const { fullChartData, todayMonth, lastMonth, projected10yrEquity } = useMemo(() => {
+  const monthsRemaining = mortgage.loanTermYears * 12 - mortgagePayments.length;
+  const fullTermMonths = Math.max(monthsRemaining, 120);
+  const projectionMonths = horizon === 'history' ? 0 : horizon === '10yr' ? 120 : fullTermMonths;
+
+  const { fullChartData, todayMonth, lastMonth, projected10yrEquity, totalProjectedInterest } = useMemo(() => {
     const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
     const amortRows = generateAmortizationSchedule(mortgage, sorted);
     const monthlyAppRate = assumedAppreciation / 12;
     const resolvedRent = d.resolvedRent || homePLConfig.estimatedMonthlyRent;
 
     const historical = d.chartData.map(p => ({ ...p, projected: false }));
-    if (historical.length === 0) return { fullChartData: [], todayMonth: null, lastMonth: null, projected10yrEquity: 0 };
+    if (historical.length === 0) return { fullChartData: [], todayMonth: null, lastMonth: null, projected10yrEquity: 0, totalProjectedInterest: 0 };
 
     const last = historical[historical.length - 1];
     const todayM = last.month;
 
-    // Find current position in amortization
-    const now = new Date();
-    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const currentAmortIdx = amortRows.findIndex(r => r.date === currentYM);
+    if (projectionMonths === 0) {
+      return {
+        fullChartData: historical,
+        todayMonth: todayM,
+        lastMonth: null,
+        projected10yrEquity: 0,
+        totalProjectedInterest: 0,
+      };
+    }
 
     let projHomeValue = d.currentHomeValue;
     let projBalance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : mortgage.originalLoanAmount;
     let projSunk = last.sunkCost;
     let projRent = last.rent;
+    let cumInterest = 0;
 
     const projectionData: { month: string; equity: number; sunkCost: number; rent: number; projected: boolean }[] = [];
     const lastDate = new Date(last.month + '-01');
 
-    for (let m = 1; m <= 120; m++) {
+    for (let m = 1; m <= projectionMonths; m++) {
       const projDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + m, 1);
       const monthStr = `${projDate.getFullYear()}-${String(projDate.getMonth() + 1).padStart(2, '0')}`;
 
-      // Calculate interest from the ACTUAL projected balance, not the amortization table
       const monthlyRate = mortgage.interestRate / 100 / 12;
       const monthInterest = projBalance > 0 ? projBalance * monthlyRate : 0;
-
-      // Calculate principal from the fixed mortgage payment minus interest, plus any extra
       const basePrincipal = projBalance > 0 ? Math.max(0, mortgage.monthlyPayment - monthInterest) : 0;
       const monthPrincipal = basePrincipal + extraPrincipal;
 
       projHomeValue = projHomeValue * (1 + monthlyAppRate);
       projBalance = Math.max(0, projBalance - monthPrincipal);
+      cumInterest += monthInterest;
 
       const projEquity = projHomeValue - projBalance + d.totalRenoValueAdded;
 
@@ -100,18 +109,52 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       todayMonth: todayM,
       lastMonth: projectionData.length > 0 ? projectionData[projectionData.length - 1].month : null,
       projected10yrEquity: projectionData.length > 0 ? projectionData[projectionData.length - 1].equity : 0,
+      totalProjectedInterest: Math.round(cumInterest),
     };
-  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease, extraPrincipal]);
+  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease, extraPrincipal, projectionMonths]);
 
   const tickInterval = Math.max(1, Math.floor(fullChartData.length / 8));
+  const payoffYear = new Date().getFullYear() + Math.ceil(fullTermMonths / 12);
 
   return (
     <div className="px-3 pt-1.5 pb-0.5 space-y-0.5">
-      <HelpTip
-        plain="Tracks how your equity (green) and sunk costs (red) have grown since purchase, with a 10-year projection based on current assumptions. The dashed line shows what a renter would have spent."
-      >
-        <p className="text-[13px] font-medium text-foreground">Cost & equity over time</p>
-      </HelpTip>
+      <div className="flex items-center justify-between">
+        <HelpTip
+          plain="Tracks how your equity (green) and sunk costs (red) have grown since purchase, with a forward projection based on current assumptions. The dashed line shows what a renter would have spent."
+        >
+          <p className="text-[13px] font-medium text-foreground">Cost & equity over time</p>
+        </HelpTip>
+
+        <div className="flex items-center gap-1">
+          {([
+            { key: 'history' as const, label: 'To date', tip: '' },
+            { key: '10yr' as const, label: '10 years', tip: '' },
+            { key: 'full' as const, label: `Full term (${Math.round(fullTermMonths / 12)}yr)`, tip: `Project through your entire remaining mortgage term (~${Math.round(fullTermMonths / 12)} years). Shows the complete equity trajectory including the inflection point where your mortgage pays off and sunk costs flatten.` },
+          ]).map(opt => {
+            const btn = (
+              <button
+                key={opt.key}
+                onClick={() => setHorizon(opt.key)}
+                className={`px-2 py-0.5 text-[10px] rounded-full transition-colors ${
+                  horizon === opt.key
+                    ? 'bg-primary/10 border border-primary/30 text-primary font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+            if (opt.tip) {
+              return (
+                <HelpTip key={opt.key} plain={opt.tip}>
+                  {btn}
+                </HelpTip>
+              );
+            }
+            return btn;
+          })}
+        </div>
+      </div>
 
       {/* Inline legend */}
       <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
@@ -127,10 +170,12 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
           <span className="w-3 h-[2px] rounded-full border-t border-dashed" style={{ borderColor: 'hsl(215, 16%, 47%)' }} />
           Renter would have spent
         </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-2 rounded-sm bg-muted border border-border/50" />
-          Projected ({(assumedAppreciation * 100).toFixed(0)}%/yr)
-        </span>
+        {horizon !== 'history' && (
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-3 h-2 rounded-sm bg-muted border border-border/50" />
+            Projected ({(assumedAppreciation * 100).toFixed(0)}%/yr)
+          </span>
+        )}
       </div>
 
       <div className="h-56">
@@ -155,7 +200,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
             <Area type="monotone" dataKey="equity" name="Equity" stroke="hsl(142, 71%, 45%)" strokeWidth={2} fill="url(#equityFill)" dot={false} />
             <Area type="monotone" dataKey="sunkCost" name="Sunk cost" stroke="hsl(0, 84%, 60%)" strokeWidth={2} fill="url(#sunkFill)" dot={false} />
             <Area type="monotone" dataKey="rent" name="Renter spent" stroke="hsl(215, 16%, 47%)" strokeWidth={1.5} strokeDasharray="5 5" fill="none" dot={false} />
-            {todayMonth && (
+            {todayMonth && horizon !== 'history' && (
               <ReferenceLine x={todayMonth} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="4 4" label={{ value: '← Actual | Projected →', position: 'top', fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
             )}
           </AreaChart>
@@ -176,7 +221,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
         {scenarioActive && (
           <ScenarioDelta scenarioVal={parseFloat(forwardRatio) || 0} baseVal={baseForwardRatio} active={true} />
         )}
-        {projected10yrEquity > 0 && (
+        {horizon === '10yr' && projected10yrEquity > 0 && (
           <>
             {' · '}
             <HelpTip
@@ -185,6 +230,20 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
               <span className="font-semibold">{formatCurrency(projected10yrEquity)}</span>
             </HelpTip>
             {' equity in 10 years'}
+          </>
+        )}
+        {horizon === 'full' && projected10yrEquity > 0 && (
+          <>
+            {' · '}
+            <HelpTip
+              plain={`Full-term projection assumes ${(assumedAppreciation * 100).toFixed(0)}% annual appreciation, current mortgage terms${extraPrincipal > 0 ? ` + ${formatCurrency(extraPrincipal)}/mo extra principal` : ''}, and ${(annualRentIncrease * 100).toFixed(0)}% annual rent increases.`}
+            >
+              <span className="font-semibold">{formatCurrency(projected10yrEquity)}</span>
+            </HelpTip>
+            {' equity at payoff · Interest: '}
+            <span className="font-semibold">{formatCurrency(totalProjectedInterest)}</span>
+            {' · Mortgage-free from ~'}
+            <span className="font-semibold">{payoffYear}</span>
           </>
         )}
       </p>
