@@ -96,6 +96,9 @@ export default function HomePL() {
           onChange={setScenarioPercent}
           modeledValue={scenario.currentHomeValue}
           baseValue={baseD.currentHomeValue}
+          extraPrincipal={extraPrincipal}
+          onExtraPrincipalChange={setExtraPrincipal}
+          scenario={scenario}
         />
 
         {/* Tab bar */}
