@@ -39,10 +39,11 @@ function getHashTab(): TabId {
 export default function HomePL() {
   const baseD = useHomePL();
   const [scenarioPercent, setScenarioPercent] = useState(0);
+  const [extraPrincipal, setExtraPrincipal] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>(getHashTab);
 
-  const scenario = applyScenario(baseD, scenarioPercent);
-  const scenarioActive = scenarioPercent !== 0;
+  const scenario = applyScenario(baseD, scenarioPercent, extraPrincipal);
+  const scenarioActive = scenarioPercent !== 0 || extraPrincipal > 0;
 
   // Sync hash to tab
   useEffect(() => {
