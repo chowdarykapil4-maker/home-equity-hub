@@ -1,6 +1,8 @@
 import { formatCurrency } from '@/lib/format';
+import { useMemo } from 'react';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
+import { generateAmortizationSchedule } from '@/lib/amortization';
 import ScenarioDelta from './ScenarioDelta';
 import { HelpTip } from './HelpTip';
 import { Link } from 'react-router-dom';
@@ -18,9 +20,26 @@ export default function MonthlySnapshot({ d, baseD, scenarioActive = false }: Pr
   const netMonthly = d.sustainableMonthlyRate - d.monthlyCostOfOwnership;
   const baseNetMonthly = b.sustainableMonthlyRate - b.monthlyCostOfOwnership;
 
+  const { mortgage } = useAppContext();
+
   // Current month's principal from latest payment
   const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
   const currentPrincipal = sorted.length > 0 ? sorted[sorted.length - 1].principalPortion + sorted[sorted.length - 1].extraPrincipal : 0;
+
+  // Forward projection for tooltip
+  const projections = useMemo(() => {
+    const amortRows = generateAmortizationSchedule(mortgage, sorted);
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentIdx = amortRows.findIndex(r => r.date === currentYM);
+    const baseIdx = currentIdx >= 0 ? currentIdx : amortRows.findIndex(r => !r.isPast && !r.isCurrentMonth) - 1;
+    const getPrincipalAt = (monthsAhead: number) => {
+      const idx = baseIdx + monthsAhead;
+      return (idx >= 0 && idx < amortRows.length) ? amortRows[idx].principalPortion : 0;
+    };
+    const firstPrincipal = sorted.length > 0 ? sorted[0].principalPortion + sorted[0].extraPrincipal : (amortRows.length > 0 ? amortRows[0].principalPortion : 0);
+    return { principalIn5yr: getPrincipalAt(60), firstPrincipal };
+  }, [mortgage, sorted]);
 
   // RentCast check
   const hasRentCast = (() => {
@@ -53,10 +72,11 @@ export default function MonthlySnapshot({ d, baseD, scenarioActive = false }: Pr
         <div className="text-center space-y-0.5">
           <p className="text-sm font-bold tabular-nums text-success">
             <HelpTip
-              plain="The actual principal portion of your most recent mortgage payment. This builds equity — every dollar reduces your loan balance."
+              plain={`This month's actual principal payment. Growing each month — was ~${formatCurrency(projections.firstPrincipal)}/mo at start, now ${formatCurrency(currentPrincipal)}/mo. By year 5: ~${formatCurrency(projections.principalIn5yr)}/mo.`}
             >
               {formatCurrency(currentPrincipal)}
             </HelpTip>
+            <span className="text-[9px] text-success ml-0.5">↑</span>
           </p>
           <p className="text-[10px] text-muted-foreground">Principal this month</p>
           <p className="text-[9px] text-success">builds equity</p>

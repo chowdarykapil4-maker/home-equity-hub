@@ -2,9 +2,12 @@ import { formatCurrency, formatPercent } from '@/lib/format';
 import { TrendingUp } from 'lucide-react';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
+import { useMemo } from 'react';
 import ScenarioDelta from './ScenarioDelta';
 import AdvantageBreakdown from './AdvantageBreakdown';
 import { HelpTip } from './HelpTip';
+import { generateAmortizationSchedule } from '@/lib/amortization';
+import { isARM } from '@/types';
 import {
   Tooltip,
   TooltipContent,
@@ -20,11 +23,48 @@ interface Props {
 
 export default function VerdictHero({ d, baseD, scenarioActive = false }: Props) {
   const b = baseD || d;
-  const { homePLConfig } = useAppContext();
+  const { homePLConfig, mortgage, mortgagePayments } = useAppContext();
 
   const assumedAppreciation = homePLConfig.tax?.annualAppreciation || 2;
   const sustainableMonthlyAppreciation = (d.currentHomeValue * (assumedAppreciation / 100)) / 12;
   const currentMonthlyPrincipal = d.sustainableMonthlyRate - sustainableMonthlyAppreciation;
+
+  // Generate amortization schedule for forward projections
+  const projections = useMemo(() => {
+    const sorted = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
+    const amortRows = generateAmortizationSchedule(mortgage, sorted);
+
+    // Find current month row index
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentIdx = amortRows.findIndex(r => r.date === currentYM);
+    const baseIdx = currentIdx >= 0 ? currentIdx : amortRows.findIndex(r => !r.isPast && !r.isCurrentMonth) - 1;
+
+    const getPrincipalAt = (monthsAhead: number) => {
+      const idx = baseIdx + monthsAhead;
+      if (idx >= 0 && idx < amortRows.length) {
+        return amortRows[idx].principalPortion;
+      }
+      return 0;
+    };
+
+    const firstPrincipal = sorted.length > 0 ? sorted[0].principalPortion + sorted[0].extraPrincipal : (amortRows.length > 0 ? amortRows[0].principalPortion : 0);
+
+    return {
+      principalIn1yr: getPrincipalAt(12),
+      principalIn3yr: getPrincipalAt(36),
+      principalIn5yr: getPrincipalAt(60),
+      firstPrincipal,
+    };
+  }, [mortgage, mortgagePayments]);
+
+  const sustainableIn1yr = projections.principalIn1yr + sustainableMonthlyAppreciation;
+  const sustainableIn3yr = projections.principalIn3yr + sustainableMonthlyAppreciation;
+  const sustainableIn5yr = projections.principalIn5yr + sustainableMonthlyAppreciation;
+
+  const armNote = isARM(mortgage.loanType) && mortgage.armResetDate
+    ? `\nNote: projections beyond ${mortgage.armResetDate} depend on your ARM reset rate.`
+    : '';
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -101,18 +141,19 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
             </Tooltip>
           </div>
 
-          {/* NEW: How you're building wealth — decomposition */}
+          {/* How you're building wealth — decomposition */}
           <div className="mt-3 pt-3 border-t border-success/20">
             {/* Row 1: Sustainable rate headline */}
             <p className="text-sm text-foreground">
               <HelpTip
-                plain={`Conservative forward-looking rate: your current principal paydown (${formatCurrency(currentMonthlyPrincipal)}/mo) plus assumed ${assumedAppreciation}% annual appreciation (${formatCurrency(sustainableMonthlyAppreciation)}/mo). Excludes episodic renovation value.`}
-                math={`Principal (~${formatCurrency(currentMonthlyPrincipal)}) + appreciation (~${formatCurrency(sustainableMonthlyAppreciation)}) = ${formatCurrency(d.sustainableMonthlyRate)}/mo`}
+                plain={`Monthly wealth you can count on — and it grows every month. As your mortgage amortizes, more of each payment goes to principal and less to interest.${armNote}`}
+                math={`Today: ${formatCurrency(d.sustainableMonthlyRate)}/mo (${formatCurrency(currentMonthlyPrincipal)} principal + ${formatCurrency(sustainableMonthlyAppreciation)} appreciation)\nIn 1 year: ~${formatCurrency(sustainableIn1yr)}/mo\nIn 3 years: ~${formatCurrency(sustainableIn3yr)}/mo\nIn 5 years: ~${formatCurrency(sustainableIn5yr)}/mo`}
               >
                 <span className="text-lg font-bold text-success">{formatCurrency(d.sustainableMonthlyRate)}/mo</span>
               </HelpTip>
               {' '}
               <span className="text-muted-foreground">sustainable wealth creation</span>
+              <span className="text-[11px] text-success ml-1">↑ growing</span>
               <ScenarioDelta scenarioVal={d.sustainableMonthlyRate} baseVal={b.sustainableMonthlyRate} active={scenarioActive} />
             </p>
 
@@ -120,7 +161,11 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
             <div className="flex items-center justify-center gap-4 mt-2">
               <div className="text-center">
                 <p className="text-[13px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</p>
-                <p className="text-[10px] text-muted-foreground">principal paydown</p>
+                <HelpTip
+                  plain={`Your principal payment grows every month due to amortization. Started at ~${formatCurrency(projections.firstPrincipal)}/mo, now ${formatCurrency(currentMonthlyPrincipal)}/mo. In 1 year: ~${formatCurrency(projections.principalIn1yr)}/mo, in 3 years: ~${formatCurrency(projections.principalIn3yr)}/mo.${armNote}`}
+                >
+                  <p className="text-[10px] text-muted-foreground">principal paydown ↑</p>
+                </HelpTip>
               </div>
               <div className="text-center">
                 <p className="text-[13px] font-semibold tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</p>
