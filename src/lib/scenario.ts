@@ -41,7 +41,7 @@ export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number
   const downPaymentMonthlyEquivalent = d.downPaymentMonthlyEquivalent;
 
   // Sustainable rate with assumed appreciation on modeled value
-  const assumedAppreciation = 3;
+  const assumedAppreciation = d.assumedAppreciation || 2;
   const sustainableMonthlyAppreciation = (modeledHomeValue * (assumedAppreciation / 100)) / 12;
   const basePrincipalComponent = d.sustainableMonthlyRate - (d.currentHomeValue * (assumedAppreciation / 100)) / 12;
   const sustainableMonthlyRate = basePrincipalComponent + extraPrincipal + sustainableMonthlyAppreciation;
