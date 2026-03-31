@@ -64,8 +64,8 @@ export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number
 
     while (balanceBase > 0 && baseMonths < 360) {
       const interest = balanceBase * rate;
-      const principal = monthlyPI - interest;
-      if (principal <= 0) break;
+      const totalPayment = monthlyPI;
+      const principal = Math.min(totalPayment - interest, balanceBase);
       balanceBase = Math.max(0, balanceBase - principal);
       baseInterest += interest;
       baseMonths++;
@@ -73,8 +73,8 @@ export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number
 
     while (balanceExtra > 0 && extraMonths < 360) {
       const interest = balanceExtra * rate;
-      const principal = monthlyPI - interest + extraPrincipal;
-      if (principal <= 0) break;
+      const totalPayment = monthlyPI + extraPrincipal;
+      const principal = Math.min(totalPayment - interest, balanceExtra);
       balanceExtra = Math.max(0, balanceExtra - principal);
       extraInterest += interest;
       extraMonths++;
