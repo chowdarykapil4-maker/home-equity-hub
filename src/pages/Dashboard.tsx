@@ -94,7 +94,7 @@ export default function Dashboard() {
   const payoffStr = payoffYears > 0 ? `${payoffYears}yr ${payoffMonths}mo` : `${payoffMonths}mo`;
 
   // === Month-over-month delta data (inlined from MonthOverMonthDelta) ===
-  const monthlyAppRate = (homePLConfig.tax.annualAppreciation || 3) / 100 / 12;
+  const monthlyAppRate = (homePLConfig.tax.annualAppreciation || 2) / 100 / 12;
   const sortedPayments = [...mortgagePayments].sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
   const latestPayment = sortedPayments[sortedPayments.length - 1];
   const prevPayment = sortedPayments[sortedPayments.length - 2];
