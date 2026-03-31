@@ -27,6 +27,10 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
     const bSunk = b.monthsOwned > 0 ? b.sunkCost / b.monthsOwned : 0;
     return bSunk > 0 ? (bEq / bSunk) : 0;
   })();
+  const baseForwardRatio = (() => {
+    const bSunk = b.monthsOwned > 0 ? b.sunkCost / b.monthsOwned : 0;
+    return bSunk > 0 ? (b.sustainableMonthlyRate / bSunk) : 0;
+  })();
 
   const assumedAppreciation = (homePLConfig.tax?.annualAppreciation || 2) / 100;
   const annualRentIncrease = (homePLConfig.tax?.annualRentIncrease || 3) / 100;
