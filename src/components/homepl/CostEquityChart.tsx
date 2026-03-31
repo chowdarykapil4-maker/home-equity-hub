@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'; // v2
 import { formatCurrency } from '@/lib/format';
 import { HomePLData } from '@/hooks/useHomePL';
 import { useAppContext } from '@/context/AppContext';
