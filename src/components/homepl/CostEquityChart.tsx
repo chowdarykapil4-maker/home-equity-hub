@@ -73,7 +73,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
         </ResponsiveContainer>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-[11px] text-muted-foreground text-center mt-0.5">
         Your equity is growing{' '}
         <HelpTip
           plain={`For every $1 you lose to sunk costs, $${ratio} in new wealth is generated (excluding your initial down payment). This ratio improves each year as more of your mortgage goes to principal.`}
