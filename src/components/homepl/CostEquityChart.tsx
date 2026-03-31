@@ -68,7 +68,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       // Find amortization row for this future month
       const amortIdx = currentAmortIdx >= 0 ? currentAmortIdx + m : -1;
       const amortRow = amortIdx >= 0 && amortIdx < amortRows.length ? amortRows[amortIdx] : null;
-      const monthPrincipal = amortRow ? amortRow.principalPortion : 0;
+      const monthPrincipal = amortRow ? amortRow.principalPortion + extraPrincipal : extraPrincipal;
       const monthInterest = amortRow ? amortRow.interestPortion : 0;
 
       projHomeValue = projHomeValue * (1 + monthlyAppRate);
