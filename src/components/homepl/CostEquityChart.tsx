@@ -87,7 +87,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       projBalance = Math.max(0, projBalance - monthPrincipal);
       cumInterest += monthInterest;
 
-      const projEquity = projHomeValue - projBalance + d.totalRenoValueAdded;
+      const projEquity = projHomeValue - projBalance;
 
       const monthlyTax = homePLConfig.annualPropertyTax / 12;
       const monthlyMaint = homePLConfig.annualMaintenance / 12;
