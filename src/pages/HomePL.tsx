@@ -131,9 +131,19 @@ export default function HomePL() {
         {/* Tab content */}
         {activeTab === 'snapshot' && (
           <div className="space-y-2">
-            <FinancialFlow d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-            <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
-            <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            {/* Block 1: Verdict + Financial Flow — one card */}
+            <div className="rounded-xl border border-success/20 bg-success/[0.04]">
+              <VerdictHero d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+              <FinancialFlow d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            </div>
+
+            {/* Block 2: Chart + Monthly metrics — one card */}
+            <div className="rounded-xl border border-border bg-card">
+              <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+              <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
+            </div>
+
+            {/* Block 3: Detailed breakdown — collapsible */}
             <DetailedBreakdown d={scenario} />
           </div>
         )}

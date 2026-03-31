@@ -1,14 +1,10 @@
 import { formatCurrency, formatPercent } from '@/lib/format';
 import { TrendingUp } from 'lucide-react';
 import { HomePLData } from '@/hooks/useHomePL';
+import { useAppContext } from '@/context/AppContext';
 import ScenarioDelta from './ScenarioDelta';
 import AdvantageBreakdown from './AdvantageBreakdown';
 import { HelpTip } from './HelpTip';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Tooltip,
   TooltipContent,
@@ -24,10 +20,15 @@ interface Props {
 
 export default function VerdictHero({ d, baseD, scenarioActive = false }: Props) {
   const b = baseD || d;
+  const { homePLConfig } = useAppContext();
+
+  const assumedAppreciation = homePLConfig.tax?.annualAppreciation || 2;
+  const sustainableMonthlyAppreciation = (d.currentHomeValue * (assumedAppreciation / 100)) / 12;
+  const currentMonthlyPrincipal = d.sustainableMonthlyRate - sustainableMonthlyAppreciation;
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="rounded-xl border border-success/20 bg-success/[0.04] px-4 pt-3 pb-2">
+      <div className="px-4 pt-3 pb-0">
         <div className="text-center space-y-0.5">
           <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
             Ownership advantage over renting
@@ -36,47 +37,6 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
             <AdvantageBreakdown d={d} scenarioActive={scenarioActive} />
             <ScenarioDelta scenarioVal={d.ownershipAdvantage} baseVal={b.ownershipAdvantage} active={scenarioActive} />
           </div>
-          <p className="text-sm text-muted-foreground">
-            You're building{' '}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="inline cursor-help border-b border-dotted border-muted-foreground/30 hover:border-muted-foreground transition-colors">
-                  <span className="font-semibold text-foreground">{formatCurrency(d.trueMonthlyWealthCreation)}/mo</span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="center" className="w-[360px] p-3 rounded-xl shadow-md z-[100]">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium">Monthly Wealth Creation Breakdown</p>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Actual wealth generated each month on average — excludes your down payment which was a transfer of existing cash, not new wealth creation.
-                  </p>
-                  <div className="border-t border-border pt-1.5 space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Principal paydown</span>
-                      <span className="tabular-nums text-success">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Appreciation</span>
-                      <span className="tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Reno value</span>
-                      <span className="tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</span>
-                    </div>
-                    <div className="flex justify-between font-semibold border-t border-border pt-1">
-                      <span>True wealth creation</span>
-                      <span className="tabular-nums text-success">{formatCurrency(d.trueMonthlyWealthCreation)}/mo</span>
-                    </div>
-                  </div>
-                  <div className="bg-accent/50 rounded px-2 py-1.5 text-[10px] text-muted-foreground leading-relaxed">
-                    Note: Your {formatCurrency(d.downPayment)} down payment adds {formatCurrency(d.downPaymentMonthlyEquivalent)}/mo when averaged, but that was existing cash moved into the home — not new wealth.
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            {' '}in wealth that a renter never would
-            <ScenarioDelta scenarioVal={d.trueMonthlyWealthCreation} baseVal={b.trueMonthlyWealthCreation} active={scenarioActive} />
-          </p>
 
           {d.wealthBuilt < 0 && (
             <p className="text-xs text-destructive font-medium">Underwater — home value below mortgage balance</p>
@@ -139,6 +99,43 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
                 <p className="text-muted-foreground mt-0.5">(equity − down payment) ÷ (total cash out − down payment) = ({formatCurrency(d.wealthBuilt)} − {formatCurrency(d.downPayment)}) ÷ ({formatCurrency(d.totalCashOut)} − {formatCurrency(d.downPayment)}) = {formatPercent(d.returnOnCash)}</p>
               </TooltipContent>
             </Tooltip>
+          </div>
+
+          {/* NEW: How you're building wealth — decomposition */}
+          <div className="mt-3 pt-3 border-t border-success/20">
+            {/* Row 1: Sustainable rate headline */}
+            <p className="text-sm text-foreground">
+              <HelpTip
+                plain={`Conservative forward-looking rate: your current principal paydown (${formatCurrency(currentMonthlyPrincipal)}/mo) plus assumed ${assumedAppreciation}% annual appreciation (${formatCurrency(sustainableMonthlyAppreciation)}/mo). Excludes episodic renovation value.`}
+                math={`Principal (~${formatCurrency(currentMonthlyPrincipal)}) + appreciation (~${formatCurrency(sustainableMonthlyAppreciation)}) = ${formatCurrency(d.sustainableMonthlyRate)}/mo`}
+              >
+                <span className="text-lg font-bold text-success">{formatCurrency(d.sustainableMonthlyRate)}/mo</span>
+              </HelpTip>
+              {' '}
+              <span className="text-muted-foreground">sustainable wealth creation</span>
+              <ScenarioDelta scenarioVal={d.sustainableMonthlyRate} baseVal={b.sustainableMonthlyRate} active={scenarioActive} />
+            </p>
+
+            {/* Row 2: Decomposition strip */}
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <div className="text-center">
+                <p className="text-[13px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</p>
+                <p className="text-[10px] text-muted-foreground">principal paydown</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] font-semibold tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</p>
+                <p className="text-[10px] text-muted-foreground">appreciation (historical)</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] font-semibold tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</p>
+                <p className="text-[10px] text-muted-foreground">reno value (to date)</p>
+              </div>
+            </div>
+
+            {/* Row 3: Context line */}
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              Historical avg: {formatCurrency(d.trueMonthlyWealthCreation)}/mo · includes {formatCurrency(d.monthlyAppreciation)}/mo market tailwind + {formatCurrency(d.monthlyRenoValue)}/mo renovation value
+            </p>
           </div>
         </div>
       </div>
