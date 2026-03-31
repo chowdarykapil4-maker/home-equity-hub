@@ -12,7 +12,7 @@ export function MonthOverMonthDelta() {
   const latestPayment = sortedPayments[sortedPayments.length - 1];
   const prevPayment = sortedPayments[sortedPayments.length - 2];
 
-  const monthlyAppRate = (homePLConfig.tax.annualAppreciation || 3) / 100 / 12;
+  const monthlyAppRate = (homePLConfig.tax.annualAppreciation || 2) / 100 / 12;
 
   // Equity delta
   const currentEquity = pl.wealthBuilt;
