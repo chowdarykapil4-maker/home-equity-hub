@@ -157,38 +157,37 @@ export default function VerdictHero({ d, baseD, scenarioActive = false }: Props)
               <ScenarioDelta scenarioVal={d.sustainableMonthlyRate} baseVal={b.sustainableMonthlyRate} active={scenarioActive} />
             </p>
 
-            {/* Row 2: Decomposition strip */}
-            <div className="grid grid-cols-3 text-center gap-2 mt-2">
-              <div className="text-center">
-                <HelpTip
-                  plain={`Your principal payment grows every month due to amortization. Started at ~${formatCurrency(projections.firstPrincipal)}/mo, now ${formatCurrency(currentMonthlyPrincipal)}/mo. In 1 year: ~${formatCurrency(projections.principalIn1yr)}/mo, in 3 years: ~${formatCurrency(projections.principalIn3yr)}/mo.${armNote}`}
-                >
-                  <p className="text-[13px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</p>
-                </HelpTip>
-                <p className="text-[10px] text-muted-foreground">principal paydown ↑</p>
+            <div className="text-center mt-2 space-y-1">
+              <div className="flex items-start justify-center gap-8">
+                <div className="text-center">
+                  <HelpTip
+                    plain={`Your principal payment grows every month due to amortization. Started at ~${formatCurrency(projections.firstPrincipal)}/mo, now ${formatCurrency(currentMonthlyPrincipal)}/mo. In 1 year: ~${formatCurrency(projections.principalIn1yr)}/mo, in 3 years: ~${formatCurrency(projections.principalIn3yr)}/mo.${armNote}`}
+                  >
+                    <p className="text-[13px] font-semibold text-success tabular-nums">{formatCurrency(d.monthlyPrincipalPaydown)}/mo</p>
+                  </HelpTip>
+                  <p className="text-[10px] text-muted-foreground">principal paydown ↑</p>
+                </div>
+                <div className="text-center">
+                  <HelpTip
+                    plain={`Average monthly home value increase based on actual appreciation since purchase. Past performance — forward projections use a conservative ${assumedAppreciation}%/yr.`}
+                  >
+                    <p className="text-[13px] font-semibold text-amber-500 tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</p>
+                  </HelpTip>
+                  <p className="text-[10px] text-muted-foreground">appreciation (historical)</p>
+                </div>
+                <div className="text-center">
+                  <HelpTip
+                    plain="Value recovered from completed renovation projects, averaged over months owned. Only counts finished projects with actual costs — no projections from planned work."
+                  >
+                    <p className="text-[13px] font-semibold text-teal-500 tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</p>
+                  </HelpTip>
+                  <p className="text-[10px] text-muted-foreground">reno value (to date)</p>
+                </div>
               </div>
-              <div className="text-center">
-                <HelpTip
-                  plain={`Average monthly home value increase based on actual appreciation since purchase. Past performance — forward projections use a conservative ${assumedAppreciation}%/yr.`}
-                >
-                  <p className="text-[13px] font-semibold text-amber-500 tabular-nums">{formatCurrency(d.monthlyAppreciation)}/mo</p>
-                </HelpTip>
-                <p className="text-[10px] text-muted-foreground">appreciation (historical)</p>
-              </div>
-              <div className="text-center">
-                <HelpTip
-                  plain="Value recovered from completed renovation projects, averaged over months owned. Only counts finished projects with actual costs — no projections from planned work."
-                >
-                  <p className="text-[13px] font-semibold text-teal-500 tabular-nums">{formatCurrency(d.monthlyRenoValue)}/mo</p>
-                </HelpTip>
-                <p className="text-[10px] text-muted-foreground">reno value (to date)</p>
-              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Historical avg: {formatCurrency(d.trueMonthlyWealthCreation)}/mo · includes {formatCurrency(d.monthlyAppreciation)}/mo market tailwind + {formatCurrency(d.monthlyRenoValue)}/mo renovation value
+              </p>
             </div>
-
-            {/* Row 3: Context line */}
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Historical avg: {formatCurrency(d.trueMonthlyWealthCreation)}/mo · includes {formatCurrency(d.monthlyAppreciation)}/mo market tailwind + {formatCurrency(d.monthlyRenoValue)}/mo renovation value
-            </p>
           </div>
         </div>
       </div>
