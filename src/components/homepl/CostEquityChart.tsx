@@ -47,7 +47,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
         </span>
       </div>
 
-      <div className="h-56">
+      <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={d.chartData}>
             <defs>
