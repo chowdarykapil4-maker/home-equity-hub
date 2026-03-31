@@ -106,8 +106,17 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       });
     }
 
+    // Deduplicate any overlapping month at the boundary
+    const combined = [...historical, ...projectionData];
+    const seen = new Set<string>();
+    const deduped = combined.filter(pt => {
+      if (seen.has(pt.month)) return false;
+      seen.add(pt.month);
+      return true;
+    });
+
     return {
-      fullChartData: [...historical, ...projectionData],
+      fullChartData: deduped,
       todayMonth: todayM,
       lastMonth: projectionData.length > 0 ? projectionData[projectionData.length - 1].month : null,
       projected10yrEquity: projectionData.length > 0 ? projectionData[projectionData.length - 1].equity : 0,
