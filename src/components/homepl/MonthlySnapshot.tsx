@@ -72,10 +72,11 @@ export default function MonthlySnapshot({ d, baseD, scenarioActive = false }: Pr
         <div className="text-center space-y-0.5">
           <p className="text-sm font-bold tabular-nums text-success">
             <HelpTip
-              plain="The actual principal portion of your most recent mortgage payment. This builds equity — every dollar reduces your loan balance."
+              plain={`This month's actual principal payment. Growing each month — was ~${formatCurrency(projections.firstPrincipal)}/mo at start, now ${formatCurrency(currentPrincipal)}/mo. By year 5: ~${formatCurrency(projections.principalIn5yr)}/mo.`}
             >
               {formatCurrency(currentPrincipal)}
             </HelpTip>
+            <span className="text-[9px] text-success ml-0.5">↑</span>
           </p>
           <p className="text-[10px] text-muted-foreground">Principal this month</p>
           <p className="text-[9px] text-success">builds equity</p>
