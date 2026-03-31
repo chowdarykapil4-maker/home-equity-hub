@@ -63,8 +63,10 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       };
     }
 
-    let projHomeValue = d.currentHomeValue;
+    // Seed projection from last historical equity to ensure smooth transition
     let projBalance = sorted.length > 0 ? sorted[sorted.length - 1].remainingBalance : mortgage.originalLoanAmount;
+    // Back-calculate homeValue to match historical equity: equity = homeValue - balance
+    let projHomeValue = last.equity + projBalance;
     let projSunk = last.sunkCost;
     let projRent = last.rent;
     let cumInterest = 0;
