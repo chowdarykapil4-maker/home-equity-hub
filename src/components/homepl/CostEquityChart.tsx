@@ -65,11 +65,13 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       const projDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + m, 1);
       const monthStr = `${projDate.getFullYear()}-${String(projDate.getMonth() + 1).padStart(2, '0')}`;
 
-      // Find amortization row for this future month
-      const amortIdx = currentAmortIdx >= 0 ? currentAmortIdx + m : -1;
-      const amortRow = amortIdx >= 0 && amortIdx < amortRows.length ? amortRows[amortIdx] : null;
-      const monthPrincipal = amortRow ? amortRow.principalPortion + extraPrincipal : extraPrincipal;
-      const monthInterest = amortRow ? amortRow.interestPortion : 0;
+      // Calculate interest from the ACTUAL projected balance, not the amortization table
+      const monthlyRate = mortgage.interestRate / 100 / 12;
+      const monthInterest = projBalance > 0 ? projBalance * monthlyRate : 0;
+
+      // Calculate principal from the fixed mortgage payment minus interest, plus any extra
+      const basePrincipal = projBalance > 0 ? Math.max(0, mortgage.monthlyPayment - monthInterest) : 0;
+      const monthPrincipal = basePrincipal + extraPrincipal;
 
       projHomeValue = projHomeValue * (1 + monthlyAppRate);
       projBalance = Math.max(0, projBalance - monthPrincipal);

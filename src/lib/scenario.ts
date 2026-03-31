@@ -8,6 +8,7 @@ export interface ScenarioResult extends HomePLData {
   extraMonthlyPrincipal: number;
   extraPrincipalInterestSaved: number;
   extraPrincipalYearsSaved: number;
+  interestSavedPerMonth: number;
   adjustedPayoffMonths: number;
   adjustedTotalInterest: number;
   adjustedSustainableRate: number;
