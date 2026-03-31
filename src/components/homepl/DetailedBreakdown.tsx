@@ -54,9 +54,11 @@ export default function DetailedBreakdown({ d }: { d: HomePLData }) {
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="w-full rounded-xl border border-border bg-card px-4 py-2 flex items-center justify-between hover:bg-accent/50 transition-colors h-9">
-        <HelpTip plain="Full audit trail of every dollar in and out. Left side shows cash outflows, right side shows the sunk cost composition.">
-          <span className="text-[13px] font-medium text-foreground">Show detailed breakdown</span>
-        </HelpTip>
+        <span className="text-[13px] font-medium text-foreground">
+          <HelpTip plain="Full audit trail of every dollar in and out. Left side shows cash outflows, right side shows the sunk cost composition.">
+            Show detailed breakdown
+          </HelpTip>
+        </span>
         <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </CollapsibleTrigger>
 
