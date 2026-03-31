@@ -62,6 +62,10 @@ export interface HomePLData {
   sustainableMonthlyRate: number;
   downPaymentMonthlyEquivalent: number;
 
+  // Mortgage details for scenario modeling
+  interestRate: number;
+  monthlyPayment: number;
+
   // Chart data
   resolvedRent: number;
   chartData: { month: string; sunkCost: number; equity: number; rent: number }[];

@@ -5,32 +5,27 @@ export interface ScenarioResult extends HomePLData {
   scenarioPercent: number;
   modeledHomeValue: number;
   isUnderwater: boolean;
+  extraMonthlyPrincipal: number;
+  extraPrincipalInterestSaved: number;
+  extraPrincipalYearsSaved: number;
+  adjustedPayoffMonths: number;
+  adjustedTotalInterest: number;
+  adjustedSustainableRate: number;
 }
 
-export function applyScenario(d: HomePLData, pct: number): ScenarioResult {
-  if (pct === 0) {
-    return {
-      ...d,
-      isScenario: false,
-      scenarioPercent: 0,
-      modeledHomeValue: d.currentHomeValue,
-      isUnderwater: false,
-    };
-  }
-
-  const modeledHomeValue = Math.round(d.currentHomeValue * (1 + pct / 100));
+export function applyScenario(d: HomePLData, pct: number, extraPrincipal: number = 0): ScenarioResult {
+  const modeledHomeValue = pct === 0 ? d.currentHomeValue : Math.round(d.currentHomeValue * (1 + pct / 100));
   const wealthBuilt = modeledHomeValue - d.currentBalance;
   const isUnderwater = wealthBuilt < 0;
   const marketAppreciation = modeledHomeValue - d.purchasePrice - d.totalRenoValueAdded;
   const marketDependentEquity = marketAppreciation + d.totalRenoValueAdded;
-  const guaranteedEquity = d.guaranteedEquity; // unchanged
+  const guaranteedEquity = d.guaranteedEquity;
 
-  // Recalculate downstream values
-  const totalCashOut = d.totalCashOut; // unchanged - actual spend
-  const equityBuildingSpend = d.equityBuildingSpend; // unchanged
-  const sunkCost = d.sunkCost; // unchanged
-  const equityBuildingPct = d.equityBuildingPct; // unchanged
-  const sunkCostPct = d.sunkCostPct; // unchanged
+  const totalCashOut = d.totalCashOut;
+  const equityBuildingSpend = d.equityBuildingSpend;
+  const sunkCost = d.sunkCost;
+  const equityBuildingPct = d.equityBuildingPct;
+  const sunkCostPct = d.sunkCostPct;
 
   const cashBeyondDown = totalCashOut - d.downPayment;
   const netWealthCreated = wealthBuilt - d.downPayment;
@@ -39,21 +34,65 @@ export function applyScenario(d: HomePLData, pct: number): ScenarioResult {
   const ownershipAdvantage = d.renterSunkCost - d.ownerSunkCost + wealthBuilt;
   const monthlyWealthCreation = d.monthsOwned > 0 ? wealthBuilt / d.monthsOwned : 0;
 
-  // Decomposed monthly metrics
-  const monthlyPrincipalPaydown = d.monthlyPrincipalPaydown; // unchanged
+  const monthlyPrincipalPaydown = d.monthlyPrincipalPaydown;
   const monthlyAppreciationScenario = d.monthsOwned > 0 ? marketAppreciation / d.monthsOwned : 0;
-  const monthlyRenoValue = d.monthlyRenoValue; // unchanged
+  const monthlyRenoValue = d.monthlyRenoValue;
   const trueMonthlyWealthCreation = monthlyPrincipalPaydown + monthlyAppreciationScenario + monthlyRenoValue;
-  const downPaymentMonthlyEquivalent = d.downPaymentMonthlyEquivalent; // unchanged
+  const downPaymentMonthlyEquivalent = d.downPaymentMonthlyEquivalent;
 
-  // Sustainable rate recalculates with modeled appreciation
+  // Sustainable rate with assumed appreciation on modeled value
   const assumedAppreciation = 3;
   const sustainableMonthlyAppreciation = (modeledHomeValue * (assumedAppreciation / 100)) / 12;
-  const sustainableMonthlyRate = d.monthlyPrincipalPaydown + sustainableMonthlyAppreciation;
+  const basePrincipalComponent = d.sustainableMonthlyRate - (d.currentHomeValue * (assumedAppreciation / 100)) / 12;
+  const sustainableMonthlyRate = basePrincipalComponent + extraPrincipal + sustainableMonthlyAppreciation;
+
+  // Extra principal impact calculation
+  let extraPrincipalInterestSaved = 0;
+  let extraPrincipalYearsSaved = 0;
+  let adjustedPayoffMonths = 0;
+  let adjustedTotalInterest = 0;
+
+  if (extraPrincipal > 0 && d.interestRate > 0 && d.monthlyPayment > 0) {
+    const rate = d.interestRate / 100 / 12;
+    let balanceBase = d.currentBalance;
+    let balanceExtra = d.currentBalance;
+    let baseMonths = 0;
+    let extraMonths = 0;
+    let baseInterest = 0;
+    let extraInterest = 0;
+    const monthlyPI = d.monthlyPayment;
+
+    while (balanceBase > 0 && baseMonths < 360) {
+      const interest = balanceBase * rate;
+      const principal = monthlyPI - interest;
+      if (principal <= 0) break;
+      balanceBase = Math.max(0, balanceBase - principal);
+      baseInterest += interest;
+      baseMonths++;
+    }
+
+    while (balanceExtra > 0 && extraMonths < 360) {
+      const interest = balanceExtra * rate;
+      const principal = monthlyPI - interest + extraPrincipal;
+      if (principal <= 0) break;
+      balanceExtra = Math.max(0, balanceExtra - principal);
+      extraInterest += interest;
+      extraMonths++;
+    }
+
+    adjustedPayoffMonths = extraMonths;
+    adjustedTotalInterest = extraInterest;
+    extraPrincipalInterestSaved = baseInterest - extraInterest;
+    extraPrincipalYearsSaved = Math.round((baseMonths - extraMonths) / 12 * 10) / 10;
+  }
+
+  const adjustedSustainableRate = sustainableMonthlyRate;
+
+  const isScenario = pct !== 0 || extraPrincipal > 0;
 
   return {
     ...d,
-    currentHomeValue: modeledHomeValue,
+    currentHomeValue: pct === 0 ? d.currentHomeValue : modeledHomeValue,
     wealthBuilt,
     marketAppreciation,
     marketDependentEquity,
@@ -68,10 +107,16 @@ export function applyScenario(d: HomePLData, pct: number): ScenarioResult {
     trueMonthlyWealthCreation,
     downPaymentMonthlyEquivalent,
     sustainableMonthlyRate,
-    isScenario: true,
+    isScenario,
     scenarioPercent: pct,
     modeledHomeValue,
     isUnderwater,
+    extraMonthlyPrincipal: extraPrincipal,
+    extraPrincipalInterestSaved,
+    extraPrincipalYearsSaved,
+    adjustedPayoffMonths,
+    adjustedTotalInterest,
+    adjustedSustainableRate,
   };
 }
 
