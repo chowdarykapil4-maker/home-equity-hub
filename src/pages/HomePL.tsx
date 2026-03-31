@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatCurrency } from '@/lib/format';
 import { useHomePL } from '@/hooks/useHomePL';
 import { applyScenario } from '@/lib/scenario';
 import { TooltipProvider } from '@/components/ui/tooltip';
