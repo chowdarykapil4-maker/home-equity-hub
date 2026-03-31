@@ -68,7 +68,7 @@ export function calculateBreakevenTimeline(
     for (let m = 0; m < 12; m++) {
       // Mortgage amortization
       const monthInterest = calculateMonthlyInterest(mortgageBalance, mortgage.interestRate);
-      const monthPrincipal = monthlyMortgage - monthInterest;
+      const monthPrincipal = monthlyMortgage - monthInterest + extraPrincipal;
       if (mortgageBalance > 0) {
         mortgageBalance = Math.max(0, mortgageBalance - monthPrincipal);
         yearInterest += monthInterest;
