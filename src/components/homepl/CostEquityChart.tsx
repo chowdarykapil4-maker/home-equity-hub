@@ -24,7 +24,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   })();
 
   return (
-    <div className="px-4 pt-2 pb-1 space-y-1">
+    <div className="px-3 pt-1.5 pb-0.5 space-y-0.5">
       <HelpTip
         plain="Tracks how your equity (green) and sunk costs (red) have grown month by month since purchase. The dashed line shows what a renter would have spent. When green pulls above red, you're building wealth faster than you're losing it."
       >
@@ -32,7 +32,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       </HelpTip>
 
       {/* Inline legend */}
-      <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <span className="w-3 h-[2px] rounded-full" style={{ backgroundColor: 'hsl(142, 71%, 45%)' }} />
           Equity built
@@ -47,7 +47,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
         </span>
       </div>
 
-      <div className="h-56">
+      <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={d.chartData}>
             <defs>
@@ -73,7 +73,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
         </ResponsiveContainer>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-[11px] text-muted-foreground text-center mt-0.5">
         Your equity is growing{' '}
         <HelpTip
           plain={`For every $1 you lose to sunk costs, $${ratio} in new wealth is generated (excluding your initial down payment). This ratio improves each year as more of your mortgage goes to principal.`}

@@ -135,7 +135,7 @@ export default function HomePL() {
             </div>
 
             {/* Block 2: Chart + Monthly metrics — one card */}
-            <div className="rounded-xl border border-border bg-card">
+            <div className="rounded-xl border border-border overflow-hidden">
               <CostEquityChart d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
               <MonthlySnapshot d={scenario} baseD={baseD} scenarioActive={scenarioActive} />
             </div>
