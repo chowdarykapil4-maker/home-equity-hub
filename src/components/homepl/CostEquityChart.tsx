@@ -24,7 +24,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   })();
 
   return (
-    <div className="px-4 pt-2 pb-1 space-y-1">
+    <div className="px-3 pt-1.5 pb-0.5 space-y-0.5">
       <HelpTip
         plain="Tracks how your equity (green) and sunk costs (red) have grown month by month since purchase. The dashed line shows what a renter would have spent. When green pulls above red, you're building wealth faster than you're losing it."
       >
