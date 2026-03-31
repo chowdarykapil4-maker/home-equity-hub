@@ -36,10 +36,13 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
   const completedProjects = projects.filter(p => p.status === 'Complete');
   const activeRate = customRate !== '' ? parseFloat(customRate) || 0 : selectedRate;
   const afterTax = viewMode === 'aftertax';
+  const extraPrincipal = (d as any).extraMonthlyPrincipal || 0;
+
+  const hasRentCast = (() => { try { const s = localStorage.getItem('casakat_rentcast_data'); return s && JSON.parse(s)?.rentEstimate?.rent > 0; } catch { return false; } })();
 
   const result = useMemo(() =>
-    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
-    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, mortgage, homePLConfig, completedProjects]
+    calculateRentInvest(activeRate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, extraPrincipal),
+    [activeRate, d.monthsOwned, d.downPayment, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, mortgage, homePLConfig, completedProjects, extraPrincipal]
   );
 
   const baseResult = useMemo(() =>
@@ -53,15 +56,15 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
     [b, baseResult, scenarioActive, tax, taxAdj]
   );
 
-  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent);
+  const makeRI = (rate: number) => calculateRentInvest(rate, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, extraPrincipal);
   const sensitivity = useMemo(() =>
     calculateTaxAdjustedSensitivity(SENSITIVITY_RATES, d, makeRI, tax),
-    [d, mortgage, homePLConfig, completedProjects, tax]
+    [d, mortgage, homePLConfig, completedProjects, tax, extraPrincipal]
   );
 
   const breakeven = useMemo(() =>
-    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15, d.resolvedRent),
-    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, d.resolvedRent]
+    calculateBreakevenTimeline(d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, 15, d.resolvedRent, extraPrincipal),
+    [d.downPayment, d.purchasePrice, mortgage, homePLConfig, tax, activeRate, d.totalRenoValueAdded, d.resolvedRent, extraPrincipal]
   );
 
   // Margins
@@ -74,8 +77,8 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
 
   // Preview (for collapsed header)
   const preview10 = useMemo(() =>
-    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent),
-    [d, mortgage, homePLConfig, completedProjects]
+    calculateRentInvest(10, d.monthsOwned, d.downPayment, mortgage, homePLConfig, completedProjects, d.wealthBuilt, d.sunkCost, d.purchaseDate, d.resolvedRent, extraPrincipal),
+    [d, mortgage, homePLConfig, completedProjects, extraPrincipal]
   );
   const preview10Tax = useMemo(() => calculateTaxAdjusted(d, preview10, tax), [d, preview10, tax]);
   const previewMargin = afterTax ? preview10Tax.afterTaxMargin : preview10.ownershipMargin;
@@ -86,7 +89,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
   // Bar percentages for visual header
   const ownerEquityPct = d.wealthBuilt > 0 && d.totalCashOut > 0 ? (d.wealthBuilt / d.totalCashOut) * 100 : 0;
   const ownerSunkPct = d.totalCashOut > 0 ? (d.sunkCost / d.totalCashOut) * 100 : 0;
-  const renterFillPct = d.totalCashOut > 0 ? (d.totalRentWouldHavePaid / d.totalCashOut) * 100 : 50;
+  const renterFillPct = d.totalCashOut > 0 ? (result.totalRentPaid / d.totalCashOut) * 100 : 50;
 
   return (
     <div className="rounded-xl border border-border bg-card px-5 py-3 space-y-2.5">
@@ -128,17 +131,17 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
           <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground">If you rented</p>
           <div className="h-7 rounded-lg overflow-hidden bg-muted/30">
             <div className="bg-destructive/50 flex items-center justify-center h-full" style={{ width: `${Math.min(renterFillPct, 100)}%` }}>
-              {renterFillPct > 15 && <span className="text-[10px] font-semibold text-destructive-foreground whitespace-nowrap px-1">{formatCurrency(d.totalRentWouldHavePaid)}</span>}
+              {renterFillPct > 15 && <span className="text-[10px] font-semibold text-destructive-foreground whitespace-nowrap px-1">{formatCurrency(result.totalRentPaid)}</span>}
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">{formatCurrency(d.totalRentWouldHavePaid)} spent → $0 equity</p>
+          <p className="text-[11px] text-muted-foreground">{formatCurrency(result.totalRentPaid)} rent paid → $0 equity</p>
         </div>
       </div>
 
       {/* SIMPLE VIEW */}
       {viewMode === 'simple' && (
         <p className="text-[13px] text-center text-muted-foreground py-1">
-          You spent {formatCurrency(Math.abs(d.totalCashOut - d.totalRentWouldHavePaid))} more but built {formatCurrency(Math.max(0, d.wealthBuilt))} in equity →{' '}
+          You spent {formatCurrency(Math.abs(d.totalCashOut - result.totalRentPaid))} more but built {formatCurrency(Math.max(0, d.wealthBuilt))} in equity →{' '}
           <span className={`font-bold ${simpleMargin >= 0 ? 'text-success' : 'text-destructive'}`}>
             Net: {simpleMargin >= 0 ? '+' : ''}{formatCurrency(simpleMargin)}
             <ScenarioDelta scenarioVal={d.ownershipAdvantage} baseVal={b.ownershipAdvantage} active={scenarioActive} />
@@ -172,8 +175,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
           {showHow && (
             <div className="bg-muted/50 rounded-lg px-2 py-2 text-[12px] text-muted-foreground leading-[1.4]">
               On your purchase date, instead of buying, you invest your {formatCurrency(d.downPayment)} down payment.
-              Each month you pay {formatCurrency(result.monthlyRent)} rent instead of ~{formatCurrency(result.monthlyOwnerCost)} in mortgage + tax + insurance + maintenance,
-              and invest the {formatCurrency(result.monthlySavings)} monthly savings plus any renovation costs you avoid.
+              You start paying ~{formatCurrency(result.startingRent)}/mo rent (growing {tax.annualRentIncrease}% annually),
+              compared to ~{formatCurrency(result.monthlyOwnerCost)} in mortgage + tax + insurance + maintenance.
+              The monthly savings ({formatCurrency(result.monthlySavings)} as of today) are invested along with any avoided renovation costs.
               Portfolio grows at the selected return rate, compounded monthly.
               {afterTax && ' After-tax view accounts for mortgage interest deduction, property tax deduction (SALT-limited), capital gains exclusion on home sale, and investment tax drag.'}
               <button onClick={() => setShowHow(false)} className="text-primary hover:underline ml-1">Got it</button>
@@ -273,7 +277,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
               )}
               <div>
                 <p className="text-[11px] text-muted-foreground leading-none mb-0">Rent paid (sunk)</p>
-                <HelpTip plain={`Total rent over ${d.monthsOwned} months. Every dollar is sunk — you own nothing at the end.`} math={`${formatCurrency(result.monthlyRent)}/mo × ${d.monthsOwned} months`}>
+                <HelpTip plain={`Total rent over ${d.monthsOwned} months, growing at ${tax.annualRentIncrease}%/yr from ~${formatCurrency(result.startingRent)}/mo. Every dollar is sunk — you own nothing at the end.`} math={`~${formatCurrency(result.startingRent)}/mo → ${formatCurrency(result.monthlyRent)}/mo over ${d.monthsOwned} months`}>
                   <span className="text-[13px] text-destructive/70 leading-tight">{formatCurrency(result.totalRentPaid)}</span>
                 </HelpTip>
               </div>
@@ -334,7 +338,11 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                   <th className="text-left py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Return</th>
                   <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Renter{afterTax ? ' (pre)' : ''}</th>
                   {afterTax && <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Renter (after)</th>}
-                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Your equity{afterTax ? ' (after)' : ''}</th>
+                  <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                    <HelpTip plain="Your home equity is the same regardless of stock market returns — it depends on your home's value and mortgage balance, not investment performance. The renter's wealth changes with each return rate, but yours stays fixed.">
+                      Your equity{afterTax ? ' (after)' : ''}
+                    </HelpTip>
+                  </th>
                   <th className="text-center py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Winner</th>
                   <th className="text-right py-1 px-1.5 text-[11px] font-medium uppercase text-muted-foreground">Margin</th>
                 </tr>
@@ -409,6 +417,9 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                   : `At ${activeRate}% market return, renting + investing remains ahead through Year 15.`}
               </HelpTip>
             </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              Table above shows current position (actual appreciation). Breakeven chart projects forward at {tax.annualAppreciation || 2}%/yr — conservative estimate.
+            </p>
           </div>
 
           {/* Year-by-year table */}
@@ -479,7 +490,7 @@ export default function UnifiedComparison({ d, baseD, scenarioActive = false }: 
                 <li>Home equity is illiquid — requires selling or HELOC to access. Portfolio is fully liquid.</li>
                 <li>Up to ${(tax.filingStatus === 'Single' ? '250' : '500')}K in home capital gains excluded. Investment gains taxed at {tax.capitalGainsRate + tax.stateCapGainsRate}%.</li>
                 <li>Model assumes renter-investor invests every saved dollar monthly. Lifestyle inflation typically erodes this discipline.</li>
-                <li>Rent assumed flat at {formatCurrency(homePLConfig.estimatedMonthlyRent)}/mo for historical; forward projection uses {tax.annualRentIncrease}% annual increase.</li>
+                <li>Rent starts at ~{formatCurrency(result.startingRent)}/mo (back-calculated from today's {formatCurrency(result.monthlyRent)}/mo) and grows {tax.annualRentIncrease}% annually. Source: {hasRentCast ? 'RentCast estimate' : 'manual entry'}.</li>
                 <li>Mortgage forces savings through mandatory payments. Investing requires active monthly discipline.</li>
                 {afterTax && <li>Tax calculations use simplified assumptions. Actual tax liability depends on total income, deductions, AMT, and other factors.</li>}
               </ol>
