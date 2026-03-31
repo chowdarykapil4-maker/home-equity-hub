@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatCurrency } from '@/lib/format';
 import { useHomePL } from '@/hooks/useHomePL';
 import { applyScenario } from '@/lib/scenario';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -38,10 +39,11 @@ function getHashTab(): TabId {
 export default function HomePL() {
   const baseD = useHomePL();
   const [scenarioPercent, setScenarioPercent] = useState(0);
+  const [extraPrincipal, setExtraPrincipal] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>(getHashTab);
 
-  const scenario = applyScenario(baseD, scenarioPercent);
-  const scenarioActive = scenarioPercent !== 0;
+  const scenario = applyScenario(baseD, scenarioPercent, extraPrincipal);
+  const scenarioActive = scenarioPercent !== 0 || extraPrincipal > 0;
 
   // Sync hash to tab
   useEffect(() => {
@@ -86,7 +88,7 @@ export default function HomePL() {
         </div>
 
         <div className="mb-2">
-          <ScenarioBanner scenarioPercent={scenarioPercent} onReset={() => setScenarioPercent(0)} />
+          <ScenarioBanner scenarioPercent={scenarioPercent} extraPrincipal={extraPrincipal} onReset={() => { setScenarioPercent(0); setExtraPrincipal(0); }} />
         </div>
 
         <ValueSensitivitySlider
@@ -94,6 +96,9 @@ export default function HomePL() {
           onChange={setScenarioPercent}
           modeledValue={scenario.currentHomeValue}
           baseValue={baseD.currentHomeValue}
+          extraPrincipal={extraPrincipal}
+          onExtraPrincipalChange={setExtraPrincipal}
+          scenario={scenario}
         />
 
         {/* Tab bar */}

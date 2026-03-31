@@ -21,6 +21,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
   const sunkGrowthRate = d.monthsOwned > 0 ? d.sunkCost / d.monthsOwned : 0;
   const historicalRatio = sunkGrowthRate > 0 ? (historicalGrowthRate / sunkGrowthRate).toFixed(1) : '∞';
   const forwardRatio = sunkGrowthRate > 0 ? (d.sustainableMonthlyRate / sunkGrowthRate).toFixed(1) : '∞';
+  const extraPrincipal = (d as any).extraMonthlyPrincipal || 0;
 
   const baseRatio = (() => {
     const bEq = b.trueMonthlyWealthCreation;
@@ -67,7 +68,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       // Find amortization row for this future month
       const amortIdx = currentAmortIdx >= 0 ? currentAmortIdx + m : -1;
       const amortRow = amortIdx >= 0 && amortIdx < amortRows.length ? amortRows[amortIdx] : null;
-      const monthPrincipal = amortRow ? amortRow.principalPortion : 0;
+      const monthPrincipal = amortRow ? amortRow.principalPortion + extraPrincipal : extraPrincipal;
       const monthInterest = amortRow ? amortRow.interestPortion : 0;
 
       projHomeValue = projHomeValue * (1 + monthlyAppRate);
@@ -98,7 +99,7 @@ export default function CostEquityChart({ d, baseD, scenarioActive = false }: Pr
       lastMonth: projectionData.length > 0 ? projectionData[projectionData.length - 1].month : null,
       projected10yrEquity: projectionData.length > 0 ? projectionData[projectionData.length - 1].equity : 0,
     };
-  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease]);
+  }, [d.chartData, d.currentHomeValue, d.resolvedRent, d.totalRenoValueAdded, mortgage, mortgagePayments, homePLConfig, assumedAppreciation, annualRentIncrease, extraPrincipal]);
 
   const tickInterval = Math.max(1, Math.floor(fullChartData.length / 8));
 
